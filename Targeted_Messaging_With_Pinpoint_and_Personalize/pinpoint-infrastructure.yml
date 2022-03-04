@@ -1,0 +1,192 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template sets up the infrastructure for processing data with Amazon Personalize
+  
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true 
+  
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub "${Bucket}"
+      PolicyDocument:
+        Statement:
+          - Action: 
+              - 's3:GetObject'
+              - 's3:ListBucket'
+            Effect: Allow
+            Principal: 
+              Service: "personalize.amazonaws.com"
+            Resource: 
+              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+  
+  PersonalizeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-AmazonPersonalize-ExecutionRole
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - personalize.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: "/service-role/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonPersonalizeFullAccess
+      Policies:
+      - PolicyName: !Sub "${AWS::StackName}-personalize-executionpolicy"
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+          - Effect: Allow
+            Action:
+              - "s3:ListBucket"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+
+###########################################################################################
+  LambdaPinpoint:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-pinpoint-ml
+      Code:
+        ZipFile: 
+         |
+            import json
+            from random import randrange
+            import random
+            import string
+            
+            def lambda_handler(event, context):
+                #print("Received event: " + json.dumps(event))
+                #print("Received context: " +  str(context))
+                segment_endpoints = event["Endpoints"]
+                new_segment = dict()
+                for endpoint_id in segment_endpoints.keys():
+                    endpoint = segment_endpoints[endpoint_id]
+                    if supported_endpoint(endpoint):
+                        new_segment[endpoint_id] = add_recommendation(endpoint)
+            
+                #print("Returning endpoints: " + json.dumps(new_segment))
+                return new_segment
+            
+            def supported_endpoint(endpoint):
+                return True
+            
+            def add_recommendation(endpoint):
+                endpoint["Recommendations"] = dict()
+            
+                customRecommender = list()
+                for i,item in enumerate(endpoint["RecommendationItems"]):
+                    if item == "DONATE":
+                        customRecommender.insert(i, "<p><b>Donate</b></p><p>Thank you so much for your continued interest in donating to our mission. We're making a real diifference in Haiti and in other affected regions around the world. This season, please consider making another donation to help kids like Sarah have a safe place to learn.</p><p><img src=\"https://www.kindpng.com/picc/m/219-2196537_donate-png-transparent-donation-button-png-download.png\" width=\"150\"/></p>")
+                    elif item == "EVENTS":
+                        customRecommender.insert(i, "<p><p><b>Upcoming Events</b></p>Thank you for your interest in what we're doing. Next month, we're sending a team to Haiti to rebuild Mazenod high school, about 150 kilometers (90 miles) from Port-au-Prince. The recent quake in the region destroyed every classroom in that school. When we're done, the school will be fully operational.</p>")
+                    elif item == "GET_INVOLVED":
+                        customRecommender.insert(i, "<p><p><b>Get involved</b></p>Thank you for wanting to get involved in what we're doing. We're sending a team to Haiti next month to rebuild Mazenod high school, but we need people to help out. If you want to really make a difference and you are an experienced carpenter or electrician, please <a href=\"\">Contact Us</a>.</p>")
+                    elif item == "NEWS":
+                        customRecommender.insert(i, "<p><b>Latest news</b><ul><li>Aid agencies operating in Yemen are deeply concerned over the humanitarian situation in and around Marib. <a href=\"\">[READ MORE]</a></li><li>Our organization has committed to cut our carbon footprint in half by 2023. <a href=\"\">[READ MORE]</a></li><li>More than 12 million people in Syria and Iraq are losing access to water, food and electricity. Urgent action is needed. <a href=\"\">[READ MORE]</a></li></ul></p>")
+                    elif item == "MEMBER_BENEFITS":
+                        customRecommender.insert(i, "<p><b>Members-Only</b><ul><li><a href=\"\">Get your digital membership card</a></li><li>Read the latest issue of <a href=\"\">Members Only</a>, our exclusive members magazine</li><li>Use code <b>BA83134</b> in our <a href=\"\">online store</a> this month for an extra 20% off all items!</li></ul></p>")
+                    
+                endpoint["Recommendations"]["FriendlyRecommendation"] = customRecommender
+                #print(endpoint)
+                return endpoint
+
+      Handler: "index.lambda_handler"
+      Runtime: python3.7
+      Timeout: 30
+      Role: !GetAtt LambdaPinpointExecutionRole.Arn
+    
+
+  LambdaPinpointExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  PinpointLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaPinpoint
+      Principal: !Sub pinpoint.${AWS::Region}.amazonaws.com
+      SourceAccount: !Sub ${AWS::AccountId}
+      SourceArn: !Sub "arn:${AWS::Partition}:mobiletargeting:${AWS::Region}:${AWS::AccountId}:recommenders/*"
+
+###########################################################################################
+  PinpointRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-pinpoint-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - pinpoint.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: "/service-role/"
+      Policies:
+      - PolicyName: !Sub ${AWS::StackName}-pinpoint-permission
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+              - personalize:GetRecommendations
+              - personalize:DescribeCampaign
+              - personalize:DescribeSolution
+            Resource: 
+              - !Sub arn:${AWS::Partition}:personalize:${AWS::Region}:${AWS::AccountId}:campaign/*
+              - !Sub arn:${AWS::Partition}:personalize:${AWS::Region}:${AWS::AccountId}:solution/*
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+          - Effect: Allow
+            Action:
+              - "s3:ListBucket"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+
+  
+  PinpointApp:
+    Type: AWS::Pinpoint::App
+    Properties: 
+      Name: !Sub ${AWS::StackName}-demo
+
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
+  PersonalizeRole:
+    Value: !GetAtt PersonalizeRole.Arn
+  PinpointRole:
+    Value: !GetAtt PinpointRole.Arn
+  LambdaTransform:
+    Value: !GetAtt LambdaPinpoint.Arn
+  PinpointApplicationId:
+    Value: !Ref PinpointApp
