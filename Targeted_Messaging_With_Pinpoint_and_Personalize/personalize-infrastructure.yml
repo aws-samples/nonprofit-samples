@@ -1,0 +1,50 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample CFN template to spin up an Amazon Personalize solution
+
+Parameters:
+  ImportFileUri: 
+    Type: String
+    Description: The uri of the personalize data files
+  
+  PersonalizeRoleArn:
+    Type: String
+    Description: The role Amazon Personalize should use to import the dataset
+
+Resources:
+  DataSetGroup:
+    Type: AWS::Personalize::DatasetGroup
+    Properties:
+      Name: !Sub ${AWS::StackName}_dataset
+      
+  DataSchema:
+    Type: AWS::Personalize::Schema
+    Properties:
+      Name: !Sub ${AWS::StackName}_UserInteractionsSchema
+      Schema: >-
+        {"type": "record","name": "Interactions","namespace": "com.amazonaws.personalize.schema","fields": [{"name": "USER_ID","type": "string"},{"name": "ITEM_ID","type": "string"},{"name": "TIMESTAMP","type": "long"}],"version": "1.0"}
+      
+  DataSet:
+    Type: AWS::Personalize::Dataset
+    Properties:
+      Name: !Sub ${AWS::StackName}_UserInteractions
+      SchemaArn: !GetAtt  DataSchema.SchemaArn
+      DatasetGroupArn: !GetAtt DataSetGroup.DatasetGroupArn
+      DatasetType: Interactions 
+      DatasetImportJob:
+        JobName: !Sub ${AWS::StackName}_import
+        DataSource:
+          DataLocation: !Ref ImportFileUri
+        RoleArn: !Ref PersonalizeRoleArn
+  
+  PersonalizeSolution:
+    Type: AWS::Personalize::Solution 
+    DependsOn: DataSet
+    Properties:
+      Name: !Sub ${AWS::StackName}_solution
+      PerformAutoML: True 
+      DatasetGroupArn: !GetAtt DataSetGroup.DatasetGroupArn
+      
+Outputs:
+  PersonalizeSolutionArn:
+    Value: !GetAtt PersonalizeSolution.SolutionArn

@@ -60,9 +60,19 @@ aws s3 cp UserInteractions.csv s3://$BUCKET_NAME/npo/UserInteractions.csv
 aws s3 cp pinpoint-users.csv s3://$BUCKET_NAME/pinpoint/pinpoint-users.csv
 
 echo "Creating the personalization model..."
-python3 create_personalize.py $STACK_NAME $BUCKET_NAME $PERSONALIZE_ROLE
+PERS_STACK_ID=$( aws cloudformation create-stack --stack-name ${STACK_NAME}-personalize \
+  --template-body file://personalize-infrastructure.yml \
+  --parameters ParameterKey=ImportFileUri,ParameterValue=s3://${BUCKET_NAME}/npo/UserInteractions.csv ParameterKey=PersonalizeRoleArn,ParameterValue=${PERSONALIZE_ROLE} \
+  | jq -r .StackId \
+)
+
+aws cloudformation wait stack-create-complete --stack-name ${PERS_STACK_ID}
+CFN_OUTPUT=$(aws cloudformation describe-stacks --stack-name ${PERS_STACK_ID} | jq .Stacks[0].Outputs)
+PERSONALIZE_SOL_ARN=$(echo $CFN_OUTPUT | jq '.[]| select(.OutputKey | contains("PersonalizeSolutionArn")).OutputValue' -r)
+
+python3 create_personalize.py $STACK_NAME $PERSONALIZE_SOL_ARN
 
 CAMPAIGN_ARN=$(aws personalize list-campaigns | jq '.campaigns[] | select(.name=="'${STACK_NAME}'_campaign") | .campaignArn' -r)
 
-echo "Building out the campaign..."
+#echo "Building out the campaign..."
 python3 create_pinpoint_campaign.py $STACK_NAME $CAMPAIGN_ARN $LAMBDA_TRANSFORM $PINPOINT_ROLE $PINPOINT_APP_ID $EMAIL_ADDRESS $BUCKET_NAME
