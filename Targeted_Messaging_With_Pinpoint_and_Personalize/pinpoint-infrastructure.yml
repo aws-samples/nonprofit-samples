@@ -3,6 +3,31 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: This template sets up the infrastructure for processing data with Amazon Personalize
   
 Resources:
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: True
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-policy
+        Statement:
+          - Sid: IAM user permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow key use
+            Effect: Allow 
+            Principal:
+              AWS: 
+                - !GetAtt PersonalizeRole.Arn
+                - !GetAtt PinpointRole.Arn
+              Service: "personalize.amazonaws.com"
+            Action: "kms:Decrypt"
+            Resource: "*"
+
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -12,6 +37,11 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: True
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
   
 
   BucketPolicy:
@@ -29,7 +59,7 @@ Resources:
             Resource: 
               - !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
               - !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
-          - Action: 
+          - Action:  
               - 's3:*'
             Effect: Deny
             Principal: "*"
@@ -39,6 +69,22 @@ Resources:
             Condition:
               Bool:
                 'aws:SecureTransport': False
+          - Action:
+              - 's3:PutObject'
+            Effect: Deny
+            Principal: "*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "aws:kms"
+          - Action:
+              - 's3:PutObject'
+            Effect: Deny
+            Principal: "*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Condition:
+              "Null":
+                "s3:x-amz-server-side-encryption": True
   
   PersonalizeRole:
     Type: AWS::IAM::Role
@@ -68,6 +114,10 @@ Resources:
             Action:
               - "s3:ListBucket"
             Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+            Resource: "*"
 
 ###########################################################################################
   LambdaPinpoint:
@@ -182,6 +232,10 @@ Resources:
             Action:
               - "s3:ListBucket"
             Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+            Resource: "*"
 
   
   PinpointApp:
@@ -200,3 +254,5 @@ Outputs:
     Value: !GetAtt LambdaPinpoint.Arn
   PinpointApplicationId:
     Value: !Ref PinpointApp
+  EncryptionKeyId:
+    Value: !Ref EncryptionKey

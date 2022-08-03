@@ -54,10 +54,11 @@ PERSONALIZE_ROLE=$(echo $CFN_OUTPUT | jq '.[]| select(.OutputKey | contains("Per
 LAMBDA_TRANSFORM=$(echo $CFN_OUTPUT | jq '.[]| select(.OutputKey | contains("LambdaTransform")).OutputValue' -r)
 PINPOINT_APP_ID=$(echo $CFN_OUTPUT | jq '.[]| select(.OutputKey | contains("PinpointApplicationId")).OutputValue' -r)
 PINPOINT_ROLE=$(echo $CFN_OUTPUT | jq '.[]| select(.OutputKey | contains("PinpointRole")).OutputValue' -r)
+ENCRYPTION_KEY_ID=$(echo $CFN_OUTPUT | jq '.[]| select(.OutputKey | contains("EncryptionKeyId")).OutputValue' -r)
 
 
-aws s3 cp UserInteractions.csv s3://$BUCKET_NAME/npo/UserInteractions.csv
-aws s3 cp pinpoint-users.csv s3://$BUCKET_NAME/pinpoint/pinpoint-users.csv
+aws s3 cp UserInteractions.csv s3://$BUCKET_NAME/npo/UserInteractions.csv --sse aws:kms --sse-kms-key-id ${ENCRYPTION_KEY_ID}
+aws s3 cp pinpoint-users.csv s3://$BUCKET_NAME/pinpoint/pinpoint-users.csv --sse aws:kms --sse-kms-key-id ${ENCRYPTION_KEY_ID}
 
 echo "Creating the personalization model..."
 PERS_STACK_ID=$( aws cloudformation create-stack --stack-name ${STACK_NAME}-personalize \
