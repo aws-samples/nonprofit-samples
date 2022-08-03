@@ -29,6 +29,16 @@ Resources:
             Resource: 
               - !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
               - !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+          - Action: 
+              - 's3:*'
+            Effect: Deny
+            Principal: "*"
+            Resource: 
+              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Condition:
+              Bool:
+                'aws:SecureTransport': False
   
   PersonalizeRole:
     Type: AWS::IAM::Role
