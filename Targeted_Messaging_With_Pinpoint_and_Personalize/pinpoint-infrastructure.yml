@@ -41,13 +41,14 @@ Resources:
         ServerSideEncryptionConfiguration:
           - BucketKeyEnabled: True
             ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref EncryptionKey
               SSEAlgorithm: aws:kms
-  
 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
+    DependsOn: Bucket
     Properties:
-      Bucket: !Sub "${Bucket}"
+      Bucket: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
       PolicyDocument:
         Statement:
           - Action: 
@@ -57,15 +58,15 @@ Resources:
             Principal: 
               Service: "personalize.amazonaws.com"
             Resource: 
-              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
-              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
           - Action:  
               - 's3:*'
             Effect: Deny
             Principal: "*"
             Resource: 
-              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
-              - !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
             Condition:
               Bool:
                 'aws:SecureTransport': False
@@ -73,7 +74,7 @@ Resources:
               - 's3:PutObject'
             Effect: Deny
             Principal: "*"
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
             Condition:
               StringNotEquals:
                 "s3:x-amz-server-side-encryption": "aws:kms"
@@ -81,7 +82,7 @@ Resources:
               - 's3:PutObject'
             Effect: Deny
             Principal: "*"
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
             Condition:
               "Null":
                 "s3:x-amz-server-side-encryption": True
@@ -109,11 +110,11 @@ Resources:
             Action:
               - "s3:GetObject"
               - "s3:PutObject"
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
           - Effect: Allow
             Action:
               - "s3:ListBucket"
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
           - Effect: Allow
             Action:
               - "kms:Decrypt"
@@ -227,11 +228,11 @@ Resources:
             Action:
               - "s3:GetObject"
               - "s3:PutObject"
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}/*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
           - Effect: Allow
             Action:
               - "s3:ListBucket"
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Bucket}"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
           - Effect: Allow
             Action:
               - "kms:Decrypt"
