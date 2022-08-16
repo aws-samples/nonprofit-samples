@@ -34,6 +34,7 @@ Resources:
                 - !GetAtt LambdaTwitterPermission.Arn
                 - !GetAtt FirehosePermissions.Arn
                 - !GetAtt GlueCrawlerPermissions.Arn
+                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/aws-quicksight-service-role-v0
             Action: "kms:Decrypt"
             Resource: "*"
             
