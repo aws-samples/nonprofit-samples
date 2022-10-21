@@ -212,6 +212,13 @@ Resources:
                     response_data = resp.data.decode('utf-8')
                 
                     json_response = json.loads(response_data)
+                    if json_response.get('title') is not None and json_response.get('title') == "Unauthorized":
+                        print('Invalid Twitter bearer token. Existing function.')
+                        return 
+                
+                    if json_response.get('errors') is not None:
+                        print('Error identified in response. Verify the Twitter user Id is valid.')
+                        return 
 
                     #Write data out to S3
                     s3.Object(BUCKET_NAME, 'raw_tweets/YEAR={}/MONTH={}/DAY={}/{}.txt'.format(dt.year, dt.month, dt.day, uuid.uuid4())).put(Body=response_data, ServerSideEncryption='aws:kms')
