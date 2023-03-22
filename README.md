@@ -9,6 +9,8 @@ The following solutions are contained in this repository:
 
 * [How nonprofits can automate tax-exempt status across AWS accounts](https://aws.amazon.com/blogs/publicsector/how-nonprofits-can-automate-tax-exempt-status-across-aws-accounts/) - this is a blog post that shows how you can automate your tax-exempt status across your AWS accounts.
 
+* [Using machine learning to customize your direct mailings](DirectMailing_With_Amazon_Personalize/README.md) - this folder contains a solution to set up a personalization solution for a direct mailing workflow.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
