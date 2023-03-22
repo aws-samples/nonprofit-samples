@@ -7,6 +7,7 @@ The architecture for this solution is as follows.
 ![Targeted Messaging Architecture](./support/Architecture.png)
 
 To deploy:
+- Run `pip install -r requirements.txt` to install the necessary Python libraries.
 - Go into `install.sh` and modify lines 10 and 11 to set the email address and stack name you want to use.
 - Run `./install.sh`
 

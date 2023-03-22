@@ -1,0 +1,1063 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template sets up the infrastructure for a personalized direct mailing solution
+
+Parameters:
+  EmailAddress:
+    Type: String
+    MinLength: 5
+    AllowedPattern: '[^\s@]+@[^\s@]+\.[^\s@]+'
+  Password:
+    Type: String
+    MinLength: 8
+    NoEcho: true
+    
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      EmailAddress:
+        default: The email address where you'd like to receive notifications
+      Password:
+        default: The password for the upload utility.
+    
+#############################################################
+# AWS Lambda Managed Pandas layer 
+# https://aws-sdk-pandas.readthedocs.io/en/stable/layers.html
+#############################################################        
+Mappings:
+  ManagedPandas:
+    af-south-1:
+      LayerArn: arn:aws:lambda:af-south-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    ap-northeast-1:
+      LayerArn: arn:aws:lambda:ap-northeast-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    ap-south-1:
+      LayerArn: arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    ap-southeast-1:
+      LayerArn: arn:aws:lambda:ap-southeast-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    ap-southeast-2:
+      LayerArn: arn:aws:lambda:ap-southeast-2:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    eu-central-1:
+      LayerArn: arn:aws:lambda:eu-central-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    eu-west-1:
+      LayerArn: arn:aws:lambda:eu-west-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    eu-west-2:
+      LayerArn: arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    us-east-1:
+      LayerArn: arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    us-east-2:
+      LayerArn: arn:aws:lambda:us-east-2:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+    us-west-2: 
+      LayerArn: arn:aws:lambda:us-west-2:336392948345:layer:AWSSDKPandas-Python39-Arm64:4
+      
+Resources:
+  #############################################################
+  # Resources required for S3 (bucket/encryption/notifications)
+  #############################################################        
+
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: True
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-policy
+        Statement:
+          - Sid: IAM user permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow key use
+            Effect: Allow 
+            Principal:
+              AWS: 
+                - !GetAtt PersonalizeRole.Arn
+              Service: "personalize.amazonaws.com"
+            Action: 
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+            Resource: "*"
+          - Sid: Allow access for Personalize role
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !GetAtt PersonalizeRole.Arn
+                - !GetAtt IngestLambdaPermission.Arn
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+            Resource: "*"
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      cfn_nag:
+          rules_to_suppress:
+            - id: W35
+              reason: Solution is designed to be used by a small number of individuals; bucket logging not required
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: True
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref EncryptionKey
+              SSEAlgorithm: aws:kms
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods:
+              - PUT
+              - POST
+            AllowedOrigins:
+              - "*"
+            AllowedHeaders:
+              - "*"
+            ExposedHeaders:
+              - "ETag"
+  
+  EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventBusName: default
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - Object Created
+        detail:
+          bucket:
+            name:
+              - !Ref Bucket
+          object:
+            key:
+              - prefix: ingest/
+      State: ENABLED
+      Targets:
+        - Id: invoke-state-machine
+          Arn: !Ref OrchestratePersonalization
+          RoleArn: !GetAtt PersonalizeRole.Arn
+          InputPath: $.detail 
+
+  
+  #############################################################
+  # Resources required for Amazon Personalize
+  #############################################################
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: Bucket
+    Properties:
+      Bucket: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+      PolicyDocument:
+        Statement:
+          - Action: 
+              - s3:GetObject
+              - s3:PutObject
+              - s3:ListBucket
+            Effect: Allow
+            Principal: 
+              Service: "personalize.amazonaws.com"
+            Resource: 
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
+          - Action:  
+              - 's3:*'
+            Effect: Deny
+            Principal: "*"
+            Resource: 
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+              - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
+            Condition:
+              Bool:
+                'aws:SecureTransport': False
+          - Action:
+              - 's3:PutObject'
+            Effect: Deny
+            Principal: "*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "aws:kms"
+          - Action:
+              - 's3:PutObject'
+            Effect: Deny
+            Principal: "*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
+            Condition:
+              "Null":
+                "s3:x-amz-server-side-encryption": True
+  
+  PersonalizeRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: The "*" permission grants access to KMS. Each individual KMS policy will actually allow the key action
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - personalize.amazonaws.com
+              - states.amazonaws.com
+              - events.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: "/service-role/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonPersonalizeFullAccess
+      Policies:
+      - PolicyName: !Sub "${AWS::StackName}-personalize-executionpolicy"
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:ListGrants
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: "*"
+          - Effect: Allow
+            Action: 
+              - ses:SendEmail
+            Resource: !Sub "arn:${AWS::Partition}:ses:*:${AWS::AccountId}:identity/*"            
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+              - states:DescribeExecution
+              - states:StopExecution 
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - events:PutTargets
+              - events:PutRule
+              - events:DescribeRule
+            Resource: !Sub arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule
+
+  DataSetGroup:
+    Type: AWS::Personalize::DatasetGroup
+    Properties:
+      Name: !Sub ${AWS::StackName}_dataset
+      
+  DataSchema:
+    Type: AWS::Personalize::Schema
+    Properties:
+      Name: !Sub ${AWS::StackName}_UserInteractionsSchema
+      Schema: >-
+        {"type": "record","name": "Interactions","namespace": "com.amazonaws.personalize.schema","fields": [{"name": "USER_ID","type": "string"},{"name": "ITEM_ID","type": "string"},{"name": "TIMESTAMP","type": "long"}],"version": "1.0"}
+      
+  DataSet:
+    Type: AWS::Personalize::Dataset
+    Properties:
+      Name: !Sub ${AWS::StackName}_UserInteractions
+      SchemaArn: !GetAtt  DataSchema.SchemaArn
+      DatasetGroupArn: !GetAtt DataSetGroup.DatasetGroupArn
+      DatasetType: Interactions 
+      
+  #############################################################
+  # Resources required for Lambda function processing
+  #############################################################
+  IngestLambda:
+    Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+          rules_to_suppress:
+            - id: W58
+              reason: The attached Lambda IAM role has the LambdaBasicExecutionRole attached, which grants write permission to CloudWatch logs
+            - id: W89
+              reason: The function does not need to be attached to a VPC, because it does not access any VPC resources
+    Properties:
+      Code:
+        ZipFile:  |
+          import boto3
+          import datetime
+          import os
+          import pandas as pd 
+          
+          BUCKET_NAME = os.environ['BUCKET_NAME']
+          KMS_KEY_ID = os.environ['KMS_KEY_ID']
+
+          def lambda_handler(event, context):
+            FILE_NAME = event['key_name']
+
+            retrieve_from_s3(BUCKET_NAME, FILE_NAME, '/tmp/MailMerge.xlsx')
+            
+            #Read Excel files into DataFrames
+            mailing_data = pd.read_excel('/tmp/MailMerge.xlsx', sheet_name='Mailing')
+            interaction_data = pd.read_excel('/tmp/MailMerge.xlsx', sheet_name='Interactions')
+
+            #Import interactions
+            interaction_data.to_csv('/tmp/interactions.csv')
+            s3_filename = "parsed/{}/interactions.csv".format(datetime.date.today())
+            upload_to_s3('/tmp/interactions.csv', BUCKET_NAME, KMS_KEY_ID, object_name=s3_filename)
+
+            #Import user data
+            mailing_data = mailing_data.loc[:, ['USER_ID']]
+            mailing_data.rename(columns={'USER_ID': 'userId'}, inplace=True)
+            json_filename = save_to_json(mailing_data, 'users', BUCKET_NAME, KMS_KEY_ID)
+            
+            return {
+                "data_import_job_location": "s3://{}/{}".format(BUCKET_NAME, s3_filename),
+                "user_file_location": "s3://{}/{}".format(BUCKET_NAME, json_filename),
+                "original_file_location": "s3://{}/{}".format(BUCKET_NAME, FILE_NAME)
+            }
+
+          #Function to retrieve object from S3 and save to file
+          def retrieve_from_s3(bucket, object_name, filename):
+              s3_client = boto3.client('s3')
+              s3_client.download_file(bucket, object_name, filename)
+              return filename
+
+          #Function to save CSV file to S3 in a folder
+          def upload_to_s3(file_name, bucket, KMS_KEY_ID, object_name=None):
+
+              # If S3 object_name was not specified, use file_name
+              if object_name is None:
+                  object_name = file_name
+
+              # Upload the file
+              s3_client = boto3.client('s3')
+              try:
+                  response = s3_client.upload_file(file_name, bucket, object_name, 
+                      ExtraArgs={'ServerSideEncryption': 'aws:kms', 'SSEKMSKeyId': KMS_KEY_ID}
+                  )
+              except ClientError as e:
+                  logging.error(e)
+                  return False
+              return True
+
+          #Function to save one column from a pandas data frame to a JSON object and save to S3
+          def save_to_json(df, filename, BUCKET_NAME, KMS_KEY_ID):
+              #Save the data frame to a JSON file
+              tmp_filename = '/tmp/' + filename
+              df.to_json(tmp_filename, orient='records', lines=True)
+              
+              #Upload the JSON file to S3
+              s3_filename = "parsed/{}/{}.json".format(datetime.date.today(), filename)
+              upload_to_s3(tmp_filename, BUCKET_NAME, KMS_KEY_ID, object_name=s3_filename)
+              
+              return s3_filename
+          
+          
+      Handler: "index.lambda_handler"
+      Runtime: python3.9
+      Timeout: 60
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - !FindInMap [ManagedPandas, !Ref "AWS::Region", "LayerArn"]
+      MemorySize: 512
+      Architectures:
+        - arm64
+      Role: !GetAtt IngestLambdaPermission.Arn
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref Bucket
+          KMS_KEY_ID: !Ref EncryptionKey
+          
+  PostProcessLambda:
+    Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+          rules_to_suppress:
+            - id: W58
+              reason: The attached Lambda IAM role has the LambdaBasicExecutionRole attached, which grants write permission to CloudWatch logs
+            - id: W89
+              reason: The function does not need to be attached to a VPC, because it does not access any VPC resources
+    Properties:
+      Code:
+        ZipFile:  |
+          import boto3
+          from botocore.client import Config
+          import os
+          import pandas
+          import json
+          import datetime
+
+          BUCKET_NAME = os.environ['BUCKET_NAME']
+          KMS_KEY_ID = os.environ['KMS_KEY_ID']
+
+          def update_original_excel_data(original_file, prediction_df, prefix):
+            file_name = original_file[len(BUCKET_NAME) + 6:]
+
+            retrieve_from_s3(BUCKET_NAME, file_name, '/tmp/MailMerge.xlsx')
+                      
+            #Read Excel files into DataFrames
+            mailing_data = pandas.read_excel('/tmp/MailMerge.xlsx', sheet_name='Mailing')
+            category_data = pandas.read_excel('/tmp/MailMerge.xlsx', sheet_name='Categories')
+            
+            #TODO: See about getting rid of excel headers
+            
+            merged_df = pandas.merge(mailing_data, prediction_df, how='left', on=['USER_ID'])
+            final_df = pandas.merge(merged_df, category_data, how='left', on=['CATEGORY'])
+            
+            final_df.to_excel('/tmp/MailMerge.xlsx', sheet_name='Mailing', index=False)
+            
+            #Now save the file to S3
+            output_file = 'output/{}/MailMerge.xlsx'.format(prefix)
+            upload_to_s3('/tmp/MailMerge.xlsx', BUCKET_NAME, KMS_KEY_ID, output_file)
+            
+            return output_file
+
+          def retrieve_from_s3(bucket, object_name, filename):
+            s3_client = boto3.client('s3')
+            s3_client.download_file(bucket, object_name, filename)
+            return filename
+
+          def upload_to_s3(file_name, bucket, KMS_KEY_ID, object_name=None):
+
+            # If S3 object_name was not specified, use file_name
+            if object_name is None:
+              object_name = file_name
+
+            # Upload the file
+            s3_client = boto3.client('s3')
+            try:
+              response = s3_client.upload_file(file_name, bucket, object_name, 
+                  ExtraArgs={'ServerSideEncryption': 'aws:kms', 'SSEKMSKeyId': KMS_KEY_ID}
+              )
+            except ClientError as e:
+              logging.error(e)
+              return False
+            return True
+
+          def load_predictions_to_df(output_file):
+            
+            f = open(output_file, 'r')
+            file_content = f.read()
+            f.close()
+
+            #Create new dataframe
+            df = pandas.DataFrame(columns=['USER_ID', 'CATEGORY'])
+
+            #Parse the data and put into the dataframe
+            for line in file_content.split('\n'):
+                try:
+                    json_data = json.loads(line)
+                    df.loc[len(df.index)] = [json_data['input']['userId'], json_data['output']['recommendedItems'][0]]
+                except:
+                    continue
+
+            return df
+
+          def presign_url(s3_data):
+            client = boto3.client('s3', config=Config(signature_version='s3v4'))
+            response = client.generate_presigned_url('get_object', Params={'Bucket': BUCKET_NAME, 'Key': s3_data}, ExpiresIn=604800)
+            
+            return response
+
+          def lambda_handler(event, context):
+            original_file = event['original_file_location']
+            prediction_file = event['PredictionResults']
+            
+            file_name = prediction_file[len(BUCKET_NAME) + 6:] + "users.json.out"
+            folder_prefix = file_name.split("/")
+            prefix = folder_prefix[len(folder_prefix) - 2]
+            
+            retrieve_from_s3(BUCKET_NAME, file_name, "/tmp/predictions.out")
+            df = load_predictions_to_df("/tmp/predictions.out")
+            url_data = update_original_excel_data(original_file, df, prefix)
+  
+            presigned_url = presign_url(url_data)
+            
+            return { "PresignedUrl": presigned_url }
+
+      Handler: "index.lambda_handler"
+      Runtime: python3.9
+      Timeout: 60
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - !FindInMap [ManagedPandas, !Ref "AWS::Region", "LayerArn"]
+      MemorySize: 512
+      Architectures:
+        - arm64
+      Role: !GetAtt IngestLambdaPermission.Arn
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref Bucket
+          KMS_KEY_ID: !Ref EncryptionKey
+  
+  IngestLambdaPermission:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+          rules_to_suppress:
+            - id: W11
+              reason: The "*" permission grants access to KMS. Each individual KMS policy will actually allow the key action
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub '${AWS::StackName}-s3access'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject 
+                  - s3:ListBucket
+                Resource: 
+                  - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize"
+                  - !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-personalize/*"
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: "*"
+   
+  
+  #############################################################
+  # Resources required for the step function
+  #############################################################
+  
+  #
+  # This step function is expecting JSON input that looks like this:
+  # {
+  #  "data_import_job_location": "s3://direct-mail-122554519915-us-east-1-personalize/personalize/ingest/user_interactions.csv",
+  #  "user_file_location": "s3://direct-mail-122554519915-us-east-1-personalize/input/users.json"
+  # }
+  #
+  PersonalizeBatch:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt PersonalizeRole.Arn
+      DefinitionString: 
+        !Sub 
+          |-
+            {
+              "Comment": "Performs batch predictions via Amazon Personalize",
+              "StartAt": "Parse mailing data",
+              "States": {
+                "Parse mailing data": {
+                  "Type": "Task",
+                  "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+                  "OutputPath": "$.Payload",
+                  "Parameters": {
+                    "Payload.$": "$",
+                    "FunctionName": "${IngestLambda.Arn}"
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 2,
+                      "MaxAttempts": 6,
+                      "BackoffRate": 2
+                    }
+                  ],
+                  "Next": "CreateDatasetImportJob"
+                },
+                "CreateDatasetImportJob": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "DataSource": {
+                      "DataLocation.$": "$.data_import_job_location"
+                    },
+                    "DatasetArn": "${DataSet.DatasetArn}",
+                    "JobName.$": "States.UUID()",
+                    "RoleArn": "${PersonalizeRole.Arn}"
+                  },
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:createDatasetImportJob",
+                  "Next": "DescribeDatasetImportJob",
+                  "ResultPath": "$.StepResult"
+                },
+                "DescribeDatasetImportJob": {
+                  "Type": "Task",
+                  "Next": "Choice",
+                  "Parameters": {
+                    "DatasetImportJobArn.$": "$.StepResult.DatasetImportJobArn"
+                  },
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:describeDatasetImportJob",
+                  "ResultSelector": {
+                    "DatasetImportJobArn.$": "$.DatasetImportJob.DatasetImportJobArn",
+                    "Status.$": "$.DatasetImportJob.Status"
+                  },
+                  "ResultPath": "$.StepResult"
+                },
+                "Choice": {
+                  "Type": "Choice",
+                  "Choices": [
+                    {
+                      "Variable": "$.StepResult.Status",
+                      "StringEquals": "ACTIVE",
+                      "Next": "CreateSolution"
+                    },
+                    {
+                      "Variable": "$.StepResult.Status",
+                      "StringEquals": "CREATE FAILED",
+                      "Next": "Fail"
+                    }
+                  ],
+                  "Default": "Wait for data import"
+                },
+                "Wait for data import": {
+                  "Type": "Wait",
+                  "Seconds": 60,
+                  "Next": "DescribeDatasetImportJob"
+                },
+                "CreateSolution": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "DatasetGroupArn": "${DataSetGroup.DatasetGroupArn}",
+                    "RecipeArn": "arn:${AWS::Partition}:personalize:::recipe/aws-user-personalization",
+                    "Name.$": "States.UUID()"
+                  },
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:createSolution",
+                  "Next": "CreateSolutionVersion",
+                  "ResultPath": "$.StepResult"
+                },
+                "CreateSolutionVersion": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "SolutionArn.$": "$.StepResult.SolutionArn"
+                  },
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:createSolutionVersion",
+                  "Next": "CreateBatchInferenceJob",
+                  "ResultPath": "$.StepResult"
+                },
+                "CreateBatchInferenceJob": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "JobInput": {
+                      "S3DataSource": {
+                        "Path.$": "$.user_file_location",
+                        "KmsKeyArn": "${EncryptionKey.Arn}"
+                      }
+                    },
+                    "JobName.$": "States.UUID()",
+                    "JobOutput": {
+                      "S3DataDestination": {
+                        "Path.$": "States.Format('s3://${Bucket}/output/{}/', States.UUID())",
+                        "KmsKeyArn": "${EncryptionKey.Arn}"
+                      }
+                    },
+                    "RoleArn": "${PersonalizeRole.Arn}",
+                    "SolutionVersionArn.$": "$.StepResult.SolutionVersionArn"
+                  },
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:createBatchInferenceJob",
+                  "Catch": [
+                    {
+                      "ErrorEquals": [
+                        "Personalize.ResourceInUseException"
+                      ],
+                      "Comment": "pending",
+                      "Next": "Wait",
+                      "ResultPath": "$.errorMessage"
+                    }
+                  ],
+                  "ResultSelector": {
+                    "BatchInferenceJobArn.$": "$.BatchInferenceJobArn"
+                  },
+                  "ResultPath": "$.StepResult",
+                  "Next": "DescribeBatchInferenceJob"
+                },
+                "DescribeBatchInferenceJob": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "BatchInferenceJobArn.$": "$.StepResult.BatchInferenceJobArn"
+                  },
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:describeBatchInferenceJob",
+                  "Next": "BatchInferenceChoice",
+                  "ResultSelector": {
+                    "BatchInferenceJobArn.$": "$.BatchInferenceJob.BatchInferenceJobArn",
+                    "PredictionResults.$": "$.BatchInferenceJob.JobOutput.S3DataDestination.Path",
+                    "JobStatus.$": "$.BatchInferenceJob.Status"
+                  },
+                  "ResultPath": "$.StepResult"
+                },
+                "BatchInferenceChoice": {
+                  "Type": "Choice",
+                  "Choices": [
+                    {
+                      "Not": {
+                        "Variable": "$.StepResult.JobStatus",
+                        "StringEquals": "ACTIVE"
+                      },
+                      "Next": "Wait Batch Inference"
+                    },
+                    {
+                      "Variable": "$.StepResult.JobStatus",
+                      "StringEquals": "CREATE FAILED",
+                      "Next": "Fail"
+                    }
+                  ],
+                  "Default": "Generate Excel Output"
+                },
+                "Generate Excel Output": {
+                  "Type": "Task",
+                  "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+                  "Parameters": {
+                    "Payload": {
+                      "original_file_location.$": "$.original_file_location",
+                      "PredictionResults.$": "$.StepResult.PredictionResults"
+                    },
+                    "FunctionName": "${PostProcessLambda.Arn}"
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 2,
+                      "MaxAttempts": 6,
+                      "BackoffRate": 2
+                    }
+                  ],
+                  "ResultPath": "$.StepResult",
+                  "Next": "SendEmail"
+                },
+                "SendEmail": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "Content": {
+                      "Simple": {
+                        "Body": {"Html": {"Data.$": "States.Format('Your predictions are complete. To retrieve your data for a mail merge, please <a href=\"{}\">click this link</a>.', $.StepResult.Payload.PresignedUrl)" } },                        
+                        "Subject": {"Data": "Download predictions"}
+                      }
+                    },
+                    "FromEmailAddress": "${EmailAddress}",
+                    "Destination": {"ToAddresses": ["${EmailAddress}"]}        
+                  },
+                  "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
+                  "End": true
+                },
+                "Wait Batch Inference": {
+                  "Type": "Wait",
+                  "Seconds": 60,
+                  "Next": "DescribeBatchInferenceJob"
+                },
+                "Wait": {
+                  "Type": "Wait",
+                  "Seconds": 60,
+                  "Next": "CreateBatchInferenceJob"
+                },
+                "Fail": {
+                  "Type": "Fail"
+                }
+              }
+            }
+            
+  DeletePersonalizeSolutions:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt PersonalizeRole.Arn
+      DefinitionString: 
+        !Sub 
+          |-
+            {
+              "Comment": "Delete old Personalize solutions",
+              "StartAt": "ListSolutions",
+              "States": {
+                "ListSolutions": {
+                  "Type": "Task",
+                  "Parameters": {},
+                  "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:listSolutions",
+                  "Next": "Map",
+                  "ResultSelector": {
+                    "Solutions.$": "$.Solutions"
+                  },
+                  "ResultPath": "$.StepResult"
+                },
+                "Map": {
+                  "Type": "Map",
+                  "ItemsPath":"$.StepResult.Solutions",
+                  "ItemProcessor": {
+                    "ProcessorConfig": {
+                      "Mode": "INLINE"
+                    },
+                    "StartAt": "DescribeSolution",
+                    "States": {
+                      "DescribeSolution": {
+                        "Type": "Task",
+                        "Next": "Choice",
+                        "Parameters": {
+                          "SolutionArn.$": "$.SolutionArn"
+                        },
+                        "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:describeSolution",
+                        "ResultPath": "$.StepResult"
+                      },
+                      "Choice": {
+                        "Type": "Choice",
+                        "Choices": [
+                          {
+                            "Variable": "$.StepResult.Solution.DatasetGroupArn",
+                            "StringEquals": "${DataSetGroup.DatasetGroupArn}",
+                            "Next": "DeleteSolution"
+                          },
+                          {
+                            "Not": {
+                              "Variable": "$.StepResult.Solution.DatasetGroupArn",
+                              "StringEquals": "${DataSetGroup.DatasetGroupArn}"
+                            },
+                            "Next": "Pass"
+                          }
+                        ],
+                        "Default": "DeleteSolution"
+                      },
+                      "Pass": {
+                        "Type": "Pass",
+                        "End": true
+                      },
+                      "DeleteSolution": {
+                        "Type": "Task",
+                        "End": true,
+                        "Parameters": {
+                          "SolutionArn.$": "$.SolutionArn"
+                        },
+                        "Resource": "arn:${AWS::Partition}:states:::aws-sdk:personalize:deleteSolution"
+                      }
+                    }
+                  },
+                  "End": true
+                }
+              }
+            }
+            
+  OrchestratePersonalization:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt PersonalizeRole.Arn
+      DefinitionString: 
+        !Sub 
+          |-
+            {
+              "Comment": "Orchestrates personalization to support the mail merge solution",
+              "StartAt": "Generate Personalized Results",
+              "States": {
+                "Generate Personalized Results": {
+                  "Type": "Task",
+                  "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+                  "Parameters": {
+                    "StateMachineArn": "${PersonalizeBatch}",
+                    "Input": {
+                      "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                      "key_name.$": "$.object.key"
+                    }
+                  },
+                  "Next": "Clean Up Personalize Solutions",
+                  "Catch": [
+                    {
+                      "ErrorEquals": [
+                        "States.TaskFailed"
+                      ],
+                      "Next": "Publish Error"
+                    }
+                  ]
+                },
+                "Publish Error": {
+                  "Type": "Task",
+                  "Parameters": {
+                    "Content": {
+                      "Simple": {
+                        "Body": {"Html": {"Data": "An error occurred generating personalized results. Please try your request at a later time."}},
+                        "Subject": {"Data": "An error occurred"}
+                      }
+                    },
+                    "FromEmailAddress": "${EmailAddress}",
+                    "Destination": {"ToAddresses": ["${EmailAddress}"]}        
+                  },
+                  "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
+                  "Next": "Clean Up Personalize Solutions"
+                },
+                "Clean Up Personalize Solutions": {
+                  "Type": "Task",
+                  "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+                  "Parameters": {
+                    "StateMachineArn": "${DeletePersonalizeSolutions}",
+                    "Input": {
+                      "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
+                    }
+                  },
+                  "End": true
+                }
+              }
+            }
+
+  #############################################################
+  # Resources required for notifications
+  #############################################################           
+  SESIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref EmailAddress 
+          
+  #############################################################
+  # Resources required for the upload utility
+  #############################################################        
+  WebIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Metadata:
+      cfn_nag:
+          rules_to_suppress:
+            - id: W57
+              reason: AllowUnauthenticatedIdentities can be true because the app (Amplify) is protected via username/password
+    Properties:
+      IdentityPoolName: !Sub ${AWS::StackName}-s3access
+      AllowUnauthenticatedIdentities: True 
+      
+  WebIdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref WebIdentityPool
+      Roles:
+        "authenticated": !GetAtt UnAuthCognitoRole.Arn
+        "unauthenticated": !GetAtt UnAuthCognitoRole.Arn
+                
+  UnAuthCognitoRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement: 
+          - Effect: Allow
+            Principal: 
+              Federated: cognito-identity.amazonaws.com
+            Action: "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref WebIdentityPool
+              ForAnyValue:StringLike: 
+                cognito-identity.amazonaws.com:amr: unauthenticated
+      Path: "/"
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-cognito-unauthenticated
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement: 
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource: 
+                  - !Sub arn:${AWS::Partition}:s3:::${Bucket}
+                  - !Sub arn:${AWS::Partition}:s3:::${Bucket}/*
+              - Effect: Allow
+                Action:
+                  - kms:GenerateDataKey
+                Resource: !GetAtt EncryptionKey.Arn
+                  
+  AmplifyApp:
+    Type: AWS::Amplify::App
+    Properties:
+      Name: !Sub ${AWS::StackName}-uploader
+      Platform: WEB
+      BasicAuthConfig:
+        EnableBasicAuth: true
+        Username: !Ref EmailAddress
+        Password: !Ref Password
+        
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt AmplifyApp.AppId 
+      BranchName: website
+      Stage: PRODUCTION
+      
+  DeployAmplifySolution:
+    Type: Custom::DeployWebsite
+    Properties:
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaDeployAmplifySolution}
+      Bucket: !Ref Bucket 
+      Region: !Ref AWS::Region
+      IdentityPool: !Ref WebIdentityPool
+      EncryptionKey: !Ref EncryptionKey
+      AppId: !GetAtt AmplifyApp.AppId
+      BranchName: !GetAtt AmplifyBranch.BranchName  
+      
+  LambdaDeployAmplifySolution:
+    Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+          rules_to_suppress:
+            - id: W58
+              reason: W58 is a false positive, as Lambda can write to CloudWatch Logs via its role
+            - id: W89
+              reason: This Lambda does not need to be part of a VPC, since it does not access VPC resources
+    Properties:
+      Code:
+        S3Bucket: "personalized-mailing-campaign"
+        S3Key: "lambda/LambdaUploadAmplify.zip"
+      Handler: "index.lambda_handler"
+      Runtime: python3.9
+      Timeout: 60
+      ReservedConcurrentExecutions: 1
+      Role: !GetAtt LambdaDeployAmplifySolutionRole.Arn
+      
+  LambdaDeployAmplifySolutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-create-chatbot
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - amplify:GetApp
+                Resource: !Sub "arn:${AWS::Partition}:amplify:*:${AWS::AccountId}:apps/*"
+              - Effect: Allow
+                Action:
+                  - amplify:StartDeployment
+                  - amplify:CreateDeployment
+                Resource: !Sub "arn:${AWS::Partition}:amplify:*:${AWS::AccountId}:apps/*/branches/*"      
+
+
+#TODO: These should all be removed at some point and replaced with a user-facing upload URL
+Outputs:
+  WebsiteUrl:
+    Value: !GetAtt DeployAmplifySolution.WebsiteUrl

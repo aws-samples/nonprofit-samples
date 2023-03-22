@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>Mail merge uploader</title>
+    </head>
+    <body>
+        <style>
+            body { font-family: Arial; padding: 5px; }
+            img { padding-top: 20px; padding-bottom: 15px; }
+        </style>
+        
+        <h1>Mail merge directions</h1>
+        
+        <p>Use this utility to begin creating a personalization model for your next direct mail campaign.</p>
+        
+        <p><a href="MailMerge.xlsx" target="_blank">Click here</a> to download a sample template.</p>
+        <p><a href="uploader.html">Click here</a> to upload a new document and begin the personalization process.</p>
+        
+        <p>This service is expecting you to upload an Excel file (.xlsx) with the following sheets:</p>
+        <ul>
+            <li>A sheet named <b>Mailing</b>. This sheet should contain a field called USER_ID as the first column, and all other fields are customizable. Simply use fields that you need for your mailing campaign.<br/>
+                <img src="images/mailing.png" width="700" />
+            </li>
+            <li>A sheet named <b>Interactions</b>. This sheet should contain the interactions of your members with the thing you're trying to recommend. This sheet should contain 3 columns: a USER_ID column, an ITEM column and a TIMESTAMP column.<br/>
+                <ol>
+                    <li>The USER_ID column should match the values of the USER_ID column on the Mailing sheet.</li>
+                    <li>The ITEM_ID column should contain the thing you're trying to recommend (like a website page, a product, or some other label that represents what you want to recommend to the member).</li>
+                    <li>The TIMESTAMP column should be the time of the interaction in a UNIX epoch time format. You can use this formula
+                        in Excel to turn a "normal" date into a TIMESTAMP: <pre>=(A1-DATE(1970,1,1))*86400</pre>
+                    </li>
+                </ol>
+                
+                <img src="images/interactions.png" width="700" />
+            </li>
+            <li>A sheet named <b>Categories</b>. This sheet should be a unique list of the items (from your Interactions sheet) along with the text you'd like displayed in your mailing if the item is recommended to a member.  <br/>
+                <br/>
+                In the example below, if a member is recommended GET_INVOLVED, then we want to display the following text to them:
+                <pre>Thanks for wanting to get involved in our mission</pre>
+                The TEXT column data will be added to the final results to make it easy to add text about the personalized recommendation to a outgoing mail campaign.<br/>
+                <img src="images/categories.png" width="700" />
+            </li>
+        </ul>
+        <p>Please do not change the name of the worksheets or the names of the requried columns.</p>
+    </body>
+</html>
