@@ -318,7 +318,7 @@ Resources:
             interaction_data = pd.read_excel('/tmp/MailMerge.xlsx', sheet_name='Interactions')
 
             #Import interactions
-            interaction_data.to_csv('/tmp/interactions.csv')
+            interaction_data.to_csv('/tmp/interactions.csv', index=False)
             s3_filename = "parsed/{}/interactions.csv".format(datetime.date.today())
             upload_to_s3('/tmp/interactions.csv', BUCKET_NAME, KMS_KEY_ID, object_name=s3_filename)
 
