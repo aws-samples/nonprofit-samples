@@ -6,6 +6,7 @@
         <style>
             body { font-family: Arial; padding: 5px; }
             img { padding-top: 20px; padding-bottom: 15px; }
+            .code { font-family: 'Courier New', Courier, monospace; }
         </style>
         
         <h1>Mail merge directions</h1>
@@ -17,25 +18,30 @@
         
         <p>This service is expecting you to upload an Excel file (.xlsx) with the following sheets:</p>
         <ul>
-            <li>A sheet named <b>Mailing</b>. This sheet should contain a field called USER_ID as the first column, and all other fields are customizable. Simply use fields that you need for your mailing campaign.<br/>
+            <li>A sheet named <b class="code">Mailing</b>. This sheet should contain a field called <span class="code">USER_ID</span> as the first column, and all other fields are customizable. Simply use fields that you need for your mailing campaign.<br/>
                 <img src="images/mailing.png" width="700" />
             </li>
-            <li>A sheet named <b>Interactions</b>. This sheet should contain the interactions of your members with the thing you're trying to recommend. This sheet should contain 3 columns: a USER_ID column, an ITEM column and a TIMESTAMP column.<br/>
+            <li>A sheet named <b class="code">Interactions</b>. This sheet should contain the interactions of your members with the thing you're trying to recommend. This sheet should contain 3 columns: a <span class="code">USER_ID</span> column, an <span class="code">ITEM</span> column and a <span class="code">TIMESTAMP</span> column.<br/>
                 <ol>
-                    <li>The USER_ID column should match the values of the USER_ID column on the Mailing sheet.</li>
-                    <li>The ITEM_ID column should contain the thing you're trying to recommend (like a website page, a product, or some other label that represents what you want to recommend to the member).</li>
-                    <li>The TIMESTAMP column should be the time of the interaction in a UNIX epoch time format. You can use this formula
-                        in Excel to turn a "normal" date into a TIMESTAMP: <pre>=(A1-DATE(1970,1,1))*86400</pre>
+                    <li>The <span class="code">USER_ID</span> column should match the values of the <span class="code">USER_ID</span> column on the Mailing sheet.</li>
+                    <li>The <span class="code">ITEM_ID</span> column should contain the thing you're trying to recommend (like a website page, a product, or some other label that represents what you want to recommend to the member).</li>
+                    <li>The <span class="code">TIMESTAMP</span> column should be the time of the interaction in a UNIX epoch time format. You can use this formula
+                        in Excel to turn a "normal" date into the format for <span class="code">TIMESTAMP</span>: <p class="code">=(A1-DATE(1970,1,1))*86400</p>
                     </li>
                 </ol>
                 
                 <img src="images/interactions.png" width="700" />
             </li>
-            <li>A sheet named <b>Categories</b>. This sheet should be a unique list of the items (from your Interactions sheet) along with the text you'd like displayed in your mailing if the item is recommended to a member.  <br/>
+            <li>A sheet named <b class="code">RecommendationText</b>. This sheet should be a unique list of the items (from your Interactions sheet) along with the text you'd like displayed in your mailing if the item is recommended to a member.  
+                This sheet should contain 2 columns: <span class="code">ITEM_ID</span> and <span class="code">TEXT</span>.<br/>
+                <ul>
+                    <li>The <span class="code">ITEM_ID</span> column should be a unique list of the values of the <span class="code">ITEM_ID</span> column from the <b class="code">Interactions</b> worksheet</li>
+                    <li>The <span class="code">TEXT</span> column should contain the text to display to a member for each recommendation</li>
+                </ul>
                 <br/>
-                In the example below, if a member is recommended GET_INVOLVED, then we want to display the following text to them:
-                <pre>Thanks for wanting to get involved in our mission</pre>
-                The TEXT column data will be added to the final results to make it easy to add text about the personalized recommendation to a outgoing mail campaign.<br/>
+                In the example below, if a member is recommended <span class="code">GET_INVOLVED</span>, then we want to display the following text to them:
+                <p class="code">Thanks for wanting to get involved in our mission</p>
+                The <span class="code">TEXT</span> column data will be added to the final results to make it easy to add text about the personalized recommendation to a outgoing mail campaign.<br/>
                 <img src="images/categories.png" width="700" />
             </li>
         </ul>

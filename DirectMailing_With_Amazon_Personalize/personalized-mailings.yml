@@ -414,12 +414,12 @@ Resources:
                       
             #Read Excel files into DataFrames
             mailing_data = pandas.read_excel('/tmp/MailMerge.xlsx', sheet_name='Mailing')
-            category_data = pandas.read_excel('/tmp/MailMerge.xlsx', sheet_name='Categories')
+            category_data = pandas.read_excel('/tmp/MailMerge.xlsx', sheet_name='RecommendationText')
             
             #TODO: See about getting rid of excel headers
             
             merged_df = pandas.merge(mailing_data, prediction_df, how='left', on=['USER_ID'])
-            final_df = pandas.merge(merged_df, category_data, how='left', on=['CATEGORY'])
+            final_df = pandas.merge(merged_df, category_data, how='left', on=['ITEM_ID'])
             
             final_df.to_excel('/tmp/MailMerge.xlsx', sheet_name='Mailing', index=False)
             
@@ -458,7 +458,7 @@ Resources:
             f.close()
 
             #Create new dataframe
-            df = pandas.DataFrame(columns=['USER_ID', 'CATEGORY'])
+            df = pandas.DataFrame(columns=['USER_ID', 'ITEM_ID'])
 
             #Parse the data and put into the dataframe
             for line in file_content.split('\n'):
