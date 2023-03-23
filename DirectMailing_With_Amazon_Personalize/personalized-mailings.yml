@@ -1056,8 +1056,6 @@ Resources:
                   - amplify:CreateDeployment
                 Resource: !Sub "arn:${AWS::Partition}:amplify:*:${AWS::AccountId}:apps/*/branches/*"      
 
-
-#TODO: These should all be removed at some point and replaced with a user-facing upload URL
 Outputs:
   WebsiteUrl:
     Value: !GetAtt DeployAmplifySolution.WebsiteUrl
