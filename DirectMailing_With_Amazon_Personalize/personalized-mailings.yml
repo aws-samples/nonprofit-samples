@@ -756,8 +756,8 @@ Resources:
                   "Parameters": {
                     "Content": {
                       "Simple": {
-                        "Body": {"Html": {"Data.$": "States.Format('Your predictions are complete. To retrieve your data for a mail merge, please <a href=\"{}\">click this link</a>.', $.StepResult.Payload.PresignedUrl)" } },                        
-                        "Subject": {"Data": "Download predictions"}
+                        "Body": {"Html": {"Data.$": "States.Format('Your personalized predictions are complete. To retrieve your data for your mailing, please <a href=\"{}\">click this link</a>.', $.StepResult.Payload.PresignedUrl)" } },                        
+                        "Subject": {"Data": "Personalized results ready to download"}
                       }
                     },
                     "FromEmailAddress": "${EmailAddress}",
@@ -895,7 +895,7 @@ Resources:
                     "Content": {
                       "Simple": {
                         "Body": {"Html": {"Data": "An error occurred generating personalized results. Please try your request at a later time."}},
-                        "Subject": {"Data": "An error occurred"}
+                        "Subject": {"Data": "An error occurred with the personalization solution"}
                       }
                     },
                     "FromEmailAddress": "${EmailAddress}",
