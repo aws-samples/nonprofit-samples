@@ -113,6 +113,11 @@ Resources:
         RestrictPublicBuckets: true 
       VersioningConfiguration:
         Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - BucketKeyEnabled: True
