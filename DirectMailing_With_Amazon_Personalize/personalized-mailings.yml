@@ -590,14 +590,6 @@ Resources:
   #############################################################
   # Resources required for the step function
   #############################################################
-  
-  #
-  # This step function is expecting JSON input that looks like this:
-  # {
-  #  "data_import_job_location": "s3://direct-mail-122554519915-us-east-1-personalize/personalize/ingest/user_interactions.csv",
-  #  "user_file_location": "s3://direct-mail-122554519915-us-east-1-personalize/input/users.json"
-  # }
-  #
   PersonalizeBatch:
     Type: AWS::StepFunctions::StateMachine
     Properties:
