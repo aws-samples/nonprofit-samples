@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>Mail merge login</title>
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+        <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1190.0.min.js"></script>
+        <script src="./scripts/aws-cognito-sdk.min.js"></script>
+        <script src="./scripts/amazon-cognito-identity.min.js"></script>
+        <script src="./scripts/variables.js"></script>
+        <script src="./scripts/auth.js"></script>
+    </head>
+    <body>
+        <style>
+            body { font-family: Arial; padding: 5px; }
+            img { padding-top: 20px; padding-bottom: 15px; }
+            input { margin-bottom: 5px; }
+            #instructions { padding-bottom: 10px; }
+        </style>
+       
+        
+        <h1>Please log in</h1>
+        
+        <div id="login">
+            <div id="instructions">
+                Please enter your username and password to continue<br/>
+            </div>
+            <input id="userNameInput" type="text" placeholder="Username"/></br>
+            <input id="passwordInput" type="password" placeholder="Password"/></br>
+            <input id="logInButton" type="Button" value="Log In" onclick="logIn()">
+        </div>
+        
+        <div id="resetpassword">
+            <div style="width: 50%" id="instructions">
+                You must reset your password. Please enter a new password that is at least 8 characters long and contains at least 1 number, 1 special character, 1 upper case letter and 1 lower case letter.
+            </div>
+            <input id="newPasswordInput1" type="password" placeholder="Password1"/></br>
+            <input id="newPasswordInput2" type="password" placeholder="Password2"/></br>
+            <input id="resetPassword" type="Button" value="Reset Password" onclick="resetPassword()">
+        </div>
+        </br></br>
+        <div id="loader" class="loader" style="display:none"></div>
+        
+        <script>
+            $("#resetpassword").hide();
+        </script>
+        
+    </body>
+</html>

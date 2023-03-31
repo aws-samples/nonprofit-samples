@@ -1,9 +1,14 @@
 <html>
     <head>
         <title>Mail merge uploader</title>
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
         <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1190.0.min.js"></script>
-        <script src="./variables.js"></script>
-        <script src="./excel_uploader.js"></script>
+        <script src="./scripts/aws-cognito-sdk.min.js"></script>
+        <script src="./scripts/amazon-cognito-identity.min.js"></script>
+        <script src="./scripts/variables.js"></script>
+        <script src="./scripts/excel_uploader.js"></script>
+        <script src="./scripts/auth.js"></script>
+        <script>getCurrentLoggedInSession();</script>
     </head>
     <body>
         <style>
@@ -15,6 +20,7 @@
         
         <p>Use this utility to begin creating a personalization model for your next direct mail campaign.</p>
         
+        <div id="loader" class="loader" style="display:none"></div>
         <div id="app"></div>
         
         <script>listAlbums();</script>

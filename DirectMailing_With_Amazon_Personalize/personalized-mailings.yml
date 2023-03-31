@@ -7,18 +7,12 @@ Parameters:
     Type: String
     MinLength: 5
     AllowedPattern: '[^\s@]+@[^\s@]+\.[^\s@]+'
-  Password:
-    Type: String
-    MinLength: 8
-    NoEcho: true
     
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterLabels:
       EmailAddress:
         default: The email address where you'd like to receive notifications
-      Password:
-        default: The password for the upload utility.
     
 #############################################################
 # AWS Lambda Managed Pandas layer 
@@ -962,28 +956,89 @@ Resources:
       EmailIdentity: !Ref EmailAddress 
           
   #############################################################
-  # Resources required for the upload utility
-  #############################################################        
-  WebIdentityPool:
-    Type: AWS::Cognito::IdentityPool
+  # Resources required for the security of the upload utility
+  #############################################################
+  SNSRole:
+    Type: AWS::IAM::Role
     Metadata:
       cfn_nag:
-          rules_to_suppress:
-            - id: W57
-              reason: AllowUnauthenticatedIdentities can be true because the app (Amplify) is protected via username/password
+        rules_to_suppress:
+          - id: W11
+            reason: This permission is required for Cognito so it can publish to SNS
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service: 
+                - cognito-idp.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-CognitoSNSPolicy
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: Allow
+                Action: sns:publish
+                Resource: "*"
+                
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-userpool
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "OPTIONAL"
+      SmsConfiguration:
+        ExternalId: !Sub ${AWS::StackName}-external
+        SnsCallerArn: !GetAtt SNSRole.Arn
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+
+  # Creates a User Pool Client to be used by the identity pool
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${AWS::StackName}-client
+      GenerateSecret: false
+      UserPoolId: !Ref UserPool
+
+  UserPoolUser:
+    Type: AWS::Cognito::UserPoolUser
+    Properties:
+      UserPoolId: !Ref UserPool
+      Username: !Ref EmailAddress
+      DesiredDeliveryMediums:
+        - EMAIL
+      ForceAliasCreation: True
+      UserAttributes:
+        - Name: email
+          Value: !Ref EmailAddress
+        - Name: email_verified
+          Value: true
+             
+  WebIdentityPool:
+    Type: AWS::Cognito::IdentityPool
     Properties:
       IdentityPoolName: !Sub ${AWS::StackName}-s3access
-      AllowUnauthenticatedIdentities: True 
+      AllowUnauthenticatedIdentities: False 
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
       
   WebIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties:
       IdentityPoolId: !Ref WebIdentityPool
       Roles:
-        "authenticated": !GetAtt UnAuthCognitoRole.Arn
-        "unauthenticated": !GetAtt UnAuthCognitoRole.Arn
-                
-  UnAuthCognitoRole:
+        "authenticated": !GetAtt AuthCognitoRole.Arn
+
+  AuthCognitoRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -997,10 +1052,10 @@ Resources:
               StringEquals:
                 cognito-identity.amazonaws.com:aud: !Ref WebIdentityPool
               ForAnyValue:StringLike: 
-                cognito-identity.amazonaws.com:amr: unauthenticated
+                cognito-identity.amazonaws.com:amr: authenticated
       Path: "/"
       Policies:
-        - PolicyName: !Sub ${AWS::StackName}-cognito-unauthenticated
+        - PolicyName: !Sub ${AWS::StackName}-cognito-authenticated
           PolicyDocument: 
             Version: '2012-10-17'
             Statement: 
@@ -1015,16 +1070,15 @@ Resources:
                 Action:
                   - kms:GenerateDataKey
                 Resource: !GetAtt EncryptionKey.Arn
-                  
+
+  #############################################################
+  # Resources required for the upload utility
+  #############################################################        
   AmplifyApp:
     Type: AWS::Amplify::App
     Properties:
       Name: !Sub ${AWS::StackName}-uploader
       Platform: WEB
-      BasicAuthConfig:
-        EnableBasicAuth: true
-        Username: !Ref EmailAddress
-        Password: !Ref Password
         
   AmplifyBranch:
     Type: AWS::Amplify::Branch
@@ -1043,6 +1097,8 @@ Resources:
       EncryptionKey: !Ref EncryptionKey
       AppId: !GetAtt AmplifyApp.AppId
       BranchName: !GetAtt AmplifyBranch.BranchName  
+      UserPoolId: !Ref UserPool 
+      ClientId: !Ref UserPoolClient
       
   LambdaDeployAmplifySolution:
     Type: AWS::Lambda::Function

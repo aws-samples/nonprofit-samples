@@ -15,12 +15,14 @@ def lambda_handler(event, context):
     encryptionKey = event["ResourceProperties"]["EncryptionKey"]
     appId = event["ResourceProperties"]["AppId"]
     branchName = event["ResourceProperties"]["BranchName"]
+    userPoolId = event["ResourceProperties"]["UserPoolId"]
+    clientId = event["ResourceProperties"]["ClientId"]
     
     if event['RequestType'] == 'Create':
         try:
             make_directories()
             copy_website_to_tmp()
-            write_variables_file(bucket, region, identitypool, encryptionKey)
+            write_variables_file(bucket, region, identitypool, encryptionKey, userPoolId, clientId)
             zip_website_contents()
             url = deploy_site_to_amplify(appId, branchName)
         except Exception as e:
@@ -66,13 +68,18 @@ def make_directories():
     if not os.path.exists("/tmp/website/images"):
         os.mkdir("/tmp/website/images")
         
+    if not os.path.exists('/tmp/website/scripts'):
+        os.mkdir("/tmp/website/scripts")
+        
 #Write the variables file to be used by the website
-def write_variables_file(bucket_name, bucket_region, identity_pool_id, encryption_key_id):
-    f = open('/tmp/website/variables.js', 'w')
+def write_variables_file(bucket_name, bucket_region, identity_pool_id, encryption_key_id, user_pool_id, client_id):
+    f = open('/tmp/website/scripts/variables.js', 'w')
     f.write('var bucketName = "{}";\n'.format(bucket_name))
     f.write('var bucketRegion = "{}";\n'.format(bucket_region))
     f.write('var IdentityPoolId = "{}";\n'.format(identity_pool_id))
     f.write('var EncryptionKeyId = "{}";\n'.format(encryption_key_id))
+    f.write('var userPoolId = "{}";\n'.format(user_pool_id))
+    f.write('var clientId = "{}";\n'.format(client_id))
     f.close()
 
 #Copy the website contents to the tmp directory for deployment
