@@ -386,6 +386,12 @@ Resources:
         Variables:
           BUCKET_NAME: !Ref Bucket
           KMS_KEY_ID: !Ref EncryptionKey
+  
+  IngestLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${IngestLambda}
+      RetentionInDays: 7
           
   PostProcessLambda:
     Type: AWS::Lambda::Function
@@ -508,6 +514,12 @@ Resources:
         Variables:
           BUCKET_NAME: !Ref Bucket
           KMS_KEY_ID: !Ref EncryptionKey
+          
+  PostProessLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${PostProcessLambda}
+      RetentionInDays: 7
   
   IngestLambdaPermission:
     Type: AWS::IAM::Role
@@ -1118,6 +1130,12 @@ Resources:
       Timeout: 60
       ReservedConcurrentExecutions: 1
       Role: !GetAtt LambdaDeployAmplifySolutionRole.Arn
+      
+  DeployAmplifyLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${LambdaDeployAmplifySolution}
+      RetentionInDays: 7
       
   LambdaDeployAmplifySolutionRole:
     Type: AWS::IAM::Role
