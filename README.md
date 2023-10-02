@@ -11,8 +11,7 @@ The following solutions are contained in this repository:
 
 * [Using machine learning to customize your direct mailings](DirectMailing_With_Amazon_Personalize/README.md) - this folder contains a solution to set up a personalization solution for a direct mailing workflow.
 
-* [Retrieval Augmented Generation (RAG) Chatbot]
-(RAG_Chatbot/README.md) - this folder contains a sample solution to use generative AI to build a simple chatbot that can respond to questions about your custom content.
+* [Retrieval Augmented Generation (RAG) Chatbot](RAG_Chatbot/README.md) - this folder contains a sample solution to use generative AI to build a simple chatbot that can respond to questions about your custom content.
 
 ## Security
 
