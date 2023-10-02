@@ -1,0 +1,444 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template sets up a chatbot that leverages generative AI
+
+Parameters:
+  BotoLayerArn:
+    Type: String 
+    Description: The arn of the custom boto3 layer that is used for Bedrock access
+
+# To create a UI for this chatbot, use the Lex UI CloudFormation templates available here under "Getting Started":
+# https://github.com/aws-samples/aws-lex-web-ui/tree/master
+
+Resources:
+  ################################################################
+  ## Resources for S3 and encryption
+  ################################################################
+  S3Bucket:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W35
+            reason: Bucket only used to populate the Kendra index
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-kendraingest
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true 
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref EncryptionKey 
+              SSEAlgorithm: aws:kms
+              
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Action: 
+              - "s3:*"
+            Effect: Deny 
+            Principal: "*"
+            Resource: 
+              - !GetAtt S3Bucket.Arn
+              - !Sub ${S3Bucket.Arn}/*
+            Condition:
+              Bool: 
+                "aws:SecureTransport": false 
+          - Action: 
+              - "s3:PutObject"
+            Effect: Deny 
+            Principal: "*"
+            Resource: !Sub ${S3Bucket.Arn}/*
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "aws:kms"
+          - Action: 
+              - "s3:PutObject"
+            Effect: Deny 
+            Principal: "*"
+            Resource: !Sub ${S3Bucket.Arn}/*
+            Condition:
+              "Null": 
+                "s3:x-amz-server-side-encryption": true
+                
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: True
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-policy
+        Statement:
+          - Sid: IAM user permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow key use
+            Effect: Allow 
+            Principal:
+              AWS: 
+                - !GetAtt KendraS3AccessRole.Arn
+            Action: 
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+            Resource: "*"
+
+  ################################################################
+  ## Resources for the Kendra index
+  ################################################################
+  KendraIndex:
+    Type: AWS::Kendra::Index
+    Properties:
+      Edition: DEVELOPER_EDITION
+      Name: !Sub "${AWS::StackName}-index"
+      RoleArn: !GetAtt KendraRole.Arn
+      DocumentMetadataConfigurations:
+        - Name: tags
+          Type: STRING_LIST_VALUE
+          Search: 
+            Facetable: true
+            Searchable: true
+      ServerSideEncryptionConfiguration:
+        KmsKeyId: !Ref EncryptionKey
+
+  KendraDataSource:
+    Type: AWS::Kendra::DataSource
+    Properties:
+      DataSourceConfiguration: 
+        S3Configuration:
+          BucketName: !Ref S3Bucket
+      IndexId: !Ref KendraIndex
+      Name: !Sub "${AWS::StackName}-index"
+      RoleArn: !GetAtt KendraS3AccessRole.Arn
+      Type: S3
+      
+  ################################################################
+  ## Resources for Lex V2
+  ################################################################
+  RAGTemplateBot:
+    Type: AWS::Lex::Bot
+    Properties:
+      Name: !Sub ${AWS::StackName}-bot
+      RoleArn: !GetAtt BotRuntimeRole.Arn
+      DataPrivacy:
+        ChildDirected: false
+      IdleSessionTTLInSeconds: 300
+      AutoBuildBotLocales: false
+      BotLocales:
+        - LocaleId: "en_US"
+          NluConfidenceThreshold: 0.40
+          VoiceSettings:
+            VoiceId: Joanna
+          Intents:
+            - Name: EmptyIntent
+              Description: "Intent to book a car on StayBooker"
+              SampleUtterances:
+                - Utterance: "Thanks"
+                - Utterance: "Sounds good"
+                - Utterance: "Good bye"
+            - Name: "FallbackIntent"
+              Description: "Default intent when no other intent matches"
+              ParentIntentSignature: "AMAZON.FallbackIntent"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+      TestBotAliasSettings:
+        BotAliasLocaleSettings:
+          - LocaleId: en_US
+            BotAliasLocaleSetting:
+              Enabled: true 
+              CodeHookSpecification:
+                LambdaCodeHook:
+                  CodeHookInterfaceVersion: 1.0
+                  LambdaArn: !GetAtt LambdaBot.Arn
+  
+  RAGBotVersion:
+    Type: AWS::Lex::BotVersion
+    Properties:
+      BotId: !Ref RAGTemplateBot
+      BotVersionLocaleSpecification:
+        - LocaleId: en_US
+          BotVersionLocaleDetails:
+            SourceBotVersion: DRAFT
+  
+  LambdaPermissionForLex:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LambdaBot.Arn
+      Action: lambda:InvokeFunction
+      Principal: lexv2.amazonaws.com
+                
+  ################################################################
+  ## Resources for Lambda
+  ################################################################
+  LambdaBot:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W89
+            reason: Lambda doesn't need to be part of a VPC because it's not access any VPC resources
+          - id: W58
+            reason: Lambda has permission to write to CW Logs via the AWSLambdaBasicExecutionRole managed policy
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import math
+          import dateutil.parser
+          import datetime
+          import time
+          import os
+          import logging
+          import boto3
+          import sys
+          import json
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.DEBUG)
+
+          def dispatch(answer):
+              response = {
+                  'sessionState': {
+                      'dialogAction': { 'type': 'Close' }, 
+                      'intent': { 'state': 'Fulfilled', 'name': 'FallbackIntent' }
+                  },
+                  'messages': [{
+                      'contentType': 'PlainText',
+                      'content': answer
+                  }]
+              }
+              return response 
+
+
+          def lambda_handler(event, context):
+              print(event)
+              
+              base_question = event["inputTranscript"]
+              
+              INDEX_ID = os.environ['KENDRA_INDEX_ID']
+
+              kendra = boto3.client("kendra")
+              result = kendra.retrieve(IndexId=INDEX_ID, QueryText=base_question, PageSize=3)
+              
+              bedrock = boto3.client('bedrock-runtime')
+              
+              question = "{} \nAnswer in less than 3 sentences. If you don't know the ansewr, say 'I don't know'".format(base_question)
+
+              background = ""
+              for results in result["ResultItems"]:
+               background += str(results["Content"])
+               
+              prompt = """\n\nHuman: Use only the information between ## to answer this question: 
+              {}
+              
+              #{}#
+              \n\nAssistant:
+              """.format(question, background)
+              
+              prompt_body = json.dumps({"prompt": prompt, 
+                "max_tokens_to_sample":300,
+                "temperature":1,
+                "top_k":250,
+                "top_p":0.999,
+                "stop_sequences":["\n\nHuman:"]
+              })
+              
+              response = bedrock.invoke_model(body=prompt_body, 
+               modelId="anthropic.claude-v2", 
+               accept="*/*", 
+               contentType="application/json")
+              body = json.loads(response.get('body').read())
+              
+              answer = body.get('completion')
+              
+              return dispatch(answer)
+
+      Handler: "index.lambda_handler"
+      Runtime: python3.11
+      Environment:
+        Variables:
+          KENDRA_INDEX_ID: !GetAtt KendraIndex.Id
+      Layers:
+        - !Ref BotoLayerArn
+      Timeout: 60
+      Role: !GetAtt LambdaBotRole.Arn
+      ReservedConcurrentExecutions: 10
+
+
+  ################################################################
+  ## IAM roles
+  ################################################################
+  KendraRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: Policy necessary to achieve permission objectives
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: kendra.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+      - PolicyName: cloudwatch-putmetricdata
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: '*'
+            Condition:
+              StringEquals: 
+                "cloudwatch:namespace": "AWS/Kendra"
+      - PolicyName: cloudwatch-describeloggroups
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - logs:DescribeLogGroups
+            Resource: '*'
+      - PolicyName: cloudwatch-createloggroup
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+              - logs:CreateLogGroup
+            Resource: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kendra/*"
+      - PolicyName: cloudwatch-putevents
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - logs:DescribeLogStreams
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kendra/*:log-stream:*"
+            
+  KendraS3AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: kendra.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+      - PolicyName: s3-getobject
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-kendraingest/*"
+      - PolicyName: s3-listbucket
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+              - s3:ListBucket
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-kendraingest"
+      - PolicyName: s3-put
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - kendra:BatchPutDocument
+              - kendra:BatchDeleteDocument
+            Resource: !Sub "arn:${AWS::Partition}:kendra:${AWS::Region}:${AWS::AccountId}:index/*"
+  
+  BotRuntimeRole:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: Policy necessary to achieve permission objectives
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lexv2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: LexRuntimeRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "polly:SynthesizeSpeech"
+                  - "comprehend:DetectSentiment"
+                Resource: "*"
+  
+  LambdaBotRole:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: Policy necessary to achieve permission objectives
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-s3access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - kendra:Retrieve
+                Resource: !Sub "arn:${AWS::Partition}:kendra:*:*${AWS::AccountId}:index/${KendraIndex.Id}"
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: "*"
+
+Outputs:
+  S3Bucket:
+    Value: !Ref S3Bucket
