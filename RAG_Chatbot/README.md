@@ -2,6 +2,18 @@
 
 This sample uses the retrieval agumented generation (RAG) pattern to create a chatbot that can be used for a variety of purposes. 
 
+### Architecture
+
+The architecture of the solution is as follows:
+
+![RAG architecture](images/architecture.png)
+
+1. A user sends a request off to a chatbot
+2. The Lex chatbot receives the request and sends it off to a Lambda function. The Lambda function sends the user's query to an Amazon Kendra index to find content that matches the user's question. The Kendra index is populated by custom data provided by the organization and uploaded to Amazon S3. 
+3. The Lambda function receives a response back from Kendra and then sends a request off to Amazon Bedrock. It asks Amazon Bedrock to answer the user's question, using only the context provided by Amazon Kendra. 
+4. Amazon Bedrock returns a response, which AWS Lambda sends back to the Lex chatbot
+5. The Lex chatbot receives the results from the Lambda function and sends it on to the user to answer their question
+
 ### Steps to deploy
 
 1. The chatbot requires a Lambda layer that included the latest boto3 (1.28.57 or above) and botocore (1.31.57 or above) libraries. Create a layer as follows:
