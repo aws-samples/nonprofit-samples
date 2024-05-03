@@ -1,0 +1,474 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template sets up a meeting summarization workflow with generatiave AI
+
+Parameters:
+  EmailAddress:
+    Type: String
+    Description: The email address where you want to receive notifications
+    MinLength: 5
+    AllowedPattern: '[^\s@]+@[^\s@]+\.[^\s@]+'
+    
+Resources:
+  ##############################################################################
+  # Bucket resources, notifications, and encryption
+  ##############################################################################
+  Bucket:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W35
+            reason: Access logging is not required because bucket is only used for internal storage
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-input
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true 
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref EncryptionKey 
+              SSEAlgorithm: aws:kms
+      VersioningConfiguration:
+        Status: Enabled
+              
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          - Action: 
+              - "s3:*"
+            Effect: Deny 
+            Principal: "*"
+            Resource: 
+              - !GetAtt Bucket.Arn
+              - !Sub ${Bucket.Arn}/*
+            Condition:
+              Bool: 
+                "aws:SecureTransport": false 
+          - Action: 
+              - "s3:PutObject"
+            Effect: Deny 
+            Principal: "*"
+            Resource: !Sub ${Bucket.Arn}/*
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "aws:kms"
+          - Action: 
+              - "s3:PutObject"
+            Effect: Deny 
+            Principal: "*"
+            Resource: !Sub ${Bucket.Arn}/*
+            Condition:
+              "Null": 
+                "s3:x-amz-server-side-encryption": true
+
+  UploadNotification:
+    Type: AWS::Events::Rule
+    Properties:
+      State: ENABLED
+      EventPattern: !Sub |
+        {
+          "source": ["aws.s3"],
+          "detail-type": ["Object Created"],
+          "detail": {
+            "bucket": {
+              "name": ["${Bucket}"]
+            }
+          }
+        }
+      Targets:
+        - Id: !Sub ${AWS::StackName}-StepFunction
+          Arn: !Ref MeetingSummarizationStepFunction
+          RoleArn: !GetAtt MeetingSummarizationStepFunctionRole.Arn
+          
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: True
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-policy
+        Statement:
+          - Sid: IAM user permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow key use
+            Effect: Allow 
+            Principal:
+              AWS: 
+                - !GetAtt MeetingSummarizationStepFunctionRole.Arn
+            Action: 
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+            Resource: "*"
+
+  ##############################################################################
+  # SNS Topic
+  ##############################################################################
+  AlertTopic: 
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W47
+            reason: Topic is only used for non-sensitive messaging, so encryption is not required
+    Type: AWS::SNS::Topic
+    Properties: 
+      Subscription: 
+        - Endpoint: !Ref EmailAddress
+          Protocol: "email"
+
+  ##############################################################################
+  # State machine
+  ##############################################################################
+  MeetingSummarizationStepFunction:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt MeetingSummarizationStepFunctionRole.Arn
+      StateMachineName: !Sub ${AWS::StackName}-statemachine
+      DefinitionString: 
+        !Sub |- 
+          {
+            "Comment": "State machine that transcribes and summarizes a meeting",
+            "StartAt": "StartTranscriptionJob",
+            "States": {
+              "StartTranscriptionJob": {
+                "Type": "Task",
+                "Parameters": {
+                  "Media": {
+                    "MediaFileUri.$": "States.Format('s3://{}/{}', $.detail.bucket.name, $.detail.object.key)"
+                  },
+                  "TranscriptionJobName.$": "$$.Execution.Name",
+                  "IdentifyLanguage": true,
+                  "Settings": {
+                    "MaxSpeakerLabels": 10,
+                    "ShowSpeakerLabels": true
+                  }
+                },
+                "Resource": "arn:aws:states:::aws-sdk:transcribe:startTranscriptionJob",
+                "Next": "GetTranscriptionJob"
+              },
+              "GetTranscriptionJob": {
+                "Type": "Task",
+                "Parameters": {
+                  "TranscriptionJobName.$": "$$.Execution.Name"
+                },
+                "Resource": "arn:aws:states:::aws-sdk:transcribe:getTranscriptionJob",
+                "Next": "Choice"
+              },
+              "Choice": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                    "Variable": "$.TranscriptionJob.TranscriptionJobStatus",
+                    "StringEquals": "COMPLETED",
+                    "Next": "ParseTranscription"
+                  },
+                  {
+                    "Variable": "$.TranscriptionJob.TranscriptionJobStatus",
+                    "StringEquals": "FAILED",
+                    "Next": "SNS Publish Error"
+                  }
+                ],
+                "Default": "Wait"
+              },
+              "Wait": {
+                "Type": "Wait",
+                "Seconds": 60,
+                "Next": "GetTranscriptionJob"
+              },
+              "ParseTranscription": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::lambda:invoke",
+                "OutputPath": "$.Payload",
+                "Parameters": {
+                  "Payload.$": "$",
+                  "FunctionName": "${ParseTranscriptionLambda.Arn}"
+                },
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "Lambda.ServiceException",
+                      "Lambda.AWSLambdaException",
+                      "Lambda.SdkClientException",
+                      "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ],
+                "Next": "TranscriptionSummarization"
+              },
+              "TranscriptionSummarization": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::lambda:invoke",
+                "OutputPath": "$.Payload",
+                "Parameters": {
+                  "Payload.$": "$",
+                  "FunctionName": "${TranscriptionSummarizationLambda.Arn}"
+                },
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "Lambda.ServiceException",
+                      "Lambda.AWSLambdaException",
+                      "Lambda.SdkClientException",
+                      "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ],
+                "Next": "SNS Publish"
+              },
+              "SNS Publish": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sns:publish",
+                "Parameters": {
+                  "Message.$": "States.Format('Meeting summary:\n\n{}', $.answer)",
+                  "TopicArn": "${AlertTopic}"
+                },
+                "End": true
+              },
+              "SNS Publish Error": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sns:publish",
+                "Parameters": {
+                  "Message.$": "States.Format('An error occurred with your request:\n{}', $)",
+                  "TopicArn": "${AlertTopic}"
+                },
+                "End": true
+              }
+            }
+          }
+              
+  ##############################################################################
+  # Lambda functions
+  ##############################################################################
+  ParseTranscriptionLambda:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: Function has permissions to write to CW Logs via the IAM Role
+          - id: W89
+            reason: Function does not need to be in a VPC because it is not accessing any VPC resources
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import json
+          import urllib3
+
+          http = urllib3.PoolManager()
+                    
+          def lambda_handler(event, context):
+              print(event)
+
+              file_url = event['TranscriptionJob']['Transcript']['TranscriptFileUri']
+              
+              r = http.request('GET', file_url)
+
+              output = r.data
+              
+              current_speaker = ""
+              speaker_content = ""
+              transcript = ""
+              
+              
+              data = json.loads(output)
+              for item in data['results']['items']:
+                  speaker = item['speaker_label']
+                  if current_speaker != speaker:
+                      if current_speaker != "":
+                          transcript += '{}\t{}\n'.format(current_speaker, speaker_content)
+                      speaker_content = ""
+                      current_speaker = speaker
+                  
+                  if item['type'] == "pronunciation" and len(speaker_content) > 0:
+                      speaker_content += " " + item['alternatives'][0]['content']
+                  elif item['type'] == "pronunciation":
+                      speaker_content += item['alternatives'][0]['content']
+                  else:
+                      speaker_content += item['alternatives'][0]['content']
+
+              if len(speaker_content) > 0:
+                transcript += '{}\t{}\n'.format(current_speaker, speaker_content)
+                      
+              return { "transcript" : transcript }
+      Handler: "index.lambda_handler"
+      Runtime: python3.12
+      Timeout: 60
+      Role: !GetAtt ParseTranscriptionLambdaRole.Arn
+      ReservedConcurrentExecutions: 10
+      
+  TranscriptionSummarizationLambda:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: Function has permissions to write to CW Logs via the IAM Role
+          - id: W89
+            reason: Function does not need to be in a VPC because it is not accessing any VPC resources
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+
+          def lambda_handler(event, context):
+              print(event)
+                  
+              bedrock = boto3.client('bedrock-runtime')
+              
+              prompt = """\n\nHuman: A meeting transcript is located between ##. Summarize the meeting and action items as a list.
+              
+              #{}#
+              \n\nAssistant:
+              """.format(event['transcript'])
+              
+              prompt_body = json.dumps({"prompt": prompt, "max_tokens_to_sample": 4096, "temperature": 1, "top_k": 250, "top_p": 0.999, "stop_sequences": ["\n\nHuman:"] })
+              
+              response = bedrock.invoke_model(body=prompt_body, 
+               modelId="anthropic.claude-v2", 
+               accept="*/*", 
+               contentType="application/json")
+              body = json.loads(response.get('body').read())
+              
+              answer = body.get('completion')
+              
+              return { "answer": answer }
+
+      Handler: "index.lambda_handler"
+      Runtime: python3.12
+      Timeout: 60
+      Role: !GetAtt TranscriptionSummarizationLambdaRole.Arn
+      ReservedConcurrentExecutions: 10
+
+  ##############################################################################
+  # IAM roles
+  ##############################################################################
+  
+  # IAM Role needs to be assumed by both Step Function and Event Bridge
+  MeetingSummarizationStepFunctionRole:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: IAM role is scoped appropriately for the specific workload
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 
+                - states.amazonaws.com
+                - events.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-permissions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - lambda:InvokeFunction
+                  - transcribe:StartTranscriptionJob
+                  - transcribe:GetTranscriptionJob
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject 
+                Resource: !Sub arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-input/*
+              - Effect: Allow
+                Action:
+                  - sns:Publish 
+                Resource: !Ref AlertTopic
+              - Effect: Allow
+                Action: 
+                  - states:StartExecution 
+                Resource: !Sub "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${AWS::StackName}-statemachine"
+
+  ParseTranscriptionLambdaRole:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: IAM role is scoped appropriately for the specific workload
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-lambda-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - transcribe:GetTranscriptionJob
+                Resource: "*"
+      
+  TranscriptionSummarizationLambdaRole:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: IAM role is scoped appropriately for the specific workload
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-lambda-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - bedrock:InvokeModel
+                Resource: "*"
+                
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
