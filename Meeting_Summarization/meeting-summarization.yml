@@ -340,9 +340,11 @@ Resources:
                   
               bedrock = boto3.client('bedrock-runtime')
               
-              prompt = """\n\nHuman: A meeting transcript is located between ##. Summarize the meeting and action items as a list.
+              prompt = """\n\nHuman: A meeting transcript is located in the <transcript> tags. Summarize the meeting as a bulleted list and generate action items as a bulleted list.
               
-              #{}#
+              <transcript>
+              {}
+              </transcript>
               \n\nAssistant:
               """.format(event['transcript'])
               
