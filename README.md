@@ -13,6 +13,8 @@ The following solutions are contained in this repository:
 
 * [Retrieval Augmented Generation (RAG) Chatbot](RAG_Chatbot/README.md) - this folder contains a sample solution to use generative AI to build a simple chatbot that can respond to questions about your custom content.
 
+* [Meeting Summarization with Claude](Meeting_Summarization/README.md) - this folder contains a sample solution to use generative AI to summarize a meeting recording.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.

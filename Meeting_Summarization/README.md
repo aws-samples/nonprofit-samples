@@ -1,10 +1,10 @@
 # Meeting summarization
 
-This solution creates a meeting summary and action items for a recorded meeting. 
+[This solution](meeting-summarization.yml) creates a meeting summary and action items for a recorded meeting. 
 
 ![architecture of the solution](architecture.png)
 
-Install the stack via CloudFormation. Enter an email address to use to receive notifications.
+Install the solution via CloudFormation. Enter an email address to use to receive notifications.
 
 Once the stack is complete, go to the **Outputs** tab and note the name of the **BucketName** field listed. This is the bucket where you need to drop new recordings.
 
