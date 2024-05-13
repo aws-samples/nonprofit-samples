@@ -1,0 +1,605 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template sets up a chatbot that leverages generative AI
+
+# To create a UI for this chatbot, use the Lex UI CloudFormation templates available here under "Getting Started":
+# https://github.com/aws-samples/aws-lex-web-ui/tree/master
+
+Parameters:
+  AdminUserArn:
+    Type: String
+    Description: The ARN of the IAM user or Role to be used as the OpenSearch Serverless administrator
+    MinLength: 20
+    AllowedPattern: ^arn:[\w]*:iam::\d{12}:[\w.,-/]*$
+
+  LLMToUse:
+    Type: String
+    Description: The LLM to use with the knowledge base
+    AllowedValues:
+      - anthropic.claude-v2:1
+      - anthropic.claude-3-sonnet-20240229-v1:0
+      - anthropic.claude-3-haiku-20240307-v1:0
+
+  OpenSearchVersionArn:
+    Type: String
+    Description: A lambda layer for OpenSearch
+
+
+Resources:
+  ################################################################
+  ## Resources for S3 and encryption
+  ################################################################
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-kbdata
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true 
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref EncryptionKey 
+              SSEAlgorithm: aws:kms
+              
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Action: 
+              - "s3:*"
+            Effect: Deny 
+            Principal: "*"
+            Resource: 
+              - !GetAtt S3Bucket.Arn
+              - !Sub ${S3Bucket.Arn}/*
+            Condition:
+              Bool: 
+                "aws:SecureTransport": false 
+          - Action: 
+              - "s3:PutObject"
+            Effect: Deny 
+            Principal: "*"
+            Resource: !Sub ${S3Bucket.Arn}/*
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "aws:kms"
+          - Action: 
+              - "s3:PutObject"
+            Effect: Deny 
+            Principal: "*"
+            Resource: !Sub ${S3Bucket.Arn}/*
+            Condition:
+              "Null": 
+                "s3:x-amz-server-side-encryption": true
+                
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: True
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-policy
+        Statement:
+          - Sid: IAM user permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow key use
+            Effect: Allow 
+            Principal:
+              AWS: 
+                - !GetAtt KBExecutionRole.Arn
+            Action: 
+              - kms:Decrypt
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+            Resource: "*"
+
+  ################################################################
+  ## Resources for OpenSearch Serverless
+  ################################################################
+  DataAccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: !Sub ${AWS::StackName}-ap
+      Type: data
+      Description: !Sub Access policy for the ${AWS::StackName} collection
+      Policy: !Sub >-
+        [
+          {
+            "Description":"Access for cfn user",
+            "Rules":
+            [
+              {
+                "ResourceType":"index",
+                "Resource":["index/*/*"],
+                "Permission":["aoss:*"]
+              },
+              {
+                "ResourceType":"collection",
+                "Resource":["collection/${AWS::StackName}"],
+                "Permission":["aoss:*"]
+              }
+            ],
+            "Principal":[
+              "${AdminUserArn}", 
+              "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/AmazonBedrockExecutionRoleForKnowledgeBase_${AWS::StackName}",
+              "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${AWS::StackName}_LambdaOpenSearchIndexRole"
+            ]
+          }
+        ]
+  NetworkPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: !Sub ${AWS::StackName}-np
+      Type: network
+      Description: !Sub Network policy for ${AWS::StackName} collection
+      Policy: !Sub >-
+        [
+          {
+            "Rules":
+            [
+              {
+                "ResourceType":"collection",
+                "Resource":["collection/${AWS::StackName}"]
+              }, 
+              {
+                "ResourceType":"dashboard",
+                "Resource":["collection/${AWS::StackName}"]
+              }
+            ],
+            "AllowFromPublic":true
+          }
+        ]
+
+  EncryptionPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: !Sub ${AWS::StackName}-sp
+      Type: encryption
+      Description: !Sub Encryption policy for ${AWS::StackName} collection
+      Policy: !Sub >-
+        {
+          "Rules":
+          [
+            {
+              "ResourceType":"collection",
+              "Resource":["collection/${AWS::StackName}"]
+            }
+          ],
+          "AWSOwnedKey":true
+        }
+  
+  Collection:
+    DependsOn:
+      - NetworkPolicy
+      - DataAccessPolicy
+      - EncryptionPolicy
+    Type: AWS::OpenSearchServerless::Collection
+    Properties:
+      Name: !Sub ${AWS::StackName}
+      Type: VECTORSEARCH
+      Description: Collection to holds knowlegebase data
+  
+
+  ################################################################
+  ## Resources for the Bedrock KB
+  ################################################################  
+  BedrockKB:
+    Type: AWS::Bedrock::KnowledgeBase
+    DependsOn: CreateOpenSearchIndex
+    Properties:
+      Name: !Sub ${AWS::StackName}-KB
+      RoleArn: !GetAtt KBExecutionRole.Arn
+      KnowledgeBaseConfiguration:
+        Type: VECTOR
+        VectorKnowledgeBaseConfiguration: 
+          EmbeddingModelArn: !Sub "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v1"
+      StorageConfiguration:
+        Type: OPENSEARCH_SERVERLESS
+        OpensearchServerlessConfiguration:
+          CollectionArn: !GetAtt Collection.Arn
+          VectorIndexName: index
+          FieldMapping: 
+            VectorField: bedrock-knowledge-base-default-vector
+            TextField: AMAZON_BEDROCK_TEXT_CHUNK
+            MetadataField: AMAZON_BEDROCK_METADATA
+
+  BedrockData:
+    Type: AWS::Bedrock::DataSource
+    Properties:
+      KnowledgeBaseId: !Ref BedrockKB
+      Name: !Sub ${AWS::StackName}-datasource
+      DataSourceConfiguration:
+        Type: S3
+        S3Configuration:
+          BucketArn: !GetAtt S3Bucket.Arn
+
+  
+  ################################################################
+  ## Add an index to OpenSearch
+  ################################################################  
+  CreateOpenSearchIndex:
+    Type: Custom::CreateOpenSearchIndex
+    DependsOn: Collection
+    Properties:
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaCreateOpenSearchIndex}
+
+  LambdaCreateOpenSearchIndex:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: !Sub |
+          from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
+          import boto3
+          import json
+          import time
+          import cfnresponse 
+
+          region = '${AWS::Region}' 
+          aos_host = "${Collection}.${AWS::Region}.aoss.amazonaws.com"
+
+          def lambda_handler(event, context):
+            print(event)
+            credentials = boto3.Session().get_credentials()
+            auth = AWSV4SignerAuth(credentials, region, service="aoss")
+            responseData = {}
+
+            if event['RequestType'] == 'Create':
+              try:
+                aos_client = OpenSearch(
+                  hosts = [{'host': aos_host, 'port': 443}],
+                  http_auth = auth,
+                  use_ssl = True,
+                  verify_certs = True,
+                  connection_class = RequestsHttpConnection
+                )
+
+                knn_index = {
+                  "aliases": {},
+                  "mappings": {
+                    "properties": {
+                      "AMAZON_BEDROCK_METADATA": {
+                        "type": "text",
+                        "index": "false"
+                      },
+                      "AMAZON_BEDROCK_TEXT_CHUNK": {
+                        "type": "text"
+                      },
+                      "bedrock-knowledge-base-default-vector": {
+                        "type": "knn_vector",
+                        "dimension": 1536,
+                        "method": {
+                          "engine": "faiss",
+                          "space_type": "l2",
+                          "name": "hnsw",
+                          "parameters": { }
+                        }
+                      }
+                    }
+                  },
+                  "settings": {
+                    "index": {
+                      "knn": "true"
+                    },
+                    "index.knn.algo_param.ef_search": 512,
+                    "analysis": {
+                        "analyzer": {
+                            "default": {
+                                "type": "standard",
+                                "stopwords": "_english_"
+                            }
+                        }
+                    }
+                  }
+                }
+
+                aos_client.indices.create(index="index",body=knn_index,ignore=400)
+                
+                # Sleep for 1 minute to allow the index to be created
+                time.sleep(60)
+              except: 
+                cfnresponse.send(event, context, cfnresponse.FAILED, responseData, 'CreateOpenSearchIndex')
+            
+            cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, 'CreateOpenSearchIndex')
+          
+
+      Handler: "index.lambda_handler"
+      Runtime: python3.12
+      Timeout: 120
+      Role: !GetAtt LambdaOpenSearchIndexRole.Arn
+      Layers:
+        - !Ref OpenSearchVersionArn
+
+  LambdaOpenSearchIndexRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      RoleName: !Sub ${AWS::StackName}_LambdaOpenSearchIndexRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-opensearch
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - aoss:APIAccessAll
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:aoss:${AWS::Region}:${AWS::AccountId}:collection/${Collection}'
+
+
+  ################################################################
+  ## Resources for Lex V2
+  ################################################################
+  KittenCareTemplateBot:
+    Type: AWS::Lex::Bot
+    Properties:
+      Name: !Sub ${AWS::StackName}-bot
+      RoleArn: !GetAtt BotRuntimeRole.Arn
+      DataPrivacy:
+        ChildDirected: false
+      IdleSessionTTLInSeconds: 300
+      AutoBuildBotLocales: false
+      BotLocales:
+        - LocaleId: "en_US"
+          NluConfidenceThreshold: 0.40
+          VoiceSettings:
+            VoiceId: Joanna
+          Intents:
+            - Name: EmptyIntent
+              Description: "Says thanks or goodbye if nothing else matches"
+              SampleUtterances:
+                - Utterance: "Thanks"
+                - Utterance: "Sounds good"
+                - Utterance: "Good bye"
+            - Name: "FallbackIntent"
+              Description: "Default intent when no other intent matches"
+              ParentIntentSignature: "AMAZON.FallbackIntent"
+              DialogCodeHook:
+                Enabled: true
+              FulfillmentCodeHook:
+                Enabled: true
+      TestBotAliasSettings:
+        BotAliasLocaleSettings:
+          - LocaleId: en_US
+            BotAliasLocaleSetting:
+              Enabled: true 
+              CodeHookSpecification:
+                LambdaCodeHook:
+                  CodeHookInterfaceVersion: 1.0
+                  LambdaArn: !GetAtt LambdaBot.Arn
+  
+  KittenCareBotVersion:
+    Type: AWS::Lex::BotVersion
+    Properties:
+      BotId: !Ref KittenCareTemplateBot
+      BotVersionLocaleSpecification:
+        - LocaleId: en_US
+          BotVersionLocaleDetails:
+            SourceBotVersion: DRAFT
+  
+  LambdaPermissionForLex:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LambdaBot.Arn
+      Action: lambda:InvokeFunction
+      Principal: lexv2.amazonaws.com
+                
+  ################################################################
+  ## Resources for Lambda
+  ################################################################
+  LambdaBot:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import math
+          import dateutil.parser
+          import datetime
+          import time
+          import os
+          import logging
+          import boto3
+          import sys
+          import json
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.DEBUG)
+
+          def dispatch(answer):
+              response = {
+                  'sessionState': {
+                      'dialogAction': { 'type': 'Close' }, 
+                      'intent': { 'state': 'Fulfilled', 'name': 'FallbackIntent' }
+                  },
+                  'messages': [{
+                      'contentType': 'PlainText',
+                      'content': answer
+                  }]
+              }
+              return response 
+
+
+          def lambda_handler(event, context):
+              print(event)
+              
+              question = event["inputTranscript"]
+              
+              KB_ID = os.environ['KNOWLEDGE_BASE_ID']
+              MODEL_ID = os.environ['MODEL_ID']
+
+
+              bedrock = boto3.client('bedrock-agent-runtime')
+              
+              prompt = """Answer the question in the <question> tags in less than 3 sentences. If you don't know the ansewr, say 'I don't know'. 
+              
+              <question>
+              {}
+              </question>
+              """.format(question)
+              
+              response = bedrock.retrieve_and_generate(input={'text': prompt}, 
+              retrieveAndGenerateConfiguration={
+                  "knowledgeBaseConfiguration": {
+                      "knowledgeBaseId": KB_ID,
+                      "modelArn": MODEL_ID
+                  },
+                  "type": "KNOWLEDGE_BASE"
+              })
+              
+              answer = response.get('output').get('text')
+              
+              return dispatch(answer)
+
+      Handler: "index.lambda_handler"
+      Runtime: python3.12
+      Timeout: 60
+      Role: !GetAtt LambdaBotRole.Arn
+      Environment:
+        Variables:
+          KNOWLEDGE_BASE_ID: !Ref BedrockKB
+          MODEL_ID: !Ref LLMToUse
+
+
+  ################################################################
+  ## IAM roles
+  ################################################################
+  KBExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub AmazonBedrockExecutionRoleForKnowledgeBase_${AWS::StackName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - bedrock.amazonaws.com
+            Action:
+              - sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              ArnLike:
+                aws:SourceArn: !Sub 'arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*'
+      Policies:
+        - PolicyName: AllowKBExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-kbdata'
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Ref AWS::AccountId
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-kbdata/*'
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Ref AWS::AccountId
+              - Effect: Allow
+                Action:
+                  - aoss:APIAccessAll
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:aoss:${AWS::Region}:${AWS::AccountId}:collection/${Collection}'
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v1'
+              - Effect: Allow
+                Action:
+                  - bedrock:ListFoundationModels
+                  - bedrock:ListCustomModels
+                  - bedrock:RetrieveAndGenerate
+                Resource: '*'
+              - Effect: Allow
+                Action: 
+                  - kms:Decrypt
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/*'                  
+
+  BotRuntimeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lexv2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: LexRuntimeRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "polly:SynthesizeSpeech"
+                  - "comprehend:DetectSentiment"
+                Resource: "*"
+  
+  LambdaBotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-s3access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - bedrock:RetrieveAndGenerate
+                  - bedrock:Retrieve
+                Resource: !Sub 'arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*'
+
+Outputs:
+  S3Bucket:
+    Value: !Ref S3Bucket
