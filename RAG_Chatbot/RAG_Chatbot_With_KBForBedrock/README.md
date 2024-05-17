@@ -19,7 +19,7 @@ The architecture of the solution is as follows:
 
 ```
 mkdir -p package/python
-pip install opensearch-py -t package/
+pip install opensearch-py -t package/python
 cd package
 zip -r ../opensearch-layer.zip .
 ```
