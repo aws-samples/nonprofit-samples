@@ -19,7 +19,7 @@ The architecture of the solution is as follows:
 
 ```
 mkdir -p package/python
-pip install boto3 botocore -t package/opensearch-py
+pip install opensearch-py -t package/
 cd package
 zip -r ../opensearch-layer.zip .
 ```
