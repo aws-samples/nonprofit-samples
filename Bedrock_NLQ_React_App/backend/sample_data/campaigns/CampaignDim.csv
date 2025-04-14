@@ -1,0 +1,51 @@
+CampaignKey,CampaignID,CampaignName,StartDate,EndDate,CampaignType,TargetAmount
+201,C001,Spring Fundraiser,3/1/2024,5/31/2024,Crowdfunding,10000
+202,C002,Summer Education Drive,6/1/2024,8/31/2024,Virtual,15000
+203,C003,Fall Charity Gala,9/1/2024,11/30/2024,Crowdfunding,25000
+204,C004,Winter Warmth Initiative,12/1/2024,2/28/2025,Virtual,20000
+205,C005,2024 Annual Giving,11/1/2024,1/1/2025,Annual Giving,100000
+206,C0206,New Year New Hope Fund,1/1/2024,3/28/2024,Crowdfunding,32704
+207,C0207,March Madness Giving Challenge,3/1/2024,3/28/2024,Annual Giving,46796
+208,C0208,Harvest of Kindness,11/1/2024,10/28/2024,Virtual,7915
+209,C0209,Summer Splash for Change,8/1/2024,5/28/2024,Virtual,18789
+210,C0210,Leap into Action Campaign,2/1/2024,7/28/2024,Virtual,37620
+211,C0211,Autumn Abundance Appeal,10/1/2024,6/28/2024,Annual Giving,37765
+212,C0212,Virtual Victory Marathon,5/1/2024,12/28/2024,Virtual,41176
+213,C0213,Winter Wishes Drive,11/1/2024,1/28/2024,Virtual,40522
+214,C0214,Spring Forward Fund,4/1/2024,5/28/2024,Annual Giving,36445
+215,C0215,Fall for a Cause,9/1/2024,3/28/2024,Crowdfunding,37551
+216,C0216,Summer of Solutions,6/1/2024,11/28/2024,Virtual,44576
+217,C0217,March to Make a Difference,3/1/2024,2/28/2024,Virtual,39221
+218,C0218,Year-Long Generosity Journey,1/1/2024,8/28/2024,Virtual,33841
+219,C0219,April Showers of Support,4/1/2024,4/28/2024,Virtual,41393
+220,C0220,May Day Miracle Fund,5/1/2024,2/28/2024,Crowdfunding,8064
+221,C0221,December to Remember,12/1/2024,11/28/2024,Annual Giving,9858
+222,C0222,New Year's Resolution Revolution,1/1/2024,8/28/2024,Virtual,40428
+223,C0223,Back to School Boost,8/1/2024,2/28/2024,Virtual,36024
+224,C0224,Leap Day Legacy Project,2/1/2024,9/28/2024,Virtual,25291
+225,C0225,12 Days of Giving,12/1/2024,5/28/2024,Virtual,36607
+226,C0226,Spring into Action Challenge,4/1/2024,7/28/2024,Crowdfunding,19372
+227,C0227,Midsummer Night's Dream Fund,7/1/2024,3/28/2024,Crowdfunding,7301
+228,C0228,February Frostbite Relief,2/1/2024,3/28/2024,Virtual,11565
+229,C0229,Thankful Hearts Campaign,11/1/2024,8/28/2024,Virtual,45701
+230,C0230,May Flowers Bring Power,5/1/2024,2/28/2024,Crowdfunding,49257
+231,C0231,March for Progress,3/1/2024,10/28/2024,Crowdfunding,36009
+232,C0232,Winter Wonderland of Giving,12/1/2024,7/28/2024,Annual Giving,41560
+233,C0233,June Bloom for Change,6/1/2024,5/28/2024,Crowdfunding,20262
+234,C0234,March Momentum Fund,3/1/2024,3/28/2024,Annual Giving,10991
+235,C0235,New Year's Hope Chest,1/1/2024,8/28/2024,Crowdfunding,9732
+236,C0236,Leap Year Lasting Impact,2/1/2024,12/28/2024,Virtual,44919
+237,C0237,April Empowerment Initiative,4/1/2024,8/28/2024,Annual Giving,37997
+238,C0238,Resolution for Good,1/1/2024,8/28/2024,Annual Giving,38768
+239,C0239,Holiday Helpers Unite,12/1/2024,4/28/2024,Annual Giving,34057
+240,C0240,March to a Million,3/1/2024,9/28/2024,Crowdfunding,48870
+241,C0241,Virtual Visionaries Summit,8/1/2024,12/28/2024,Virtual,47469
+242,C0242,Season of Sharing,12/1/2024,8/28/2024,Crowdfunding,32369
+243,C0243,Gratitude in Action,11/1/2024,10/28/2024,Annual Giving,28466
+244,C0244,February Philanthropy Challenge,2/1/2024,8/28/2024,Annual Giving,21558
+245,C0245,Leap into Kindness,2/1/2024,10/28/2024,Crowdfunding,28020
+246,C0246,Virtual Volunteers Unite,5/1/2024,12/28/2024,Virtual,6275
+247,C0247,May Momentum for Good,5/1/2024,3/28/2024,Annual Giving,23122
+248,C0248,Summer Solstice Spectacular,6/1/2024,1/28/2024,Annual Giving,25641
+249,C0249,March Miracle Makers,3/1/2024,2/28/2024,Crowdfunding,30081
+250,C0250,Mayday for Change,5/1/2024,7/28/2024,Crowdfunding,5688

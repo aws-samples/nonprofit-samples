@@ -1,0 +1,6 @@
+PaymentMethodKey,PaymentMethodName
+1,Credit Card
+2,PayPal
+3,Bank Transfer
+4,Cash
+5,Check

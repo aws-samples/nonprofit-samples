@@ -1,0 +1,51 @@
+EventKey,EventID,EventName,EventDate,EventLocation,EventType
+301,E001,New Year's Charity Ball,1/1/2024,Grand Hotel,Gala
+302,E002,Winter Wonderland Fun Run,1/15/2024,Central Park,Sports
+303,E003,Valentine's Day Auction,2/14/2024,City Convention Center,Auction
+304,E004,Spring Blossom Art Show,3/20/2024,Community Art Gallery,Exhibition
+305,E005,Easter Egg Hunt Fundraiser,4/7/2024,Riverside Park,Family
+306,E006,Earth Day Green Initiative,4/22/2024,Botanical Gardens,Environmental
+307,E007,Mother's Day Brunch,5/12/2024,Seaside Restaurant,Social
+308,E008,Memorial Day Veteran Support,5/27/2024,Veterans Memorial,Commemoration
+309,E009,Summer Solstice Music Festival,6/21/2024,Lakeside Amphitheater,Concert
+310,E010,Independence Day Parade,7/4/2024,Main Street,Parade
+311,E011,Back-to-School Supply Drive,8/10/2024,Local Schools,Community Service
+312,E012,Labor Day Community Picnic,9/2/2024,City Park,Social
+313,E013,Autumn Harvest Food Bank,10/5/2024,Community Center,Food Drive
+314,E014,Halloween Costume Party,10/31/2024,Historic Theater,Social
+315,E015,Veterans Day Honor Run,11/11/2024,Downtown,Sports
+316,E016,Thanksgiving Turkey Trot,11/28/2024,Riverside Trail,Sports
+317,E017,Winter Coat Drive,12/7/2024,Shopping Mall,Community Service
+318,E018,Holiday Light Show,12/15/2024,City Square,Festival
+319,E019,New Year's Eve Fireworks,12/31/2024,Harbor Front,Celebration
+320,E020,Polar Bear Plunge,1/5/2025,Beach,Sports
+321,E021,Martin Luther King Jr. Day of Service,1/20/2025,Various Locations,Community Service
+322,E022,Chinese New Year Festival,2/1/2025,Chinatown,Cultural
+323,E023,Science Fair Sponsorship,2/22/2025,Science Museum,Educational
+324,E024,Women's History Month Gala,3/8/2025,City Hall,Gala
+325,E025,St. Patrick's Day Parade,3/17/2025,Downtown,Parade
+326,E026,April Fools' Comedy Night,4/1/2025,Comedy Club,Entertainment
+327,E027,World Health Day 5K,4/7/2025,City Park,Sports
+328,E028,Shakespeare in the Park,4/23/2025,Central Park,Theater
+329,E029,Cinco de Mayo Fiesta,5/5/2025,Cultural Center,Cultural
+330,E030,Mother Earth Day Clean-up,5/11/2025,Various Locations,Environmental
+331,E031,Armed Forces Day Tribute,5/17/2025,Military Base,Commemoration
+332,E032,World Oceans Day Beach Clean-up,6/8/2025,Local Beaches,Environmental
+333,E033,Midsummer Night's Dream Ball,6/21/2025,Botanical Gardens,Gala
+334,E034,Independence Eve Concert,7/3/2025,City Park,Concert
+335,E035,Summer Reading Program Kickoff,7/15/2025,Public Library,Educational
+336,E036,International Friendship Day Potluck,7/30/2025,Community Center,Cultural
+337,E037,National Night Out,8/5/2025,Neighborhood Blocks,Community Service
+338,E038,Senior Citizens' Day Luncheon,8/21/2025,Senior Center,Social
+339,E039,International Literacy Day Book Fair,9/8/2025,Convention Center,Educational
+340,E040,Autumn Equinox Nature Walk,9/22/2025,Nature Reserve,Environmental
+341,E041,World Teachers' Day Appreciation,10/5/2025,School Auditorium,Celebration
+342,E042,Columbus Day Parade,10/13/2025,Main Street,Parade
+343,E043,United Nations Day Model UN,10/24/2025,City Hall,Educational
+344,E044,Day of the Dead Celebration,11/1/2025,Cultural Center,Cultural
+345,E045,Veterans Day Parade,11/11/2025,Downtown,Parade
+346,E046,World Kindness Day Flash Mob,11/13/2025,City Square,Social
+347,E047,Giving Tuesday Telethon,12/2/2025,Local TV Station,Fundraiser
+348,E048,Human Rights Day Forum,12/10/2025,University Campus,Educational
+349,E049,Winter Solstice Lantern Festival,12/21/2025,Waterfront Park,Festival
+350,E050,Year-End Charity Gala,12/30/2025,Luxury Hotel,Gala
