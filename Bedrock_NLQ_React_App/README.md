@@ -121,7 +121,7 @@ cdk bootstrap aws://{aws-account}/{aws-region}
 - Run `npm install` command in the [backend](backend) directory.
 
 ```bash
-cd aws-react-bedrock-nlq/backend
+cd backend
 npm install
 ```
 
@@ -153,7 +153,7 @@ AuthStack.apiEndpointxxx = xxx
 - Run `npm install` command in the [frontend/web](frontend/web) directory.
 
 ```bash
-cd aws-react-bedrock-nlq/frontend/web
+cd ../frontend/web
 npm install
 ```
 
@@ -200,7 +200,7 @@ npm run build
 - Move to the [frontend/provisioning](frontend/provisioning) directory and run `npm install` command.
 
 ```bash
-cd aws-react-bedrock-nlq/frontend/provisioning
+cd ../provisioning
 npm install
 ```
 
