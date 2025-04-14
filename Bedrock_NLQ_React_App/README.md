@@ -97,9 +97,11 @@ Ensure that the following tools are installed before proceeding:
 ### 2. Clone the repository
 
 - Run `git clone` command to download the source code
+- Navigate to the Bedrock NLQ React directory
 
 ```bash
-git clone https://github.com/12turnbullb/aws-react-bedrock-nlq.git
+git clone https://github.com/aws-samples/nonprofit-samples.git
+cd nonprofit-samples/Bedrock_NLQ_React_App
 ```
 
 ---
