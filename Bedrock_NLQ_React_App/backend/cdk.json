@@ -1,0 +1,7 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/provisioning.ts",
+  "context": {
+    "allowedIpAddressRanges": ["0.0.0.0/1", "128.0.0.0/1"],
+    "modelId": "us.anthropic.claude-3-sonnet-20240229-v1:0"
+  }
+}

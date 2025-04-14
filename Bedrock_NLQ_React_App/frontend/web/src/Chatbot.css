@@ -1,0 +1,247 @@
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+}
+
+.button-group {
+  width: 100%;
+  z-index: 2000;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: white;
+  padding: 10px 20px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.chatbot-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.left-section, .right-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center vertically */
+  align-items: center; /* Center horizontally */
+  height: 100%;
+  width: 100%; /* Ensure they take full height */
+}
+
+.left-section {
+  width:30%;
+  margin-left: 30px;
+}
+
+.about-section {
+  max-width: 100%;
+  overflow-y: auto;
+}
+
+.about-header {
+  font-size: 25px;
+  margin-bottom: 10px;
+}
+
+.chatbot-overlay {
+  width: 80%;
+  max-width: 1200px;
+  height: 80%;
+  margin-top: 20px;
+  margin: auto;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #f9f9f9;
+}
+
+.chatbot-title {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 8px 8px 0 0;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.chat-history {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding-right: 10px;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.bot-message {
+  display: flex;
+  align-items: center;
+}
+
+.user-message {
+  justify-content: flex-end;
+  display: flex;
+  width: 100%;
+}
+
+.avatar {
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.text-bubble.bot {
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #f1f1f1;
+  position: relative;
+  max-width: 100%;
+}
+
+.text-bubble.user {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 15px;
+  background-color: #3399ff;
+  color: #FFFFFF;
+}
+
+.form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid #ddd;
+  background-color: white;
+}
+
+.input {
+  flex-grow: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+}
+
+.button-loading {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  border: none;
+  background-color: #F0F0F0;
+}
+
+.loading-gif {
+  width: 400px; 
+  height: 40px; 
+}
+
+.expand-button {
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.expand-button:hover {
+  text-decoration: underline;
+}
+
+.sql-query {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.styled-button {
+  background-color: #004999;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.styled-button:hover {
+  background-color: #45a049;
+}
+
+.markdown-content table {
+  width: 80%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.markdown-content th, .markdown-content td {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+.markdown-content th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.markdown-content td {
+  background-color: #f9f9f9;
+}
+
+.markdown-content tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
