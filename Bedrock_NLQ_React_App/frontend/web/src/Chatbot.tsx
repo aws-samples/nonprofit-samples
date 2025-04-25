@@ -34,19 +34,21 @@ interface AgentProps {
 interface MessageRequest {
   message: string;
   id: string; 
+  kb_session_id: string;
 }
 
 const Agent: React.FC<AgentProps> = ({ generated_uuid }) => {
     
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState<string>('');
+  const [input, setInput] = useState<string | null>(null);
+  const [kbSessionId, setKbSessionId] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
   const chatHistoryRef = useRef<HTMLDivElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (input.trim() === '') return;
+    if (!input || input.trim() === '') return;
 
     // Add user message to chat history
     const newMessages: Message[] = [...messages, { sender: 'user', text: input }];
@@ -56,8 +58,9 @@ const Agent: React.FC<AgentProps> = ({ generated_uuid }) => {
 
     try {
       const data: MessageRequest = {
-        message: input,
-        id: generated_uuid
+        message: input || '',
+        id: generated_uuid,
+        kb_session_id: kbSessionId
       };
     
       const response = await postMessage(data); // API call
@@ -69,6 +72,13 @@ const Agent: React.FC<AgentProps> = ({ generated_uuid }) => {
       };
     
       setMessages((prevMessages) => [...prevMessages, botMessage]);
+      
+      // Set the state session id with the returned session id from the API
+      // Only if kb_session_id exists in the response
+      if ('kb_session_id' in response) {
+        setKbSessionId(response.kb_session_id);
+      }
+
     
     } catch (error: any) {
       
@@ -166,7 +176,7 @@ const Agent: React.FC<AgentProps> = ({ generated_uuid }) => {
           <form onSubmit={handleSubmit} className="form">
             <input
               type="text"
-              value={input}
+              value={input || ''}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message..."
               className="input"

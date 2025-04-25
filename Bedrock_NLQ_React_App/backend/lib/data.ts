@@ -11,6 +11,8 @@ import * as logs from 'aws-cdk-lib/aws-logs'
 import { Construct } from 'constructs';
 import * as path from "path";
 import { addDataStackSuppressions } from "./nag-suppressions";
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+
 
 /**
  * Data Stack
@@ -70,6 +72,63 @@ export class DataStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
         
+        // Service Role for Redshift User to use with Knowledge Bases 
+        const kbRedshiftServiceRole = new iam.Role(this, 'KBRedshiftServiceRole', {
+          roleName: 'KBRedshiftServiceRole_GenAI_Workshop',
+          assumedBy: new iam.ServicePrincipal('bedrock.amazonaws.com'),
+        });
+    
+        // Add inline policy for Redshift Data API permissions
+        kbRedshiftServiceRole.addToPolicy(new iam.PolicyStatement({
+          sid: 'RedshiftDataAPIStatementPermissions',
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'redshift-data:GetStatementResult',
+            'redshift-data:DescribeStatement',
+            'redshift-data:CancelStatement',
+            'redshift-data:ExecuteStatement',
+          ],
+          resources: [
+            `arn:aws:redshift-serverless:${this.region}:${this.account}:workgroup*`,
+            `arn:aws:redshift-serverless:${this.region}:${this.account}:namespace*`,
+            `arn:aws:redshift-data:${this.region}:${this.account}:statement/*`,
+            "*"
+          ],
+        }));
+    
+        kbRedshiftServiceRole.addToPolicy(new iam.PolicyStatement({
+          sid: 'GetCredentialsWithFederatedIAMCredentials',
+          effect: iam.Effect.ALLOW,
+          actions: ['redshift-serverless:GetCredentials'],
+          resources: [
+            `arn:aws:redshift-serverless:${this.region}:${this.account}:workgroup*`,
+            `arn:aws:redshift-serverless:${this.region}:${this.account}:namespace*`,
+          ],
+        }));
+    
+        kbRedshiftServiceRole.addToPolicy(new iam.PolicyStatement({
+          sid: 'SqlWorkbenchAccess',
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'sqlworkbench:GetSqlRecommendations',
+            'sqlworkbench:PutSqlGenerationContext',
+            'sqlworkbench:GetSqlGenerationContext',
+            'sqlworkbench:DeleteSqlGenerationContext',
+          ],
+          resources: [
+            `arn:aws:redshift-serverless:${this.region}:${this.account}:workgroup*`,
+            `arn:aws:redshift-serverless:${this.region}:${this.account}:namespace*`,
+            "*"
+          ],
+        }));
+    
+        kbRedshiftServiceRole.addToPolicy(new iam.PolicyStatement({
+          sid: 'KbAccess',
+          effect: iam.Effect.ALLOW,
+          actions: ['bedrock:GenerateQuery'],
+          resources: ["*"],
+        }));
+        
         // Create the DynamoDB table
         this.table = new dynamodb.Table(this, 'MyDynamoDBTable', {
           tableName: `NLQ-chat-history-${this.stackName}`, 
@@ -91,6 +150,12 @@ export class DataStack extends cdk.Stack {
           blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           autoDeleteObjects: true,
+        });
+        
+        // Submit sample bucket name to parameter store for use in future stacks
+        new StringParameter(this, 'DataBucketNameParam', {
+          parameterName: '/nlqCDK/sampleData/bucketName',
+          stringValue: this.sampleDataBucket.bucketName,
         });
         
         // Upload local CSV data to the sample S3 bucket
@@ -245,7 +310,5 @@ export class DataStack extends cdk.Stack {
         
         // Suppressions for CDK Nag security warnings
         addDataStackSuppressions(this);
-        
-      
   }
 }
