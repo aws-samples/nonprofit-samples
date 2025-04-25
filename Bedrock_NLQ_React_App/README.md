@@ -104,6 +104,7 @@ git clone https://github.com/aws-samples/nonprofit-samples.git
 cd nonprofit-samples/Bedrock_NLQ_React_App
 
 ```
+
 ---
 
 ### 3. Bootstrap the AWS CDK
@@ -121,6 +122,7 @@ cdk bootstrap aws://{aws-account}/{aws-region}
 - Run `npm install` command in the [backend](backend) directory.
 
 ```bash
+cd backend
 cd backend
 npm install
 ```
@@ -367,7 +369,7 @@ _Sample cdk.json file_
   "context": {
     "allowedIpAddressRanges": ["0.0.0.0/1", "128.0.0.0/1"],
     "modelId": "us.anthropic.claude-3-sonnet-20240229-v1:0",
-    "nlqPipelineMode": "KB", 
+    "nlqPipelineMode": "KB",
     "BedrockKnowledgeBaseId": "XXXXXXX"
   }
 }
@@ -379,9 +381,9 @@ Follow [Step 4](#4-deploy-backend-resources) in the above insructions to redeplo
 
 Your front end will remain unchanged - continue experimenting from the Cloudfront URL deployed as an output in the `FrontendStack`!
 
-# Deleting Resources 
+# Deleting Resources
 
-If you've deployed the Redshift extension, you'll need to delete this stack first before deleting the remainder of the core stack. 
+If you've deployed the Redshift extension, you'll need to delete this stack first before deleting the remainder of the core stack.
 
 1. Delete the `RedshiftStack` from the backend directory
 
@@ -390,20 +392,21 @@ cd backend
 cdk --app "npx ts-node --prefer-ts-exts bin/redshift-provisioning.ts" destroy RedshiftStack
 ```
 
-2. Delete the core stacks from the backend 
+2. Delete the core stacks from the backend
 
 ```bash
 cd backend
-cdk destroy --all 
+cdk destroy --all
 ```
 
 3. Delete the front end stacks from the frontend/provisioning directory
 
 ```bash
-cd frontend/provisioning 
+cd frontend/provisioning
 cdk destroy --all
 ```
-> **Note:** You will need to manualy delete your Amazon Bedrock Knowledge base as this was created outside the CDK deployment. 
+
+> **Note:** You will need to manualy delete your Amazon Bedrock Knowledge base as this was created outside the CDK deployment.
 
 ## License
 
