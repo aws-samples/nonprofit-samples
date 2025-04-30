@@ -76,3 +76,22 @@ export function addAPIStackSuppressions(
   ]);
 
 }
+
+export function addRedshiftStackSuppressions(
+  stack: Stack,
+): void {
+    
+    // Stack level suppressions if needed
+  NagSuppressions.addStackSuppressions(stack, [
+    {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wilcard permissions used within resource partitions.',
+    },
+    {
+        id: 'AwsSolutions-SMG4',
+        reason: 'Secret rotation not required for the demo environment',
+    },
+  ]);
+
+}
+

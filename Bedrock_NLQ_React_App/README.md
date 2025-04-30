@@ -102,6 +102,7 @@ Ensure that the following tools are installed before proceeding:
 ```bash
 git clone https://github.com/aws-samples/nonprofit-samples.git
 cd nonprofit-samples/Bedrock_NLQ_React_App
+
 ```
 
 ---
@@ -121,6 +122,7 @@ cdk bootstrap aws://{aws-account}/{aws-region}
 - Run `npm install` command in the [backend](backend) directory.
 
 ```bash
+cd backend
 cd backend
 npm install
 ```
@@ -153,7 +155,7 @@ AuthStack.apiEndpointxxx = xxx
 - Run `npm install` command in the [frontend/web](frontend/web) directory.
 
 ```bash
-cd ../frontend/web
+cd Bedrock_NLQ_React_App/frontend/web
 npm install
 ```
 
@@ -200,7 +202,7 @@ npm run build
 - Move to the [frontend/provisioning](frontend/provisioning) directory and run `npm install` command.
 
 ```bash
-cd ../provisioning
+cd Bedrock_NLQ_React_App/frontend/provisioning
 npm install
 ```
 
@@ -260,7 +262,7 @@ The Bedrock calls use the [Bedrock Converse API](https://docs.aws.amazon.com/bed
 
 To update the model ID, navigate to the cdk.json file in the /backend directory and update the `modelId` field with a model ID from the list of [available Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html).
 
-Re-deploy the CDK backend following Step 4 in the above instructions.
+Re-deploy the CDK backend following [Step 4](#4-deploy-backend-resources)in the above instructions.
 
 ---
 
@@ -306,6 +308,105 @@ To run backend tests, simply run `npm test` to execute the test scripts in the [
 Given the retry loop design, some queries may take longer than the 29 second API Gateway timeout setting to return a result. You may wish to increase the API Gateway timeout by updating the service quota titled `Maximum integration timeout in milliseconds`.
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+# Alternate Text-to-SQL Backend (Bedrock Knowledge Bases)
+
+The default solution uses a custom text-to-SQL pipeline constructed with AWS Lambda, Amazon Bedrock, and Amazon Athena querying sample data in Amazon S3. As new Generative AI features are released there is more flexibility in managed text-to-SQL pipelines. Amazon Bedrock Knowledge Bases enables managed text-to-SQL pipelines with Amazon Redshift, reducing overhead when managing SQL generation, execution and session memory. This section of the CDK project shows how to swap in a [structured Bedrock Knowledge Base](https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-build-structured.html) in place of the custom pipeline.
+
+![Architecture](imgs/nlq-kb-diagram.png)
+
+## Prerequisites
+
+### Amazon Redshift
+
+Amazon Bedrock Knowledge bases connects to your Amazon Redshift data warehouse for the text-to-SQL pipeline. If you have an existing Redshift workgroup, proceed with the Amazon Bedrock Knowledge Base setup below.
+
+If you would like to provision a sample Redshift cluster populated with our sample data, you can deploy the supplementary CDK stack in this project.
+
+> **Note:** This CDK stack deploys a Redshift Serverless cluster and will incur cost. Learn more about [Amazon Redshift pricing](https://aws.amazon.com/redshift/pricing/)
+
+1. Ensure the core CDK stacks have been deployed (AuthStack, DataStack, APIStack) following [Step 4](#4-deploy-backend-resources) in the above insructions.
+
+2. Navigate to the /backend directory and run the deploy command for the supplementary RedshiftStack.
+
+```bash
+cd backend
+cdk --app "npx ts-node --prefer-ts-exts bin/redshift-provisioning.ts" deploy RedshiftStack
+```
+
+### Setup Bedrock Knowledge Base Structured Data store
+
+Follow the instructions available in [this AWS workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/62f0a65f-2c83-418c-ab26-19cdbf53a392/en-US/kb-nlq) to configure Bedrock Knowledge bases with your Amazon Redshift cluster. These steps assume you are using the provided Redshift Serverless sample cluster, you may need to tweak them if you are using your own Redshift infrastructure.
+
+> **Note:** The workshop console links default to `us-west-2`. Ensure you're in the region where your Redshift cluster resides.
+
+The workshop section will walk you through:
+
+1. Creating a database user with read access to your schemas and tables
+2. Connecting the database user with the IAM service role created in the CDK app
+3. Creating a Bedrock Knowledge Base for structured data using the created IAM service role
+
+For alternate setup instructions, refer to the AWS Documentation for how to [Build a knowledge base by connecting to a structured data store](https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-build-structured.html)
+
+## Configure the CDK App to Use Bedrock Knowledge Bases
+
+Once you have your Bedrock Knowledge Base configured to read from your structured data store, you can configure your CDK app to use the Knowledge Base instead of your custom text-to-SQL pipeline.
+
+1. Navigate to the `cdk.json` file in the root of your /backend directory.
+2. Update the `nlqPipelineMode` to `KB` instead of the default `S3`.
+
+> **Note:** Setting the `nlqPipeline` variable to `S3` will use your custom text-to-SQL pipeline configured with AWS Lambda, Amazon Bedrock and Amazon Athena with the sample CSV data in Amazon S3. Setting the variable to `KB` will shift the backend logic to use your Amazon Bedrock Knowledge Base.
+
+3. Navigate to your Knowledge Base in the Amazon Bedrock Console and retrieve the `Knowledge Base ID`. Paste this value in the `BedrockKnowledgeBaseId` variable in the `cdk.json` file.
+
+![Architecture](imgs/kb-id.png)
+
+_Sample cdk.json file_
+
+```sh
+{
+  "app": "npx ts-node --prefer-ts-exts bin/provisioning.ts",
+  "context": {
+    "allowedIpAddressRanges": ["0.0.0.0/1", "128.0.0.0/1"],
+    "modelId": "us.anthropic.claude-3-sonnet-20240229-v1:0",
+    "nlqPipelineMode": "KB",
+    "BedrockKnowledgeBaseId": "XXXXXXX"
+  }
+}
+```
+
+## Redeploy the backend with updated configuration
+
+Follow [Step 4](#4-deploy-backend-resources) in the above insructions to redeploy the backend resources with our updated `cdk.json` variables. This will swap in a new Lambda orchestrator function backing our API Gateway.
+
+Your front end will remain unchanged - continue experimenting from the Cloudfront URL deployed as an output in the `FrontendStack`!
+
+# Deleting Resources
+
+If you've deployed the Redshift extension, you'll need to delete this stack first before deleting the remainder of the core stack.
+
+1. Delete the `RedshiftStack` from the backend directory
+
+```bash
+cd backend
+cdk --app "npx ts-node --prefer-ts-exts bin/redshift-provisioning.ts" destroy RedshiftStack
+```
+
+2. Delete the core stacks from the backend
+
+```bash
+cd backend
+cdk destroy --all
+```
+
+3. Delete the front end stacks from the frontend/provisioning directory
+
+```bash
+cd frontend/provisioning
+cdk destroy --all
+```
+
+> **Note:** You will need to manualy delete your Amazon Bedrock Knowledge base as this was created outside the CDK deployment.
 
 ## License
 

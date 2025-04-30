@@ -21,6 +21,7 @@ export const getToken = async () => {
 interface MessageRequest {
   message: string;
   id: string; 
+  kb_session_id: string;
 }
 
 export const postMessage = async (requestData: MessageRequest) => {
