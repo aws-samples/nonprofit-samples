@@ -1,0 +1,166 @@
+openapi: 3.0.0
+info:
+  title: ProPublica Nonprofits API
+  description: API for accessing nonprofit organization data from ProPublica's Nonprofit Explorer
+  version: 1.0.0
+
+servers:
+  - url: https://projects.propublica.org/nonprofits/api/v2
+
+paths:
+  /organizations/{ein}:
+    get:
+      operationId: getOrganizationByEin
+      summary: Get details about a specific nonprofit organization
+      description: Returns detailed information about a nonprofit organization by its EIN
+      parameters:
+        - name: ein
+          in: path
+          required: true
+          description: Employer Identification Number (EIN) of the nonprofit
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organization:
+                    type: object
+                    properties:
+                      ein:
+                        type: string
+                        description: Employer Identification Number
+                      name:
+                        type: string
+                        description: Organization name
+                      address:
+                        type: string
+                        description: Organization's address
+                      city:
+                        type: string
+                        description: City
+                      state:
+                        type: string
+                        description: State abbreviation
+                      ntee_code:
+                        type: string
+                        description: National Taxonomy of Exempt Entities code
+                      raw_ntee_code:
+                        type: string
+                        description: Raw NTEE code
+                      subsection_code:
+                        type: string
+                        description: IRS subsection code
+                      tax_period:
+                        type: string
+                        description: Tax period
+                      income_amount:
+                        type: number
+                        description: Income amount
+                      assets_amount:
+                        type: number
+                        description: Assets amount
+        '404':
+          description: Organization not found
+        '400':
+          description: Invalid EIN format
+
+  /search:
+    get:
+      operationId: searchOrganizations
+      summary: Search for nonprofit organizations
+      description: Search for nonprofits by various criteria
+      parameters:
+        - name: q
+          in: query
+          description: Search query string
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: Two-letter state abbreviation
+          schema:
+            type: string
+        - name: ntee
+          in: query
+          description: NTEE code to filter by
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_results:
+                    type: integer
+                    description: Total number of matching results
+                  organizations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ein:
+                          type: string
+                        name:
+                          type: string
+                        city:
+                          type: string
+                        state:
+                          type: string
+                        ntee_code:
+                          type: string
+                        income_amount:
+                          type: number
+                        assets_amount:
+                          type: number
+        '400':
+          description: Invalid search parameters
+
+components:
+  schemas:
+    Organization:
+      type: object
+      properties:
+        ein:
+          type: string
+          description: Employer Identification Number
+        name:
+          type: string
+          description: Organization name
+        address:
+          type: string
+          description: Organization's address
+        city:
+          type: string
+          description: City
+        state:
+          type: string
+          description: State abbreviation
+        ntee_code:
+          type: string
+          description: NTEE code
+        subsection_code:
+          type: string
+          description: IRS subsection code
+        tax_period:
+          type: string
+          description: Tax period
+        income_amount:
+          type: number
+          description: Income amount
+        assets_amount:
+          type: number
+          description: Assets amount
