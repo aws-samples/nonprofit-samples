@@ -519,7 +519,7 @@ Resources:
 
           # Download dataloader.sh to ec2-user's home directory
           cd /home/ec2-user
-          sudo wget https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/432498ef-3bc0-4e6d-ac7a-dd44e5285d05/dataloader.sh
+          sudo wget https://https://github.com/aws-samples/nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/dataloader.sh
           sudo chmod +x dataloader.sh
       Tags:
         - Key: Name
