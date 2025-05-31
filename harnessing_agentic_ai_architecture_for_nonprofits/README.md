@@ -81,9 +81,8 @@ Users make requests through the GUI, which are handled by the corresponding agen
 In your AWS S3 console, create a bucket for your Lambda code artifacts. You can name it, for example,`my-lambda-assets-<your-aws-account-no>`
 
 2. Clone the Repository:
-## Change this clone to our repo
    ```bash
-   git clone git@ssh.gitlab.aws.dev:vtbloise/harnessing_agentic_ai_architecture_for_nonprofits.git
+   git clone https://github.com/aws-samples/nonprofit-samples/tree/main/harnessing_agentic_ai_architecture_for_nonprofits
    cd agentic-architecture-using-bedrock
    ```
 
