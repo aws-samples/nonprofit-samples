@@ -1,15 +1,15 @@
 #!/bin/bash
-# Get the stack information for the stack with the specific description
+# Get the stack information for the stack with the specific description 
 STACK_DETAILS=$(aws cloudformation describe-stacks --query "Stacks[*]" --output json | jq -r '.[] | select(.Description == "Agentic AI with Bedrock Agents workshop")')
 
 # Extract the stack name from the stack details
 export STACK_NAME=$(echo "$STACK_DETAILS" | jq -r '.StackName')
 
 # Set variables for CloudFormation stack name and S3 URLs
-export DDL_URL="https://github.com/aws-samples/nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/ddl.sql"
-export DATA_URL="https://github.com/aws-samples/nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits/lambda_package/data.sql"
-export QA_URL="https://github.com/aws-samples/nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits/integration//Donations_QnA_data.csv"
-export DB_KB_URL="https://github.com/aws-samples/nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/ddl.txt"
+export DDL_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/lambda_package/ddl.sql"
+export DATA_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/lambda_package/data.sql"
+export QA_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/Donations_QnA_data.csv"
+export DB_KB_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/ddl.txt"
 
 # Retrieve the RDS endpoint from the CloudFormation stack outputs
 export DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query "Stacks[0].Outputs[?OutputKey=='DBClusterEndpoint'].OutputValue" --output text)

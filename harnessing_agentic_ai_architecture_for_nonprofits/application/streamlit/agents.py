@@ -148,8 +148,8 @@ def invokeAgent(query, session_id, enable_trace=True, session_state=dict()):
         try:
             agentResponse = bedrock_agent_runtime_client.invoke_agent(
                 inputText=query,
-                agentId='ZPHAIQSVF2',
-                agentAliasId='6LBKUMLNTE',
+                agentId='XXXXXXXXXX',
+                agentAliasId='XXXXXXXXXX',
                 sessionId=session_id,
                 enableTrace=enable_trace, 
                 endSession=end_session,

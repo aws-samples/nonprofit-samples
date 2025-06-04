@@ -172,7 +172,7 @@ def lambda_handler(event, context):
                     logger.error("Agent did not return a corrected SQL query.")
                     response_body = {
                         'TEXT': {
-                            'body': {"error": "Agent failed to provide a corrected SQL query."}
+                            'body': json.dumps({"error": "Agent failed to provide a corrected SQL query."})
                         }
                     }
                     break  # Exit the loop since we cannot proceed without a valid query
@@ -181,7 +181,7 @@ def lambda_handler(event, context):
                 sql_query = corrected_sql #.rstrip(';')  # Update sql_query with corrected version
                 response_body = {
                     'TEXT': {
-                        'body': {corrected_sql}
+                        'body': json.dumps({"corrected_sql": corrected_sql})
                     }
                 }
             
@@ -189,7 +189,7 @@ def lambda_handler(event, context):
                 logger.error("Error invoking Bedrock Agent: %s", agent_error, exc_info=True)
                 response_body = {
                     'TEXT': {
-                        'body': {"error": f"Failed to invoke agent: {str(agent_error)}"}
+                        'body': json.dumps({"error": f"Failed to invoke agent: {str(agent_error)}"})
                     }
                 }
                 break  # Exit the loop since agent invocation failed
@@ -202,7 +202,7 @@ def lambda_handler(event, context):
         logger.error("Maximum retries reached. Unable to execute SQL query successfully.")
         response_body = {
             'TEXT': {
-                'body': {"error": "Maximum retries reached. Unable to execute SQL query successfully."}
+                'body': json.dumps({"error": "Maximum retries reached. Unable to execute SQL query successfully."})
             }
         }
     
