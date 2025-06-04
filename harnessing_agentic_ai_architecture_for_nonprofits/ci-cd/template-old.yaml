@@ -67,7 +67,7 @@ Parameters:
 Mappings:
   RegionMap:
     us-east-1:
-      AMIAGENTSBASTION: ami-02457590d33d576c3
+      AMIAGENTSBASTION: ami-05a7e64be72917752
 
 Resources:
   VPC:
@@ -137,7 +137,7 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
-  # Create a dedicated security group for Bedrock endpoints to break circular dependency
+  # Create a dedicated security group for Bedrock endpoints to break circular dependency 
   BedrockEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -186,7 +186,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.0.1.0/24
-      AssignIpv6AddressOnCreation: false
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -198,7 +197,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.0.2.0/24
-      AssignIpv6AddressOnCreation: false
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -210,7 +208,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.0.3.0/24
-      AssignIpv6AddressOnCreation: false
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -222,7 +219,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.0.4.0/24
-      AssignIpv6AddressOnCreation: false
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -256,19 +252,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
       
-  # Update PublicSubnet1 to set MapPublicIpOnLaunch to false
-  #PublicSubnet1Update:
-  #  Type: AWS::EC2::SubnetCidrBlock
-  #  Properties:
-  #    SubnetId: !Ref PublicSubnet1
-      
-      
-  # Update PublicSubnet2 to set MapPublicIpOnLaunch to false
-  #PublicSubnet2Update:
-  #  Type: AWS::EC2::SubnetCidrBlock
-  #  Properties:
-  #    SubnetId: !Ref PublicSubnet2
-      
+  # These resources are not needed since MapPublicIpOnLaunch is already set to false in the subnet definitions
 
   NatGatewayEIP1:
     Type: AWS::EC2::EIP
@@ -513,7 +497,7 @@ Resources:
 
           # Download dataloader.sh to ec2-user's home directory
           cd /home/ec2-user
-          sudo wget https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/integration/dataloader.sh
+          sudo wget https://github.com/aws-samples/nonprofit-samples/tree/main/harnessing_agentic_ai_architecture_for_nonprofits/integration/dataloader.sh
           sudo chmod +x dataloader.sh
       Tags:
         - Key: Name
@@ -612,7 +596,7 @@ Resources:
       Engine: aurora-postgresql
       PubliclyAccessible: false
       DBSubnetGroupName: !Ref DBSubnetGroup
-
+      
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Metadata:
@@ -665,6 +649,14 @@ Resources:
               - Effect: Allow
                 Action:
                   - bedrock:*
+                Resource: "*"
+        - PolicyName: S3FullAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - S3:*
                 Resource: "*"
 
   AmazonBedrockExecutionRoleForAgents:
@@ -904,7 +896,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref MyAssetsBucketName
-        S3Key: !Sub "${MyAssetsBucketPrefix}/lambda/${DatabaseActionLambdaSrc}"
+        S3Key: !Sub "${MyAssetsBucketPrefix}lambda/${DatabaseActionLambdaSrc}"
       Layers:
         - !Ref Psycopg2Layer
       MemorySize: 512
@@ -944,7 +936,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref MyAssetsBucketName
-        S3Key: !Sub "${MyAssetsBucketPrefix}/lambda/${OrchestratorKBActionLambdaSrc}"
+        S3Key: !Sub "${MyAssetsBucketPrefix}lambda/${OrchestratorKBActionLambdaSrc}"
       MemorySize: 256
       Timeout: 180
       Environment:
@@ -970,7 +962,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref MyAssetsBucketName
-        S3Key: !Sub "${MyAssetsBucketPrefix}/lambda/${OrchestratorAPIActionLambdaSrc}"
+        S3Key: !Sub "${MyAssetsBucketPrefix}lambda/${OrchestratorAPIActionLambdaSrc}"
       MemorySize: 256
       Timeout: 180
       Environment:
@@ -996,7 +988,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref MyAssetsBucketName
-        S3Key: !Sub "${MyAssetsBucketPrefix}/lambda/${OrchestratorDBActionLambdaSrc}"
+        S3Key: !Sub "${MyAssetsBucketPrefix}lambda/${OrchestratorDBActionLambdaSrc}"
       MemorySize: 256
       Timeout: 180
       Environment:
@@ -1022,7 +1014,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref MyAssetsBucketName
-        S3Key: !Sub "${MyAssetsBucketPrefix}/lambda/${RestAPIActionLambdaSrc}"
+        S3Key: !Sub "${MyAssetsBucketPrefix}lambda/${RestAPIActionLambdaSrc}"
       MemorySize: 512
       Timeout: 300
 

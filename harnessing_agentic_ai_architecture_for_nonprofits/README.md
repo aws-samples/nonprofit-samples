@@ -76,14 +76,16 @@ Users make requests through the GUI, which are handled by the corresponding agen
 
 ## Setup Instructions
 
+0. Make sure you have the AWS cli configured
+
 1. Create a bucket for the Lambda assets
 
 In your AWS S3 console, create a bucket for your Lambda code artifacts. You can name it, for example,`my-lambda-assets-<your-aws-account-no>`
 
 2. Clone the Repository:
    ```bash
-   git clone https://github.com/aws-samples/nonprofit-samples/tree/main/harnessing_agentic_ai_architecture_for_nonprofits
-   cd agentic-architecture-using-bedrock
+   git clone https://github.com/aws-samples/nonprofit-samples.git
+   cd nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits
    ```
 
 3. Edit the `ci-cd/template.yaml` Cloudformation template file and update the _MyAssetsBucketName_ parameter with your bucket name above. Replace the _KeyPair_ parameter with your EC2 keypair name. 
@@ -91,7 +93,7 @@ In your AWS S3 console, create a bucket for your Lambda code artifacts. You can 
 4. Upload the Lambda code assets to the S3 bucket you created above by running the script below. 
    ```
    cd application/lambdas
-   ./upload_lambdas.sh my-lambda-assets-<your-aws-account-no>
+   ../../application/lambdas/upload_lambdas.sh my-lambda-assets-<your-aws-account-no>
 
 5. Deploy the cloudformation `template.yaml` file
    ```bash
