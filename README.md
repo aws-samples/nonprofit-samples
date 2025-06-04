@@ -18,6 +18,8 @@ The following solutions are contained in this repository:
 
 - [Natural Language Query with Amazon Bedrock (React Single-Page Application)](Bedrock_NLQ_React_App/README.md) - This sample shares how to deploy a React single-page application (SPA) with the AWS Cloud Development Kit (CDK) that hosts a chatbot for natural language query of structured data.
 
+- [Harnessing Agentic AI Architecture for Nonprofits](harnessing_agentic_ai_architecture_for_nonprofits/README.md) - This sample shares how to build a multi-agent collaboration architecture that leverages relational data, unstructured data, and data retrieved from a REST API. 
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
