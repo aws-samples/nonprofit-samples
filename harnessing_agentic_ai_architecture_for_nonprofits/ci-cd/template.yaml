@@ -137,7 +137,7 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
-  # Create a dedicated security group for Bedrock endpoints to break circular dependency
+  # Create a dedicated security group for Bedrock endpoints to break circular dependency 
   BedrockEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:

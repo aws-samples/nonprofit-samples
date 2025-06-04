@@ -1,5 +1,5 @@
 #!/bin/bash
-# Get the stack information for the stack with the specific description
+# Get the stack information for the stack with the specific description 
 STACK_DETAILS=$(aws cloudformation describe-stacks --query "Stacks[*]" --output json | jq -r '.[] | select(.Description == "Agentic AI with Bedrock Agents workshop")')
 
 # Extract the stack name from the stack details
