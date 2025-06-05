@@ -69,7 +69,7 @@ st.markdown("""
     
     /* Background styling */
     .stApp {
-        background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("https://d1qg0m9urd24mb.cloudfront.net/thesignatry.jpg");
+        background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("https://d1qg0m9urd24mb.cloudfront.net/Unity_Mission_homepage.png");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -101,7 +101,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("https://d1qg0m9urd24mb.cloudfront.net/thesignatry.jpg");
+        background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("https://d1qg0m9urd24mb.cloudfront.net/Unity_Mission_homepage.png");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;

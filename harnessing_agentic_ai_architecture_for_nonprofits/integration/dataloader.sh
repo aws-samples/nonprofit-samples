@@ -8,7 +8,7 @@ export STACK_NAME=$(echo "$STACK_DETAILS" | jq -r '.StackName')
 # Set variables for CloudFormation stack name and S3 URLs
 export DDL_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/lambda_package/ddl.sql"
 export DATA_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/lambda_package/data.sql"
-export QA_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/Donations_QnA_data.csv"
+export QA_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/integration/Donations_QnA_data.csv"
 export DB_KB_URL="https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/harnessing_agentic_ai_architecture_for_nonprofits/ci-cd/ddl.txt"
 
 # Retrieve the RDS endpoint from the CloudFormation stack outputs
