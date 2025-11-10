@@ -1,0 +1,9 @@
+strands-agents-tools[use_aws]
+strands-agents
+mcp
+fastapi
+pydantic
+requests
+colorama
+uvicorn
+rich
