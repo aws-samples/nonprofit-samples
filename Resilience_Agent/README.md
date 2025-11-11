@@ -29,7 +29,7 @@ curl -X POST http://localhost:8080/invocations \
   }'
 ```
 
-If you don't want to send prompts via the command line, you can run `interactive.py` in a new console window (example: `python interactive.py`). If you run this, it will ask you for the tag/value/RTO/RPO of the workload you're interested in. After delivering an analysis, you can ask follow-up questions about the workload to improve its resilience.
+If you don't want to send prompts via the command line, you can run [interactive.py](interactive.py) in a new console window (example: `python interactive.py`). If you run this, it will ask you for the tag/value/RTO/RPO of the workload you're interested in. After delivering an analysis, you can ask follow-up questions about the workload to improve its resilience.
 
 ## Next steps
 
@@ -39,7 +39,7 @@ If you want to take your agent to the next level and deploy with Bedrock AgentCo
 
 2. Uncomment line 46 (`#aws_session = boto3.session.Session(region_name=aws_region)`). Basically, when you run this in AgentCore Runtime, it needs a role, not a local profile. 
 
-3. Open `Dockerfile` and modify lines 18-20 to align with your environment.
+3. Open [Dockerfile](Dockerfile) and modify lines 18-20 to align with your environment.
 
 4. Go to your AWS account and create a new ECR repo to store the AgentCore Runtime container in. 
 
@@ -49,7 +49,7 @@ If you want to take your agent to the next level and deploy with Bedrock AgentCo
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin XXXXXXXXXXX.dkr.ecr.YYYYYY.amazonaws.com
 ```
 
-Where XXXXXXXXXXX is your AWS account ID and YYYYYY is the region you're operating in. 
+Where `XXXXXXXXXXX` is your AWS account ID and `YYYYYY` is the region you're operating in. 
 
 Then run:
 
@@ -57,7 +57,7 @@ Then run:
 docker buildx build --platform linux/arm64 -t XXXXXXXXXXX.dkr.ecr.YYYYYY.amazonaws.com/ZZZZZZZZ:latest --push .
 ```
 
-Where ZZZZZZZZ is the name you gave your ECR repository. This command builds and uploads your container. Note: containers MUST be built as ARM64!
+Where `ZZZZZZZZ` is the name you gave your ECR repository. This command builds and uploads your container. Note: containers MUST be built as ARM64!
 
 6. Once the container is uploaded, go to ECR and copy the image URI from the artifact listed as `latest`. 
 
@@ -93,6 +93,6 @@ Where ZZZZZZZZ is the name you gave your ECR repository. This command builds and
 }
 ```
 
-Where YOUR-BUCKET-NAME is the name of the bucket you're using to store session information. 
+Where `YOUR-BUCKET-NAME` is the name of the bucket you're using to store session information. 
 
-10. Once that's complete, you should be able to run your agent running in AgentCore runtime! Open `agentcore-invoke.py` and modify lines 13-15 for your environment. Then call `python agentcore-invoke.py`.
+10. Once that's complete, you should be able to run your agent running in AgentCore runtime! Open [invoke-agentcore.py](invoke-agentcore.py) and modify lines 13-15 for your environment. Then call `python agentcore-invoke.py`.
