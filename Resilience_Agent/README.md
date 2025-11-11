@@ -96,3 +96,7 @@ Where `ZZZZZZZZ` is the name you gave your ECR repository. This command builds a
 Where `YOUR-BUCKET-NAME` is the name of the bucket you're using to store session information. 
 
 10. Once that's complete, you should be able to run your agent running in AgentCore runtime! Open [invoke-agentcore.py](invoke-agentcore.py) and modify lines 13-15 for your environment. Then call `python invoke-agentcore.py`.
+
+## Going even farther
+
+As a next step, you could modify the agent to use AgentCore Memory instead of storing session data in S3. However, that task was not done here simply because the way this agent is designed, there isn't a need for any sort of long-term memory persistence. 
