@@ -95,4 +95,4 @@ Where `ZZZZZZZZ` is the name you gave your ECR repository. This command builds a
 
 Where `YOUR-BUCKET-NAME` is the name of the bucket you're using to store session information. 
 
-10. Once that's complete, you should be able to run your agent running in AgentCore runtime! Open [invoke-agentcore.py](invoke-agentcore.py) and modify lines 13-15 for your environment. Then call `python agentcore-invoke.py`.
+10. Once that's complete, you should be able to run your agent running in AgentCore runtime! Open [invoke-agentcore.py](invoke-agentcore.py) and modify lines 13-15 for your environment. Then call `python invoke-agentcore.py`.
