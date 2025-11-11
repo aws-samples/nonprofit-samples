@@ -1,4 +1,4 @@
-strands-agents-tools[use_aws]
+strands-agents-tools
 strands-agents
 mcp
 fastapi
@@ -7,3 +7,6 @@ requests
 colorama
 uvicorn
 rich
+agentcore
+aws-opentelemetry-distro>=0.10.0
+boto3

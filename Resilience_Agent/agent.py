@@ -43,6 +43,7 @@ bucket_name = os.getenv("S3_BUCKET", "YOUR-S3-BUCKET-GOES-HERE")
 
 # Configure boto3 to use the specified profile for all AWS calls
 aws_session = boto3.session.Session(profile_name=aws_profile, region_name=aws_region)
+#aws_session = boto3.session.Session(region_name=aws_region)
 
 #Read in the system_prompt.md file as the system prompt
 current_file = Path(__file__)

@@ -30,3 +30,69 @@ curl -X POST http://localhost:8080/invocations \
 ```
 
 If you don't want to send prompts via the command line, you can run `interactive.py` in a new console window (example: `python interactive.py`). If you run this, it will ask you for the tag/value/RTO/RPO of the workload you're interested in. After delivering an analysis, you can ask follow-up questions about the workload to improve its resilience.
+
+## Next steps
+
+If you want to take your agent to the next level and deploy with Bedrock AgentCore, here's all you need to do.
+
+1. Open `agent.py` and comment out line 39 (`aws_profile = os.getenv("AWS_PROFILE", "default")`) and line 45 (`aws_session = boto3.session.Session(profile_name=aws_profile, region_name=aws_region)`)
+
+2. Uncomment line 46 (`#aws_session = boto3.session.Session(region_name=aws_region)`). Basically, when you run this in AgentCore Runtime, it needs a role, not a local profile. 
+
+3. Open `Dockerfile` and modify lines 18-20 to align with your environment.
+
+4. Go to your AWS account and create a new ECR repo to store the AgentCore Runtime container in. 
+
+5. Ensure docker is running. Open the CLI in this directory and run:
+
+```
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin XXXXXXXXXXX.dkr.ecr.YYYYYY.amazonaws.com
+```
+
+Where XXXXXXXXXXX is your AWS account ID and YYYYYY is the region you're operating in. 
+
+Then run:
+
+```
+docker buildx build --platform linux/arm64 -t XXXXXXXXXXX.dkr.ecr.YYYYYY.amazonaws.com/ZZZZZZZZ:latest --push .
+```
+
+Where ZZZZZZZZ is the name you gave your ECR repository. This command builds and uploads your container. Note: containers MUST be built as ARM64!
+
+6. Once the container is uploaded, go to ECR and copy the image URI from the artifact listed as `latest`. 
+
+7. Go to AgentCore Runtime and click `Host agent`. Select `ECR container` and specify the URI you just copied. Take note of the role name. Click `Host agent`. 
+
+8. Once the agent runtime has been created, navigate to the created role in the IAM console. 
+
+9. Grant the role the `AWSCloudFormationReadOnlyAccess` managed permission (so it can read your CloudFormation stacks). Create a new inline policy that looks like this:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": [
+                "arn:aws:s3:::YOUR-BUCKET-NAME",
+                "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+            ]
+        }
+    ]
+}
+```
+
+Where YOUR-BUCKET-NAME is the name of the bucket you're using to store session information. 
+
+10. Once that's complete, you should be able to run your agent running in AgentCore runtime! Open `agentcore-invoke.py` and modify lines 13-15 for your environment. Then call `python agentcore-invoke.py`.
