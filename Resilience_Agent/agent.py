@@ -38,7 +38,7 @@ app = FastAPI(title="Resilience Advisor", version="1.0.0")
 # Set configs from environment variables or defaults
 aws_profile = os.getenv("AWS_PROFILE", "default")
 aws_region = os.getenv("AWS_REGION", "us-east-1")
-llm_model_id = os.getenv("LLM_MODEL_ID", "us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+llm_model_id = os.getenv("LLM_MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0")
 bucket_name = os.getenv("S3_BUCKET", "YOUR-S3-BUCKET-GOES-HERE")
 
 # Configure boto3 to use the specified profile for all AWS calls
