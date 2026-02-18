@@ -333,32 +333,35 @@ Resources:
       Code:
         ZipFile: |
           import boto3
-          import json
 
           def lambda_handler(event, context):
               print(event)
                   
               bedrock = boto3.client('bedrock-runtime')
               
-              prompt = """\n\nHuman: A meeting transcript is located in the <transcript> tags. Summarize the meeting as a bulleted list and generate action items as a bulleted list.
+              message = f"""A meeting transcript is located in the <transcript> tags. Summarize the meeting as a bulleted list and generate action items as a bulleted list.
               
-              <transcript>
-              {}
-              </transcript>
-              \n\nAssistant:
-              """.format(event['transcript'])
+          <transcript>
+          {event['transcript']}
+          </transcript>"""
               
-              prompt_body = json.dumps({"prompt": prompt, "max_tokens_to_sample": 4096, "temperature": 1, "top_k": 250, "top_p": 0.999, "stop_sequences": ["\n\nHuman:"] })
+              response = bedrock.converse(
+                  modelId="global.anthropic.claude-sonnet-4-6",
+                  messages=[
+                      {
+                          "role": "user",
+                          "content": [{"text": message}]
+                      }
+                  ],
+                  inferenceConfig={
+                      "maxTokens": 4096,
+                      "temperature": 1
+                  }
+              )
               
-              response = bedrock.invoke_model(body=prompt_body, 
-               modelId="anthropic.claude-v2", 
-               accept="*/*", 
-               contentType="application/json")
-              body = json.loads(response.get('body').read())
+              answer = response['output']['message']['content'][0]['text']
               
-              answer = body.get('completion')
-              
-              return { "answer": answer }
+              return {"answer": answer}
 
       Handler: "index.lambda_handler"
       Runtime: python3.12
