@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-amplify/auth": "^6.11.1",
     "@aws-amplify/ui-react": "^6.9.1",
-    "aws-amplify": "^6.13.1",
+    "aws-amplify": "^6.16.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.0.0",
