@@ -89,7 +89,7 @@ pip install streamlit boto3 requests
 To run the application, you can run
 
 ```bash
-streamlit run gateway_app.py
+python3 -m streamlit run gateway_app.py
 ```
 
 ## 5. Using the streamlit application
