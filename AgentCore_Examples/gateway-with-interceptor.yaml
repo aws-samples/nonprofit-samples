@@ -1,0 +1,637 @@
+# This code provides a sample solution for demonstration purposes. Organizations should implement security best practices, 
+# including controls for authentication, data protection, and prompt injection in any production workloads. Please reference 
+# the security pillar of the AWS Well-Architected Framework and Amazon Bedrock documentation for more information.
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Creates an Amazon Bedrock AgentCore Gateway (MCP protocol) with a Lambda-based
+  response interceptor that prints the gateway response to CloudWatch Logs.
+
+Parameters:
+  GatewayName:
+    Type: String
+    Default: my-agentcore-gateway
+    Description: Name of the Bedrock AgentCore Gateway
+
+  GitHubClientId:
+    Type: String
+    Description: GitHub OAuth App client ID
+    MinLength: 1
+    MaxLength: 256
+
+  GitHubClientSecret:
+    Type: String
+    Description: GitHub OAuth App client secret
+    MinLength: 1
+    MaxLength: 2048
+    NoEcho: true
+
+Resources:
+
+  # -----------------------------------------------------------------------
+  # Lambda execution role
+  # -----------------------------------------------------------------------
+  InterceptorLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # -----------------------------------------------------------------------
+  # Lambda interceptor - prints the full response payload to stdout
+  # -----------------------------------------------------------------------
+  ResponseInterceptorFunction:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W89
+            reason: This does not need to be in a VPC
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${GatewayName}-response-interceptor"
+      Description: Bedrock AgentCore Gateway response interceptor - logs the response
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt InterceptorLambdaRole.Arn
+      Timeout: 10
+      MemorySize: 128
+      ReservedConcurrentExecutions: 2
+      Code:
+        ZipFile: |
+          import json
+          import logging
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          def handler(event, context):
+              """
+              Response interceptor for Bedrock AgentCore Gateway.
+              Logs the gateway response and returns it in the required
+              interceptor output envelope.
+              """
+              logger.info("=== Gateway Response Interceptor ===")
+              logger.info("Raw event: %s", json.dumps(event, default=str))
+
+              mcp_data = event.get("mcp", {})
+              gateway_response = mcp_data.get("gatewayResponse", {})
+
+              logger.info("Response body: %s", json.dumps(gateway_response.get("body", {}), default=str))
+
+              # Return the required interceptor output envelope
+              return {
+                  "interceptorOutputVersion": "1.0",
+                  "mcp": {
+                      "transformedGatewayResponse": {
+                          "body": gateway_response.get("body", {}),
+                          "statusCode": gateway_response.get("statusCode", 200)
+                      }
+                  }
+              }
+
+  # -----------------------------------------------------------------------
+  # Allow the Bedrock AgentCore service to invoke the Lambda
+  # -----------------------------------------------------------------------
+  InterceptorLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ResponseInterceptorFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: bedrock-agentcore.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:gateway/*"
+
+  # -----------------------------------------------------------------------
+  # IAM role assumed by the Gateway itself
+  # Three inline policies matching what is live in the account:
+  #   1. InvokeInterceptorLambda  - invoke the response interceptor
+  #   2. BasePolicy               - allow the gateway to describe itself
+  #   3. OAuth                    - token vault / workload identity / Secrets Manager
+  #      access needed for 3-legged OAuth flows
+  # -----------------------------------------------------------------------
+  GatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock-agentcore.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeInterceptorLambda
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ResponseInterceptorFunction.Arn
+
+        - PolicyName: BasePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: GetGateway
+                Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetGateway
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:gateway/${GatewayName}*"
+
+        - PolicyName: OAuth
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: GetWorkloadAccessToken
+                Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetWorkloadAccessToken
+                  - bedrock-agentcore:GetWorkloadAccessTokenForJWT
+                  - bedrock-agentcore:GetWorkloadAccessTokenForUserId
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/${GatewayName}-*"
+              - Sid: CompleteResourceTokenAuth
+                Effect: Allow
+                Action:
+                  - bedrock-agentcore:CompleteResourceTokenAuth
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default/oauth2credentialprovider/github-*"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/github-*"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/${GatewayName}-*"
+              - Sid: GetResourceOauth2Token
+                Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetResourceOauth2Token
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default/oauth2credentialprovider/github-*"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/github-*"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/${GatewayName}-*"
+              - Sid: GetSecretValue
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:bedrock-agentcore-identity!default/oauth2/github-*"
+
+  # -----------------------------------------------------------------------
+  # Cognito User Pool - inbound JWT authorizer for the gateway
+  # -----------------------------------------------------------------------
+  GatewayUserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: !Sub "${GatewayName}-user-pool"
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+
+  GatewayResourceServer:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      UserPoolId: !Ref GatewayUserPool
+      Identifier: gateway
+      Name: AgentCore Gateway
+      Scopes:
+        - ScopeName: invoke
+          ScopeDescription: Invoke the AgentCore Gateway
+
+  GatewayUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: GatewayResourceServer
+    Properties:
+      ClientName: !Sub "${GatewayName}-client"
+      UserPoolId: !Ref GatewayUserPool
+      GenerateSecret: true
+      AllowedOAuthFlows:
+        - client_credentials
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - gateway/invoke
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  GatewayUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub "${GatewayName}-auth"
+      UserPoolId: !Ref GatewayUserPool
+
+  # -----------------------------------------------------------------------
+  # AgentCore Identity - GitHub OAuth2 credential provider
+  # -----------------------------------------------------------------------
+  GitHubOAuthCredentialProvider:
+    Type: AWS::BedrockAgentCore::OAuth2CredentialProvider
+    Properties:
+      Name: github-oauth-provider
+      CredentialProviderVendor: GithubOauth2
+      Oauth2ProviderConfigInput:
+        GithubOauth2ProviderConfig:
+          ClientId: !Ref GitHubClientId
+          ClientSecret: !Ref GitHubClientSecret
+
+  # -----------------------------------------------------------------------
+  # Bedrock AgentCore Gateway
+  # -----------------------------------------------------------------------
+  AgentCoreGateway:
+    Type: AWS::BedrockAgentCore::Gateway
+    Properties:
+      Name: !Ref GatewayName
+      Description: "MCP gateway with a Lambda response interceptor"
+      AuthorizerType: CUSTOM_JWT
+      AuthorizerConfiguration:
+        CustomJWTAuthorizer:
+          DiscoveryUrl: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${GatewayUserPool}/.well-known/openid-configuration"
+          AllowedClients:
+            - !Ref GatewayUserPoolClient
+      ProtocolType: MCP
+      RoleArn: !GetAtt GatewayRole.Arn
+      ExceptionLevel: DEBUG
+
+      # MCP protocol settings - Instructions and SearchType are not set on the live resource
+      ProtocolConfiguration:
+        Mcp:
+          SupportedVersions:
+            - "2025-11-25"
+          SearchType: SEMANTIC
+
+      # Response interceptor - fires after the gateway produces a response
+      InterceptorConfigurations:
+        - InterceptionPoints:
+            - RESPONSE
+          InputConfiguration:
+            PassRequestHeaders: true
+          Interceptor:
+            Lambda:
+              Arn: !GetAtt ResponseInterceptorFunction.Arn
+
+  # -----------------------------------------------------------------------
+  # IAM role for the GatewayTarget custom resource Lambda
+  # -----------------------------------------------------------------------
+  GatewayTargetFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ManageGatewayTarget
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:CreateGatewayTarget
+                  - bedrock-agentcore:UpdateGatewayTarget
+                  - bedrock-agentcore:DeleteGatewayTarget
+                  - bedrock-agentcore:GetGatewayTarget
+                  - bedrock-agentcore:SynchronizeGatewayTargets
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:gateway/*"
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetWorkloadAccessTokenForUserId
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetResourceOauth2Token
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:token-vault/default/oauth2credentialprovider/github-*"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:${AWS::Partition}:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:bedrock-agentcore-identity!default/oauth2/github-*"
+
+  # -----------------------------------------------------------------------
+  # Lambda that manages the GatewayTarget lifecycle as a custom resource.
+  # It calls the AgentCore control-plane API directly and returns immediately
+  # without waiting for OAuth stabilization, avoiding the 3LO timeout.
+  # After the stack deploys, complete the GitHub OAuth flow manually using
+  # the callback URL in the GitHubOAuthCallbackUrl output.
+  # -----------------------------------------------------------------------
+  GatewayTargetFunction:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W89
+            reason: This does not need to be in a VPC
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${GatewayName}-target-cr"
+      Description: Custom resource handler for BedrockAgentCore GatewayTarget - skips OAuth stabilization wait
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt GatewayTargetFunctionRole.Arn
+      Timeout: 90
+      MemorySize: 128
+      ReservedConcurrentExecutions: 2
+      Code:
+        ZipFile: |
+          """
+          Custom resource handler for BedrockAgentCore GatewayTarget.
+
+          Uses raw SigV4-signed HTTP calls instead of the boto3 service client
+          so that the Lambda runtime's bundled botocore version (which may lack
+          newer model fields like mcpServer / grantType / defaultReturnUrl) is
+          not a constraint.
+          """
+          import json
+          import logging
+          import os
+          import urllib.request
+          import urllib.error
+
+          import boto3
+          import cfnresponse
+          from botocore.auth import SigV4Auth
+          from botocore.awsrequest import AWSRequest
+          from botocore.credentials import RefreshableCredentials
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          REGION = os.environ.get("AWS_REGION", "us-east-1")
+          BASE_URL = f"https://bedrock-agentcore-control.{REGION}.amazonaws.com"
+          SERVICE = "bedrock-agentcore"
+
+          def _signed_request(method, url, body=None):
+              """Make a SigV4-signed HTTP request using stdlib urllib."""
+              session = boto3.session.Session()
+              credentials = session.get_credentials().get_frozen_credentials()
+              body_bytes = json.dumps(body).encode() if body is not None else b""
+              req = AWSRequest(
+                  method=method,
+                  url=url,
+                  data=body_bytes,
+                  headers={"Content-Type": "application/json"},
+              )
+              SigV4Auth(credentials, SERVICE, REGION).add_auth(req)
+              prepared = req.prepare()
+              http_req = urllib.request.Request(
+                  url=prepared.url,
+                  data=body_bytes if body is not None else None,
+                  headers=dict(prepared.headers),
+                  method=method,
+              )
+              try:
+                  with urllib.request.urlopen(http_req) as resp:
+                      return resp.status, json.loads(resp.read())
+              except urllib.error.HTTPError as e:
+                  return e.code, json.loads(e.read())
+
+          INLINE_SCHEMA = {
+              "tools": [
+                  {
+                      "name": "search_repositories",
+                      "description": "Find GitHub repositories by name, description, readme, topics, or other metadata. Perfect for discovering projects, finding examples, or locating specific repositories across GitHub.",
+                      "inputSchema": {
+                          "type": "object",
+                          "properties": {
+                              "query": {"type": "string", "description": "Repository search query. Examples: 'machine learning in:name stars:>1000 language:python', 'topic:react', 'user:facebook'. Supports advanced search syntax for precise filtering."},
+                              "sort": {"type": "string", "description": "Sort repositories by field, defaults to best match", "enum": ["stars", "forks", "help-wanted-issues", "updated"]},
+                              "order": {"type": "string", "description": "Sort order", "enum": ["asc", "desc"]},
+                              "page": {"type": "number", "description": "Page number for pagination (min 1)", "minimum": 1},
+                              "perPage": {"type": "number", "description": "Results per page for pagination (min 1, max 100)", "minimum": 1, "maximum": 100},
+                              "minimal_output": {"type": "boolean", "description": "Return minimal repository information (default: true). When false, returns full GitHub API repository objects.", "default": True}
+                          },
+                          "required": ["query"]
+                      }
+                  },
+                  {
+                      "name": "search_users",
+                      "description": "Find GitHub users by username, real name, or other profile information. Useful for locating developers, contributors, or team members.",
+                      "inputSchema": {
+                          "type": "object",
+                          "properties": {
+                              "query": {"type": "string", "description": "User search query. Examples: 'john smith', 'location:seattle', 'followers:>100'. Search is automatically scoped to type:user."},
+                              "sort": {"type": "string", "description": "Sort users by number of followers or repositories, or when the person joined GitHub.", "enum": ["followers", "repositories", "joined"]},
+                              "order": {"type": "string", "description": "Sort order", "enum": ["asc", "desc"]},
+                              "page": {"type": "number", "description": "Page number for pagination (min 1)", "minimum": 1},
+                              "perPage": {"type": "number", "description": "Results per page for pagination (min 1, max 100)", "minimum": 1, "maximum": 100}
+                          },
+                          "required": ["query"]
+                      }
+                  }
+              ]
+          }
+
+          def _target_body(props):
+              return {
+                  "name": props["TargetName"],
+                  "targetConfiguration": {
+                      "mcp": {
+                          "mcpServer": {
+                              "endpoint": props["McpEndpoint"],
+                              "mcpToolSchema": {
+                                  "inlinePayload": json.dumps(INLINE_SCHEMA)
+                              }
+                          }
+                      }
+                  },
+                  "credentialProviderConfigurations": [
+                      {
+                          "credentialProviderType": "OAUTH",
+                          "credentialProvider": {
+                              "oauthCredentialProvider": {
+                                  "providerArn": props["ProviderArn"],
+                                  "grantType": "AUTHORIZATION_CODE",
+                                  "defaultReturnUrl": props["DefaultReturnUrl"],
+                                  "scopes": props["Scopes"]
+                              }
+                          }
+                      }
+                  ]
+              }
+
+          def _poll_for_auth_url(gw_id, target_id, timeout=45):
+              """
+              Poll GET target until authorizationData.oauth2.authorizationUrl
+              is present or timeout is reached. Returns the URL or empty string.
+              """
+              import time
+              deadline = time.time() + timeout
+              url = f"{BASE_URL}/gateways/{gw_id}/targets/{target_id}"
+              while time.time() < deadline:
+                  status, body = _signed_request("GET", url)
+                  logger.info("Poll response %s: status=%s", status, body.get("status"))
+                  if status == 200:
+                      auth_url = (
+                          body.get("authorizationData", {})
+                              .get("oauth2", {})
+                              .get("authorizationUrl", "")
+                      )
+                      if auth_url:
+                          logger.info("Got auth URL: %s", auth_url)
+                          return auth_url
+                      target_status = body.get("status", "")
+                      # Stop polling if target moved to a terminal non-auth state
+                      if target_status in ("READY", "FAILED"):
+                          logger.info("Target reached status %s without auth URL", target_status)
+                          return ""
+                  time.sleep(3)
+              logger.warning("Timed out waiting for auth URL")
+              return ""
+
+          def handler(event, context):
+              logger.info("Event: %s", json.dumps(event, default=str))
+              request_type = event["RequestType"]
+              props = event["ResourceProperties"]
+              gw_id = props["GatewayIdentifier"]
+              physical_id = event.get("PhysicalResourceId", "pending")
+
+              try:
+                  if request_type == "Create":
+                      url = f"{BASE_URL}/gateways/{gw_id}/targets/"
+                      status, body = _signed_request("POST", url, _target_body(props))
+                      logger.info("Create response %s: %s", status, body)
+                      if status not in (200, 201, 202):
+                          raise RuntimeError(f"HTTP {status}: {body}")
+                      target_id = body["targetId"]
+                      auth_url = _poll_for_auth_url(gw_id, target_id)
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                       {"TargetId": target_id, "AuthorizationUrl": auth_url},
+                                       target_id)
+
+                  elif request_type == "Update":
+                      url = f"{BASE_URL}/gateways/{gw_id}/targets/{physical_id}/"
+                      body = _target_body(props)
+                      status, resp_body = _signed_request("PUT", url, body)
+                      logger.info("Update response %s: %s", status, resp_body)
+                      if status == 404:
+                          # Target was deleted outside CFN - recreate it
+                          logger.info("Target not found, recreating")
+                          url = f"{BASE_URL}/gateways/{gw_id}/targets/"
+                          status, resp_body = _signed_request("POST", url, _target_body(props))
+                          logger.info("Recreate response %s: %s", status, resp_body)
+                          if status not in (200, 201, 202):
+                              raise RuntimeError(f"HTTP {status}: {resp_body}")
+                          new_id = resp_body["targetId"]
+                          auth_url = _poll_for_auth_url(gw_id, new_id)
+                          cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                           {"TargetId": new_id, "AuthorizationUrl": auth_url},
+                                           new_id)
+                          return
+                      if status not in (200, 201, 202):
+                          raise RuntimeError(f"HTTP {status}: {resp_body}")
+                      auth_url = _poll_for_auth_url(gw_id, physical_id)
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                       {"TargetId": physical_id, "AuthorizationUrl": auth_url},
+                                       physical_id)
+
+                  elif request_type == "Delete":
+                      if physical_id and physical_id != "pending":
+                          url = f"{BASE_URL}/gateways/{gw_id}/targets/{physical_id}/"
+                          status, resp_body = _signed_request("DELETE", url)
+                          logger.info("Delete response %s: %s", status, resp_body)
+                          if status not in (200, 202, 204, 404):
+                              raise RuntimeError(f"HTTP {status}: {resp_body}")
+                          # Poll until the target is fully gone — delete is async
+                          if status != 404:
+                              import time
+                              deadline = time.time() + 60
+                              while time.time() < deadline:
+                                  poll_status, _ = _signed_request("GET", url)
+                                  if poll_status == 404:
+                                      break
+                                  time.sleep(3)
+                              else:
+                                  raise RuntimeError("Timed out waiting for target deletion to complete")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                                       {}, physical_id)
+
+              except Exception as e:
+                  logger.exception("Failed to %s gateway target", request_type)
+                  cfnresponse.send(event, context, cfnresponse.FAILED,
+                                   {"Error": str(e)}, physical_id)
+
+  # -----------------------------------------------------------------------
+  # Gateway Target - GitHub Copilot MCP server with OAuth 3LO
+  # Managed via custom resource to avoid CFN stabilization waiting on the
+  # interactive OAuth authorization flow.
+  # After deploy: open GitHubOAuthCallbackUrl in a browser to authorize.
+  # -----------------------------------------------------------------------
+  GitHubCopilotTarget:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt GatewayTargetFunction.Arn
+      GatewayIdentifier: !GetAtt AgentCoreGateway.GatewayIdentifier
+      TargetName: github-copilot-mcp
+      McpEndpoint: "https://api.githubcopilot.com/mcp"
+      ProviderArn: !GetAtt GitHubOAuthCredentialProvider.CredentialProviderArn
+      DefaultReturnUrl: "http://localhost:8080/return"
+      Scopes:
+        - repo
+        - user
+        - workflow
+
+# -----------------------------------------------------------------------
+# Outputs
+# -----------------------------------------------------------------------
+Outputs:
+  GatewayId:
+    Description: This is the GATEWAY_ID in the gateway_app.py file
+    Value: !GetAtt AgentCoreGateway.GatewayIdentifier
+
+  GatewayUrl:
+    Description: This is the GATEWAY_URL in the gateway_app.py file
+    Value: !GetAtt AgentCoreGateway.GatewayUrl
+
+  InterceptorFunctionArn:
+    Description: ARN of the response interceptor Lambda
+    Value: !GetAtt ResponseInterceptorFunction.Arn
+
+  GitHubOAuthProviderArn:
+    Description: ARN of the GitHub OAuth2 credential provider
+    Value: !GetAtt GitHubOAuthCredentialProvider.CredentialProviderArn
+
+  GitHubOAuthCallbackUrl:
+    Description: Callback URL to register in your GitHub OAuth App
+    Value: !GetAtt GitHubOAuthCredentialProvider.CallbackUrl
+
+  GitHubCopilotAuthorizationUrl:
+    Description: GitHub OAuth authorization URL — open in a browser to complete the 3LO flow
+    Value: !GetAtt GitHubCopilotTarget.AuthorizationUrl
+
+  CognitoUserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref GatewayUserPool
+
+  CognitoUserPoolClientId:
+    Description: This is the COGNITO_CLIENT_ID in the gateway_app.py file
+    Value: !Ref GatewayUserPoolClient
+
+  CognitoHostedUiUrl:
+    Description: This is the COGNITO_HOSTED_URL in the gateway_app.py file
+    Value: !Sub "https://${GatewayName}-auth.auth.${AWS::Region}.amazoncognito.com"
