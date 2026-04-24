@@ -7,6 +7,18 @@ A Streamlit app that demonstrates an Amazon Bedrock AgentCore Gateway using the 
 - **`gateway-with-interceptor.yaml`** — CloudFormation template that deploys the full stack: Cognito user pool, AgentCore Gateway, GitHub OAuth credential provider, Lambda response interceptor, and a custom resource Lambda to manage the gateway target.
 - **`gateway_app.py`** — Streamlit demo app that connects to the deployed gateway.
 
+The solution works as follows:
+- The client needs to make a call to AgentCore Gateway, but first needs an authentication token. It calls Cognito to get a JWT (see 1)
+- The client uses this token to call AgentCore Gateway, passing in the token it received from the prior step (see 2)
+- The client wants to use the GitHub MCP server, so AgentCore Gateway attempts to pull the authentication information from AgentCore Identity (see 3). It determines there is no OAuth token, so it returns the authentication endpoint to the client.
+- The client performs authentication against the OAuth endpoint (see 5). The OAuth application returns the OAuth token (see 6). The client then associates the JWT and the OAuth token via the `complete_resource_token_auth` API and sends the results to the AgentCore control plane.
+- The client makes a new request to the MCP server (see 2), AgentCore Gateway successfully pulls the OAuth token from AgentCore Identity (see 3) and makes the request to the external MCP server (see 4). 
+- The results are returned, but before AgentCore Gateway returns the results to the client, it sends the results to the Gateway's response interceptor (see 7). The Lambda function writes the results to a log file (see 8).
+- The results are returned from the response interceptor and the Gateway returns the results to the client.
+
+
+![Solution architecture](./images/architecture.png)
+
 ## Prerequisites
 
 - Python 3.12+
