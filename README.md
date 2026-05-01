@@ -4,6 +4,8 @@ This repository contains solutions that have been specifically curated for the n
 
 The following solutions are contained in this repository:
 
+- [AgentCore Gateway Demo](./AgentCore_Examples/AgentCore_Gateway/README.md) - This sample demonstrates how to configure Amazon Bedrock AgentCore Gateway with inbound Cognito JWT auth and outbound GitHub OAuth (3-legged OAuth) via AgentCore Identity. The Gateway also uses a Lambda outbound interceptor, so you could potentially capture results from the MCP tools and modify them before returning to the client.
+
 - [Harnessing Agentic AI Architecture for Nonprofits](harnessing_agentic_ai_architecture_for_nonprofits/README.md) - This sample shares how to build a multi-agent collaboration architecture that leverages relational data, unstructured data, and data retrieved from a REST API. 
 
 - [How nonprofits can automate tax-exempt status across AWS accounts](https://aws.amazon.com/blogs/publicsector/how-nonprofits-can-automate-tax-exempt-status-across-aws-accounts/) - this is a blog post that shows how you can automate your tax-exempt status across your AWS accounts.
