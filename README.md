@@ -20,6 +20,8 @@ The following solutions are contained in this repository:
 
 - [Social Media Sentiment](Social_Media_Sentiment/README.md) - this folder contains a solution to set up a Twitter social media sentiment monitor. A nonprofit can gather sentiment on their Twitter handle and perform analytics on the data that is gathered.
 
+- [Standard Operating Procedures for Agents Demo](./SOP_Agents/README.md) - A simple proof of concept demonstrating how Standard Operating Procedures (SOPs) improve AI agent outputs for nonprofit organizations. Uses AWS Bedrock with the Strands Agents SDK to show side-by-side comparisons.
+
 - [Targeted Messaging with Amazon Pinpoint and Amazon Personalize](Targeted_Messaging_With_Pinpoint_and_Personalize/README.md) - this folder contains a solution that provides a POC-in-a-box to see how Amazon Personalize and Amazon Pinpoint can be used together to create targeted, personalized messages to an audience.
 
 - [Using machine learning to customize your direct mailings](DirectMailing_With_Amazon_Personalize/README.md) - this folder contains a solution to set up a personalization solution for a direct mailing workflow.
