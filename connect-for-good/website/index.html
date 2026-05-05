@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect for Good — Nonprofit Support</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, #2d6a4f, #40916c); color: white; padding: 2rem; text-align: center; }
+    header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    header p { opacity: 0.9; font-size: 1.1rem; }
+    .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h3 { color: #2d6a4f; margin-bottom: 0.5rem; }
+    .card p { color: #555; line-height: 1.6; }
+    .chat-section { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
+    .chat-section h2 { color: #2d6a4f; margin-bottom: 1rem; }
+    .chat-section p { color: #555; margin-bottom: 1.5rem; }
+    .setup-banner { background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin-bottom: 2rem; display: none; }
+    .setup-banner code { background: #ffeeba; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9rem; }
+    footer { text-align: center; padding: 2rem; color: #888; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Connect for Good</h1>
+    <p>Nonprofit Contact Center — Powered by Amazon Connect</p>
+  </header>
+
+  <div class="container">
+    <div class="setup-banner" id="setupBanner">
+      <strong>Setup Required:</strong> The chat widget has not been configured yet.
+      Follow the README instructions to create a communications widget in the Connect console
+      and paste the <code>&lt;script&gt;</code> snippet at the bottom of this file.
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Donor Services</h3>
+        <p>Check donation status, make a new donation, or get tax deduction information. Our chatbot handles common requests instantly.</p>
+      </div>
+      <div class="card">
+        <h3>Crisis Helpline</h3>
+        <p>Priority routing with sentiment analysis. Calls are recorded and supervisors can join when needed. 24/7 callback available.</p>
+      </div>
+      <div class="card">
+        <h3>Member Services</h3>
+        <p>Membership renewals, event information, and general inquiries. Use the phone menu or just tell us what you need.</p>
+      </div>
+    </div>
+
+    <div class="chat-section">
+      <h2>Chat with Us</h2>
+      <p>Click the chat icon in the bottom-right corner to start a conversation with our virtual assistant. You can ask about donations, volunteering, office hours, and more.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Connect for Good Demo &mdash; Amazon Connect + Lex + Unlimited AI</p>
+  </footer>
+
+<script type="text/javascript">
+  (function(w, d, x, id){
+    s=d.createElement('script');
+    s.src='https://connect-for-good-299632674052.my.connect.aws/connectwidget/static/amazon-connect-chat-interface-client.js';
+    s.async=1;
+    s.id=id;
+    d.getElementsByTagName('head')[0].appendChild(s);
+    w[x] =  w[x] || function() { (w[x].ac = w[x].ac || []).push(arguments) };
+  })(window, document, 'amazon_connect', '3be20220-ec39-421e-8121-fc6ea36f6040');
+  amazon_connect('styles', { iconType: 'CHAT_VOICE', openChat: { color: '#ffffff', backgroundColor: '#123456' }, closeChat: { color: '#ffffff', backgroundColor: '#123456'} });
+  amazon_connect('snippetId', 'QVFJREFIaVBWbXNtcVFNOWdRdG1RUXNJdXY1Vk81RFMveGMyT0owMWQ1NlVUbXpsYkFHUWcvemhzOFRNSWlibFIybW5seFIzQUFBQWJqQnNCZ2txaGtpRzl3MEJCd2FnWHpCZEFnRUFNRmdHQ1NxR1NJYjNEUUVIQVRBZUJnbGdoa2dCWlFNRUFTNHdFUVFNam1LRXRZTVpXSmcrYkN3T0FnRVFnQ3ZNekJUKy9GeHlmYVUvRG9UOE1rbnJ2bitBblFoV2NpZmo0TmFIZGJNTWM3U1VyWG9BTmthbzRpdXU6OkFvRUZjZHZOYUVQbTlJa28rSmYwMUZZenBSdkFEQ29HUHY0TnBkd1lobXBLZVlHaHozR0pzeW9iM3RIMEtNbGxMMkVBNzlKTDFTKzZwcHdHNzUyTFpPU0l4Wmt2NjZiRzlHckR5VjVEQm0vc3dVWHpWYnYxNG9rVHdVeG4xNGZlV0RSVjA4MGwyNEY5V0hkdU0zSE95R1l2QkpNaDFicz0=');
+  amazon_connect('supportedMessagingContentTypes', [ 'text/plain', 'text/markdown', 'application/vnd.amazonaws.connect.message.interactive', 'application/vnd.amazonaws.connect.message.interactive.response' ]);
+</script>
+
+  <script>
+    // Show setup banner if widget is not configured
+    if (typeof amazon_connect === 'undefined') {
+      document.getElementById('setupBanner').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
