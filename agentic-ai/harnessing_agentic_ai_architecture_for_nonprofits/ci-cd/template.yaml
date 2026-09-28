@@ -13,6 +13,7 @@ Parameters:
   DBPassword:
     Description: Password for the database
     Type: String
+    Default: "donationsmaster"
     NoEcho: true
     MinLength: 8
     MaxLength: 41
@@ -21,7 +22,7 @@ Parameters:
   MyAssetsBucketName:
     Description: Assets bucket name
     Type: String
-    Default: myy-lambda-assets-904262394592
+    Default: my-lambda-assets-822648872861
   MyAssetsBucketPrefix:
     Description: Assets bucket prefix
     Type: String
@@ -29,7 +30,7 @@ Parameters:
   KeyPair:
     Description: SSH Keypair name
     Type: String
-    Default: agent-pair
+    Default: agentic-keypair
   InstanceType:
     Description: EC2 instance type
     Type: String
@@ -66,7 +67,7 @@ Parameters:
 Mappings:
   RegionMap:
     us-east-1:
-      AMIAGENTSBASTION: ami-024e4502b4cf0935f
+      AMIAGENTSBASTION: ami-02457590d33d576c3
 
 Resources:
   VPC:
@@ -78,6 +79,50 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-VPC
+          
+  VPCFlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: vpc-flow-logs.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: FlowLogsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${EnvironmentName}-VPCFlowLogs:*'
+                
+  VPCFlowLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W84
+              reason: 'LogGroup to specify a KMS Key Id to encrypt the log data not needed.'
+    Properties:
+      LogGroupName: !Sub '${EnvironmentName}-VPCFlowLogs'
+      RetentionInDays: 14
+      
+  VPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt VPCFlowLogsRole.Arn
+      LogGroupName: !Ref VPCFlowLogsGroup
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -92,6 +137,22 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
+  # Create a dedicated security group for Bedrock endpoints to break circular dependency 
+  BedrockEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Bedrock VPC endpoints
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.0.0.0/16
+          Description: "Allow HTTPS from VPC CIDR"
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-BedrockEndpointSecurityGroup
+
   BedrockRuntimeEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
@@ -102,7 +163,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       SecurityGroupIds:
-        - !Ref ApplicationSecurityGroup
+        - !Ref BedrockEndpointSecurityGroup
       PrivateDnsEnabled: true
 
   BedrockAgentRuntimeEndpoint:
@@ -115,7 +176,7 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
       SecurityGroupIds:
-        - !Ref ApplicationSecurityGroup
+        - !Ref BedrockEndpointSecurityGroup
       PrivateDnsEnabled: true
 
 
@@ -125,7 +186,8 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.0.1.0/24
-      MapPublicIpOnLaunch: true
+      AssignIpv6AddressOnCreation: false
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-PublicSubnet1
@@ -136,7 +198,8 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.0.2.0/24
-      MapPublicIpOnLaunch: true
+      AssignIpv6AddressOnCreation: false
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-PublicSubnet2
@@ -147,6 +210,7 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1a
       CidrBlock: 10.0.3.0/24
+      AssignIpv6AddressOnCreation: false
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -158,6 +222,7 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: us-east-1b
       CidrBlock: 10.0.4.0/24
+      AssignIpv6AddressOnCreation: false
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -190,6 +255,20 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
+      
+  # Update PublicSubnet1 to set MapPublicIpOnLaunch to false
+  #PublicSubnet1Update:
+  #  Type: AWS::EC2::SubnetCidrBlock
+  #  Properties:
+  #    SubnetId: !Ref PublicSubnet1
+      
+      
+  # Update PublicSubnet2 to set MapPublicIpOnLaunch to false
+  #PublicSubnet2Update:
+  #  Type: AWS::EC2::SubnetCidrBlock
+  #  Properties:
+  #    SubnetId: !Ref PublicSubnet2
+      
 
   NatGatewayEIP1:
     Type: AWS::EC2::EIP
@@ -310,11 +389,6 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !Ref ApplicationSecurityGroup
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          FromPort: -1
-          ToPort: -1
-          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-RDSSecurityGroup
@@ -346,19 +420,49 @@ Resources:
       Roles: 
         - !Ref BastionHostRole
 
+  # Create a dedicated security group for Bastion Host
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Bastion Host
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourcePrefixListId: pl-0e4bcff02b13bef1e
+          Description: "Allow SSH from approved sources"
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: "Allow HTTPS outbound"
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/16
+          Description: "Allow PostgreSQL to VPC"
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-BastionSecurityGroup
+
   BastionHost:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !FindInMap 
         - RegionMap
-        - us-east-1
+        - !Ref 'AWS::Region'
         - AMIAGENTSBASTION
       IamInstanceProfile: !Ref BastionHostInstanceProfile
-      InstanceType: t3.micro
+      InstanceType: !Ref InstanceType
       KeyName: !Ref KeyPair
-      SubnetId: !Ref PublicSubnet1
-      SecurityGroupIds: 
-        - !Ref ApplicationSecurityGroup
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref PublicSubnet1
+          GroupSet: 
+            - !Ref ApplicationSecurityGroup
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
@@ -409,7 +513,7 @@ Resources:
 
           # Download dataloader.sh to ec2-user's home directory
           cd /home/ec2-user
-          sudo wget https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/432498ef-3bc0-4e6d-ac7a-dd44e5285d05/dataloader.sh
+          sudo wget https://raw.githubusercontent.com/aws-samples/nonprofit-samples/refs/heads/main/agentic-ai/harnessing_agentic_ai_architecture_for_nonprofits/integration/dataloader.sh
           sudo chmod +x dataloader.sh
       Tags:
         - Key: Name
@@ -417,15 +521,71 @@ Resources:
 
   DonationsQAKBBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W41
+              reason: 'S3 Bucket does not need encryption option set.'
     Properties:
       BucketName: !Sub "donations-qa-kb-${AWS::AccountId}-${AWS::Region}"
       AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  
+  DonationsQAKBBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DonationsQAKBBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowBedrockServiceAccess
+            Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: 
+              - s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${DonationsQAKBBucket}/*"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
   
   DonationsDBKBBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W41
+              reason: 'S3 Bucket does not need encryption option set.'
     Properties:
       BucketName: !Sub "donations-db-kb-${AWS::AccountId}-${AWS::Region}"
       AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  
+  DonationsDBKBBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DonationsDBKBBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowBedrockServiceAccess
+            Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: 
+              - s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${DonationsDBKBBucket}/*"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
 
   RDSCluster:
     Type: AWS::RDS::DBCluster
@@ -455,79 +615,71 @@ Resources:
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W28
+              reason: 'Explicit name disallowing updates that require replacement of this resource not needed because this is a workshop.'
     Properties:
       RoleName: !Sub "${EnvironmentName}-LambdaExecutionRole"
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
-            Action: 'sts:AssumeRole'
+            Action: sts:AssumeRole
       Policies:
         - PolicyName: LambdaBasicExecution
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - 'logs:CreateLogGroup'
-                  - 'logs:CreateLogStream'
-                  - 'logs:PutLogEvents'
-                Resource: 
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${EnvironmentName}-*:*"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-rest-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-database-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-db-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-kb-action"
-                          
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
         - PolicyName: LambdaVPCNetworkAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - 'ec2:CreateNetworkInterface'
-                  - 'ec2:DescribeNetworkInterfaces'
-                  - 'ec2:DeleteNetworkInterface'
-                Resource: 
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-rest-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-database-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-db-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-kb-action"
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                Resource: "*"
         - PolicyName: CloudFormationSignalPermission
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - 'cloudformation:SignalResource'
-                Resource: 
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-rest-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-database-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-db-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-kb-action"
+                  - cloudformation:SignalResource
+                Resource: "*"
         - PolicyName: BedrockFullAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - bedrock:InvokeModel
-                  - bedrock:InvokeModelWithResponseStream
-                  - bedrock:InvokeAgent
-                Resource: 
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-rest-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-database-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-db-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-api-action"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-kb-action"
+                  - bedrock:*
+                Resource: "*"
 
   AmazonBedrockExecutionRoleForAgents:
     Type: AWS::IAM::Role
+    DependsOn:
+      - DatabaseActionLambda
+      - OrchestratorKBActionLambda
+      - OrchestratorAPIActionLambda
+      - OrchestratorDBActionLambda
+      - RestAPIActionLambda
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W28
+              reason: 'Explicit name disallowing updates that require replacement of this resource not needed because this is a workshop.'
     Properties:
       RoleName: AmazonBedrockExecutionRoleForAgents
       AssumeRolePolicyDocument:
@@ -584,7 +736,8 @@ Resources:
               - Sid: "AmazonBedrockAgentRetrieveFromKBPolicy"
                 Effect: Allow
                 Action: 'bedrock:Retrieve'
-                Resource: "*"
+                Resource: 
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*'
         - PolicyName: AllowInvokeLambdas
           PolicyDocument:
             Version: '2012-10-17'
@@ -592,11 +745,11 @@ Resources:
               - Effect: Allow
                 Action: 'lambda:InvokeFunction'
                 Resource:
-                  - !GetAtt DatabaseActionLambda.Arn
-                  - !GetAtt OrchestratorKBActionLambda.Arn
-                  - !GetAtt OrchestratorAPIActionLambda.Arn
-                  - !GetAtt OrchestratorDBActionLambda.Arn
-                  - !GetAtt RestAPIActionLambda.Arn
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-database-action"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-kb-action"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-api-action"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-orchestrator-db-action"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${EnvironmentName}-rest-api-action"
         - PolicyName: BedrockAgentInvokePolicy
           PolicyDocument:
             Version: '2012-10-17'
@@ -609,6 +762,7 @@ Resources:
   # Lambda permission for DatabaseActionLambda
   DatabaseActionLambdaPermission:
     Type: AWS::Lambda::Permission
+    DependsOn: DatabaseActionLambda
     Properties: 
       Action: "lambda:InvokeFunction"
       FunctionName: !Ref DatabaseActionLambda
@@ -629,6 +783,17 @@ Resources:
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
       Policies:
+        - PolicyName: CloudWatchLogsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${EnvironmentName}-database-action:*'
         - PolicyName: BedrockAccess
           PolicyDocument:
             Version: '2012-10-17'
@@ -636,9 +801,18 @@ Resources:
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
+                Resource: 
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/*'
+              - Effect: Allow
+                Action:
                   - bedrock:InvokeAgent
+                Resource:
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*'
+              - Effect: Allow
+                Action:
                   - bedrock-agent-runtime:Invoke*
-                Resource: "*"
+                Resource:
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent-alias/*'
 
   # Lambda permission for OrchestratorKBActionLambda
   OrchestratorKBActionLambdaPermission:
@@ -694,14 +868,40 @@ Resources:
         - x86_64
       LicenseInfo: "PostgreSQL License"
 
+  # Create a dedicated security group for Lambda functions
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Lambda functions
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: "Allow HTTPS outbound"
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/16
+          Description: "Allow PostgreSQL to VPC"
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-LambdaSecurityGroup
+  
   DatabaseActionLambda:
     Type: AWS::Lambda::Function
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W92
+              reason: 'ReservedConcurrentExecutions to reserve simultaneous executions not needed.'
     Properties:
       FunctionName: !Sub "${EnvironmentName}-database-action"
-      Description: "Lambda function to perform database actions, queries, on the donations database"
+      Description: "Lambda function to perform database actions on the donations database"
       Handler: lambda_function.lambda_handler
       Runtime: python3.11
-      Role: !GetAtt DatabaseActionLambdaRole.Arn
+      Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref MyAssetsBucketName
         S3Key: !Sub "${MyAssetsBucketPrefix}/lambda/${DatabaseActionLambdaSrc}"
@@ -713,8 +913,8 @@ Resources:
         SecurityGroupIds:
           - !Ref ApplicationSecurityGroup
         SubnetIds:
-          - !Ref PublicSubnet1
-          - !Ref PublicSubnet2
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
       Environment:
         Variables:
           DB_HOST: !GetAtt RDSCluster.Endpoint.Address
@@ -725,10 +925,17 @@ Resources:
           QUERY_CORRECTION_AGENT_ID: 'QUERY_CORRECTION_AGENT_ID'
           BEDROCK_ENDPOINT: !Sub "https://bedrock-runtime.${AWS::Region}.amazonaws.com"
           BEDROCK_AGENT_ENDPOINT: !Sub "https://bedrock-agent-runtime.${AWS::Region}.amazonaws.com"
-  
+
   # OrchestratorKBAction Lambda Function
   OrchestratorKBActionLambda:
     Type: AWS::Lambda::Function
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: 'The lambda function needs to be outside the VPC in order to call othere lambda functions'
+            - id: W92
+              reason: 'Lambda ReservedConcurrentExecutions not needed'
     Properties:
       FunctionName: !Sub "${EnvironmentName}-orchestrator-kb-action"
       Description: Lambda function to handle knowledge base actions
@@ -748,6 +955,13 @@ Resources:
   # OrchestratorAPIAction Lambda Function
   OrchestratorAPIActionLambda:
     Type: AWS::Lambda::Function
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: 'The lambda function needs to be outside the VPC in order to call othere lambda functions'
+            - id: W92
+              reason: 'Lambda ReservedConcurrentExecutions not needed'
     Properties:
       FunctionName: !Sub "${EnvironmentName}-orchestrator-api-action"
       Description: Lambda function to handle API actions
@@ -767,6 +981,13 @@ Resources:
   # OrchestratorDBAction Lambda Function
   OrchestratorDBActionLambda:
     Type: AWS::Lambda::Function
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: 'The lambda function needs to be outside the VPC in order to call othere lambda functions'
+            - id: W92
+              reason: 'Lambda ReservedConcurrentExecutions not needed'
     Properties:
       FunctionName: !Sub "${EnvironmentName}-orchestrator-db-action"
       Description: Lambda function to handle database actions
@@ -786,6 +1007,13 @@ Resources:
   # RestAPIAction Lambda Function
   RestAPIActionLambda:
     Type: AWS::Lambda::Function
+    Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W89
+              reason: 'The lambda function needs to be outside the VPC in order to call othere lambda functions'
+            - id: W92
+              reason: 'Lambda ReservedConcurrentExecutions not needed'
     Properties:
       FunctionName: !Sub "${EnvironmentName}-rest-api-action"
       Description: Lambda function to handle REST API actions

@@ -26,7 +26,7 @@ zip -r ../opensearch-layer.zip .
 
 Upload the layer to the Lambda console under *Layers*. Note the ARN and use it in the next step.
 
-2. Deploy the [CloudFormation template](rag-with-KBforBedrock.yml). Add the Lambda Layer ARN to the **OpenSearchVersionArn** parameter. The deployment will take about 10 minutes to complete
+2. Deploy the [CloudFormation template](rag-with-KBforBedrock.yaml). Add the Lambda Layer ARN to the **OpenSearchVersionArn** parameter. The deployment will take about 10 minutes to complete
 3. Once complete, click on the CloudFormation **Outputs** tab. The value for the **S3Bucket** key is the S3 bucket where your content should be added. 
 4. Go to the S3 console, find the bucket, and place your content in this bucket. 
 5. Go to the Amazon Bedrock console. Find the Knowledge Base that was created (it should be named {*stack-name*}-KB, where *stack-name* is the name of your CloudFormation stack). Click the knowledge base name. In the page that appears, click on **Sync** button in the **Data source** section. Wait a few minutes while the data is syncing. 

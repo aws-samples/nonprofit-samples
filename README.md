@@ -1,30 +1,18 @@
 ## Nonprofit Samples
 
-This repository contains solutions that have been specifically curated for the needs of nonprofits. This repository will be updated as these solutions are enhanced and new solutions are added.
+This repository contains solutions curated for the needs of nonprofits. It is updated as these solutions are enhanced and new ones are added.
 
-The following solutions are contained in this repository:
+## Repository structure
 
-- [AgentCore Gateway Demo](./AgentCore_Examples/AgentCore_Gateway/README.md) - This sample demonstrates how to configure Amazon Bedrock AgentCore Gateway with inbound Cognito JWT auth and outbound GitHub OAuth (3-legged OAuth) via AgentCore Identity. The Gateway also uses a Lambda outbound interceptor, so you could potentially capture results from the MCP tools and modify them before returning to the client.
+The samples are grouped into four top-level folders. Each folder has its own README describing what it contains.
 
-- [Harnessing Agentic AI Architecture for Nonprofits](harnessing_agentic_ai_architecture_for_nonprofits/README.md) - This sample shares how to build a multi-agent collaboration architecture that leverages relational data, unstructured data, and data retrieved from a REST API. 
+- [agentic-ai/](./agentic-ai/README.md) - Agent-based samples, including Amazon Bedrock AgentCore examples and a multi-agent collaboration architecture.
 
-- [How nonprofits can automate tax-exempt status across AWS accounts](https://aws.amazon.com/blogs/publicsector/how-nonprofits-can-automate-tax-exempt-status-across-aws-accounts/) - this is a blog post that shows how you can automate your tax-exempt status across your AWS accounts.
+- [blogposts/](./blogposts/README.md) - Code that accompanies AWS blog posts and articles.
 
-- [Meeting Summarization with Claude](Meeting_Summarization/README.md) - this folder contains a sample solution to use generative AI to summarize a meeting recording.
+- [conference-demos/](./conference-demos/README.md) - Demos presented at AWS conferences such as re:Invent.
 
-- [Natural Language Query with Amazon Bedrock (React Single-Page Application)](Bedrock_NLQ_React_App/README.md) - This sample shares how to deploy a React single-page application (SPA) with the AWS Cloud Development Kit (CDK) that hosts a chatbot for natural language query of structured data.
-
-- [Resilience Agent](Resilience_Agent/README.md) - this folder contains a sample resilience agent built using the Strands Agent SDK. This solution was demoed at the 2025 AWS re:Invent in WPS202 - **Chaos & Continuity: Using Gen AI to improve humanitarian workload resilience** and AIM336 - **Using AI to improve humanitarian workload resilience**.
-
-- [Retrieval Augmented Generation (RAG) Chatbot](RAG_Chatbot/README.md) - this folder contains a sample solution to use generative AI to build a simple chatbot that can respond to questions about your custom content.
-
-- [Social Media Sentiment](Social_Media_Sentiment/README.md) - this folder contains a solution to set up a Twitter social media sentiment monitor. A nonprofit can gather sentiment on their Twitter handle and perform analytics on the data that is gathered.
-
-- [Standard Operating Procedures for Agents Demo](./SOP_Agents/README.md) - A simple proof of concept demonstrating how Standard Operating Procedures (SOPs) improve AI agent outputs for nonprofit organizations. Uses AWS Bedrock with the Strands Agents SDK to show side-by-side comparisons.
-
-- [Targeted Messaging with Amazon Pinpoint and Amazon Personalize](Targeted_Messaging_With_Pinpoint_and_Personalize/README.md) - this folder contains a solution that provides a POC-in-a-box to see how Amazon Personalize and Amazon Pinpoint can be used together to create targeted, personalized messages to an audience.
-
-- [Using machine learning to customize your direct mailings](DirectMailing_With_Amazon_Personalize/README.md) - this folder contains a solution to set up a personalization solution for a direct mailing workflow.
+- [old-examples/](./old-examples/README.md) - Earlier samples built on Amazon Bedrock and other ML services. Still useful as references.
 
 ## Security
 

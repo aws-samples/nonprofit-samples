@@ -1,7 +1,7 @@
 
 # Agentic Architecture using Bedrock Agents
 
-Use this repository to deploy what you need to start the [Agentic AI with Amazon Bedrock Workshop](ihttps://catalog.us-east-1.prod.workshops.aws/workshops/4b5336de-e5b8-4b90-b1d8-dec31125cd95/en-US)
+Use this repository to deploy what you need to start the [Agentic AI with Amazon Bedrock Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/4b5336de-e5b8-4b90-b1d8-dec31125cd95/en-US)
 
 The workshop uses Amazon Bedrock Agents and multi-agent collaboration to build an application that can automate workflows and provide member services for a nonprofit organization. The architecture leverages Amazon Bedrock Knowledge bases, AWS Lambda, 
 S3, OpenSearch and Aurora RDS database. The agents can perform tasks given instructions in natural language, such as making database updates (text-to-sql) and answering questions from a knowledge base.
@@ -85,7 +85,7 @@ In your AWS S3 console, create a bucket for your Lambda code artifacts. You can 
 2. Clone the Repository:
    ```bash
    git clone https://github.com/aws-samples/nonprofit-samples.git
-   cd nonprofit-samples/harnessing_agentic_ai_architecture_for_nonprofits
+   cd nonprofit-samples/agentic-ai/harnessing_agentic_ai_architecture_for_nonprofits
    ```
 
 3. Edit the `ci-cd/template.yaml` Cloudformation template file and update the _MyAssetsBucketName_ parameter with your bucket name above. Replace the _KeyPair_ parameter with your EC2 keypair name. 
