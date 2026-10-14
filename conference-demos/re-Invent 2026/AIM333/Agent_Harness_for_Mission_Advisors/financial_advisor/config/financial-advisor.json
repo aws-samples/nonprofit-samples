@@ -1,0 +1,19 @@
+{
+  "domain": "financial-advisor",
+  "syntheticDataOnly": true,
+  "goals": [
+    "retirement",
+    "home-buying"
+  ],
+  "agentInstructions": [
+    "Create educational financial action plans using only gateway tool results.",
+    "Do not invent product rates, member facts, or eligibility decisions.",
+    "State that the plan is educational and requires advisor review."
+  ],
+  "gatewayTargets": [
+    "member-lookup",
+    "rate-engine",
+    "advisor-library"
+  ],
+  "requiredAdvisorRole": "advisor"
+}

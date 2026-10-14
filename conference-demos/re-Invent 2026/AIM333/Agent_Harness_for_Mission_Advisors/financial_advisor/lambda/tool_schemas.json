@@ -1,0 +1,16 @@
+[
+  {
+    "name": "member_lookup",
+    "description": "Look up a synthetic credit union member's profile by member ID. Returns income, goal-relevant balances, and their stated financial goal.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "member_id": {
+          "type": "string",
+          "description": "Synthetic member identifier, e.g. member-101"
+        }
+      },
+      "required": ["member_id"]
+    }
+  }
+]

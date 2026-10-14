@@ -1,0 +1,16 @@
+[
+  {
+    "name": "household_lookup",
+    "description": "Look up a synthetic household's profile by household ID. Returns household size, monthly income, state, categorical factors (children, pregnancy, disability, oldest member age), and their stated need.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "household_id": {
+          "type": "string",
+          "description": "Synthetic household identifier, e.g. household-201"
+        }
+      },
+      "required": ["household_id"]
+    }
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "rate_engine",
+    "description": "Look up a synthetic credit union product rate or yield by purpose. Use purpose=retirement-savings for a retirement goal, or purpose=home-purchase for a home-buying goal.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "description": "Must be exactly one of: retirement-savings, home-purchase"
+        }
+      },
+      "required": ["purpose"]
+    }
+  }
+]
