@@ -1,0 +1,36 @@
+[
+  {
+    "name": "eligibility_engine",
+    "description": "Return a preliminary synthetic eligibility screening for a household against one program category. Use program=food-assistance or program=health-coverage. Pass the household attributes returned by household_lookup. Returns a screening result (likely-eligible, likely-ineligible, or needs-review) with its basis. This is a screening, not an official determination.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "program": {
+          "type": "string",
+          "description": "Must be exactly one of: food-assistance, health-coverage"
+        },
+        "household_size": {
+          "type": "integer",
+          "description": "Number of people in the household, from household_lookup"
+        },
+        "monthly_income": {
+          "type": "number",
+          "description": "Household monthly income, from household_lookup"
+        },
+        "is_pregnant": {
+          "type": "boolean",
+          "description": "Categorical factor from household_lookup (optional)"
+        },
+        "has_disability": {
+          "type": "boolean",
+          "description": "Categorical factor from household_lookup (optional)"
+        },
+        "has_children": {
+          "type": "boolean",
+          "description": "Categorical factor from household_lookup (optional)"
+        }
+      },
+      "required": ["program", "household_size", "monthly_income"]
+    }
+  }
+]

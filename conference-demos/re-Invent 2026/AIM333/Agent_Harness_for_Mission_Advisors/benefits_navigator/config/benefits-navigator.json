@@ -1,0 +1,20 @@
+{
+  "domain": "benefits-navigator",
+  "syntheticDataOnly": true,
+  "programs": [
+    "food-assistance",
+    "health-coverage"
+  ],
+  "agentInstructions": [
+    "Create educational benefit enrollment action plans using only gateway tool results.",
+    "Do not invent household facts, eligibility thresholds, or eligibility determinations.",
+    "Present eligibility as a preliminary screening, not an official determination, and state that the administering agency makes the binding decision.",
+    "State that the plan is educational and requires review with a benefits navigator and the administering agency."
+  ],
+  "gatewayTargets": [
+    "household-lookup",
+    "eligibility-engine",
+    "program-library"
+  ],
+  "requiredNavigatorRole": "navigator"
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "program_library",
+    "description": "Retrieve pre-authored enrollment milestones by template ID. Use template_id=food-assistance-enrollment for a food-assistance goal, or template_id=health-coverage-enrollment for a health-coverage goal.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "description": "Must be exactly one of: food-assistance-enrollment, health-coverage-enrollment"
+        }
+      },
+      "required": ["template_id"]
+    }
+  }
+]

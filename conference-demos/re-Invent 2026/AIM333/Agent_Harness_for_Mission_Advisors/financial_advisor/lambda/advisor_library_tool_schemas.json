@@ -1,0 +1,16 @@
+[
+  {
+    "name": "advisor_library",
+    "description": "Retrieve pre-authored plan milestones by template ID. Use template_id=retirement-readiness for a retirement goal, or template_id=home-buying-readiness for a home-buying goal.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "description": "Must be exactly one of: retirement-readiness, home-buying-readiness"
+        }
+      },
+      "required": ["template_id"]
+    }
+  }
+]
