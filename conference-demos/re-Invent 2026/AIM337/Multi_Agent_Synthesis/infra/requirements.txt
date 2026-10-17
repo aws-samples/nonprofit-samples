@@ -1,0 +1,5 @@
+aws-cdk-lib==2.267.0
+boto3==1.43.110
+cdk-nag==2.38.2
+constructs==10.8.1
+hatchling==1.32.4

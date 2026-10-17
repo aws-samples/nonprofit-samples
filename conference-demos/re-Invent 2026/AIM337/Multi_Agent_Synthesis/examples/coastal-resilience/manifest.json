@@ -1,0 +1,10 @@
+{
+  "question": "Does the available evidence support describing the neighborhood as low flood risk?",
+  "max_evidence": 20,
+  "sources": [
+    {"source_id": "mapped-risk", "uri": "mapped-risk.pdf"},
+    {"source_id": "claims-history", "uri": "claims.csv"},
+    {"source_id": "water-levels", "uri": "water-levels.json"},
+    {"source_id": "field-notes", "uri": "field-notes.md"}
+  ]
+}

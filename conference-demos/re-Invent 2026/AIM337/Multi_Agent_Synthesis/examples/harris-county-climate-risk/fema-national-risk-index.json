@@ -1,0 +1,70 @@
+[
+  {
+    "as_of": "National Risk Index version 1.19.0",
+    "measure": "overall natural-hazard risk index",
+    "unit": "index score and national percentile",
+    "record_type": "county_overall",
+    "geography": "Harris County, Texas",
+    "county_fips": "48201",
+    "risk_index_score": 94.21,
+    "risk_rating": "Very High",
+    "risk_national_percentile": 99.97,
+    "expected_annual_loss_score": 91.29,
+    "expected_annual_loss_rating": "Relatively High",
+    "expected_annual_loss_national_percentile": 96.9,
+    "social_vulnerability_score": 63.05,
+    "social_vulnerability_rating": "Relatively Moderate",
+    "social_vulnerability_national_percentile": 57.04,
+    "community_resilience_score": 62.71,
+    "community_resilience_rating": "Relatively Moderate",
+    "community_resilience_national_percentile": 57.16
+  },
+  {
+    "as_of": "National Risk Index version 1.19.0",
+    "measure": "coastal flooding risk",
+    "unit": "risk score, dollars, and annualized frequency",
+    "record_type": "hazard",
+    "hazard": "Coastal Flooding",
+    "risk_index_score": 99.25,
+    "risk_rating": "Very High",
+    "annualized_frequency": 0.01,
+    "exposure_dollars": 2770000,
+    "expected_annual_loss_dollars": 1500000
+  },
+  {
+    "as_of": "National Risk Index version 1.19.0",
+    "measure": "hurricane risk",
+    "unit": "risk score, dollars, and annualized frequency",
+    "record_type": "hazard",
+    "hazard": "Hurricane",
+    "risk_index_score": 99.99,
+    "risk_rating": "Very High",
+    "annualized_frequency": 0.42,
+    "exposure_dollars": 631600000000,
+    "expected_annual_loss_dollars": 1100000000
+  },
+  {
+    "as_of": "National Risk Index version 1.19.0",
+    "measure": "riverine flooding risk",
+    "unit": "risk score, dollars, and annualized frequency",
+    "record_type": "hazard",
+    "hazard": "Riverine Flooding",
+    "risk_index_score": 98.85,
+    "risk_rating": "Very High",
+    "annualized_frequency": 0.87,
+    "exposure_dollars": 253700000000,
+    "expected_annual_loss_dollars": 54900000
+  },
+  {
+    "as_of": "National Risk Index version 1.19.0",
+    "measure": "strong wind risk",
+    "unit": "risk score, dollars, and annualized frequency",
+    "record_type": "hazard",
+    "hazard": "Strong Wind",
+    "risk_index_score": 99.85,
+    "risk_rating": "Very High",
+    "annualized_frequency": 13,
+    "exposure_dollars": 1200000000000,
+    "expected_annual_loss_dollars": 82200000
+  }
+]

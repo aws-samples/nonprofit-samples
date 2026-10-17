@@ -1,0 +1,13 @@
+{
+  "name": "evidence-synthesis-infra",
+  "private": true,
+  "license": "MIT",
+  "devDependencies": {
+    "aws-cdk": "2.1139.0"
+  },
+  "scripts": {
+    "synth": "cdk synth --strict",
+    "diff": "cdk diff --all",
+    "deploy": "cdk deploy EvidenceSynthesisFoundation EvidenceSynthesisRuntime --require-approval broadening"
+  }
+}

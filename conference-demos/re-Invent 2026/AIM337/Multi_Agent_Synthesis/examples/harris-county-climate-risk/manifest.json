@@ -1,0 +1,11 @@
+{
+  "question": "Does the available evidence support prioritizing targeted climate-resilience planning in Harris County, particularly for communities with elevated environmental and demographic burdens?",
+  "max_evidence": 30,
+  "sources": [
+    {"source_id": "noaa-climate-2024", "uri": "noaa-climate-summary-2024.json"},
+    {"source_id": "fema-risk-index", "uri": "fema-national-risk-index.json"},
+    {"source_id": "environmental-justice-comparison", "uri": "environmental-justice-blockgroups.json"},
+    {"source_id": "landsat-surface-temperature", "uri": "landsat-surface-temperature-samples.json"},
+    {"source_id": "dataset-notes", "uri": "dataset-notes.md"}
+  ]
+}

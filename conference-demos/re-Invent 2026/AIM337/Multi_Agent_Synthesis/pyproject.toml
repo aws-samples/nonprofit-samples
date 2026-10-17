@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "evidence-synthesis"
+version = "0.1.0"
+description = "A contract-first, four-agent evidence synthesis pipeline for AWS."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+  { name = "Aneel Murari" },
+]
+dependencies = [
+  "pydantic==2.14.0",
+  "pydantic-settings==2.15.0",
+  "pypdf==6.19.0",
+  "psutil==7.2.2",
+]
+
+[project.optional-dependencies]
+aws = [
+  "aws-opentelemetry-distro==0.21.0",
+  "bedrock-agentcore==1.24.1",
+  "boto3==1.43.110",
+  "strands-agents[otel]==1.59.0",
+]
+ui = [
+  "streamlit==1.65.0",
+]
+dev = [
+  "mypy==1.20.2",
+  "pytest==9.1.1",
+  "pytest-asyncio==1.4.0",
+  "ruff==0.16.10",
+]
+
+[dependency-groups]
+build = ["hatchling==1.32.4"]
+infra = [
+  "aws-cdk-lib==2.267.0",
+  "boto3==1.43.110",
+  "cdk-nag==2.38.2",
+  "constructs==10.8.1",
+  "pip==26.2.1",
+  "hatchling==1.32.4",
+]
+
+[project.scripts]
+evidence-synthesis = "evidence_synthesis.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evidence_synthesis"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["infra/cdk.out"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["evidence_synthesis"]
+
+[[tool.mypy.overrides]]
+module = [
+  "bedrock_agentcore.*",
+  "boto3.*",
+  "botocore.*",
+  "strands.*",
+    "streamlit.*",
+    "psutil.*",
+]
+ignore_missing_imports = true
