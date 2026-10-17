@@ -1,0 +1,14 @@
+{
+  "app": "python app.py",
+  "context": {
+    "deployment_region": "us-east-1",
+    "agentcore_availability_zone_ids": [
+      "use1-az4",
+      "use1-az1"
+    ],
+    "agentcore_replacement_subnet_cidr": "10.42.2.0/24",
+    "@aws-cdk/core:validateAgainstDefaultRules": true,
+    "@aws-cdk/core:defaultCrossStackReferences": "strong",
+    "@aws-cdk/aws-s3:serverAccessLogsUseBucketPolicy": true
+  }
+}
