@@ -1,6 +1,6 @@
 boto3==1.35.99
 fastapi==0.115.6
 uvicorn==0.32.1
-requests==2.32.4
+requests==2.33.0
 numpy==2.2.1
 hypothesis==6.122.3
