@@ -16,7 +16,15 @@ from evidence_synthesis.agents import (
 from evidence_synthesis.artifacts import FileArtifactStore
 from evidence_synthesis.config import PipelinePolicy
 from evidence_synthesis.deterministic_runtime import DeterministicRuntime
-from evidence_synthesis.models import AgentRole, RunRequest, TerminalStatus
+from evidence_synthesis.models import (
+    AgentRole,
+    ExecutionMode,
+    InvocationMetrics,
+    RunRequest,
+    SynthesisResult,
+    TerminalStatus,
+    roles_for_mode,
+)
 from evidence_synthesis.orchestrator import EvidenceSynthesisOrchestrator
 from evidence_synthesis.runtime import AgentRuntime, RuntimeResult
 from evidence_synthesis.safety import SafetyDecision, SafetyGate
@@ -65,7 +73,7 @@ def _orchestrator(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("role", list(AgentRole))
+@pytest.mark.parametrize("role", roles_for_mode(ExecutionMode.MULTI_AGENT))
 async def test_each_stage_retries_a_fresh_invocation_with_the_same_payload(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, role: AgentRole,
 ) -> None:
@@ -91,7 +99,7 @@ async def test_each_stage_retries_a_fresh_invocation_with_the_same_payload(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("role", list(AgentRole))
+@pytest.mark.parametrize("role", roles_for_mode(ExecutionMode.MULTI_AGENT))
 async def test_exhausted_retries_keep_partial_result_and_one_shot_fallback(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, role: AgentRole,
 ) -> None:
@@ -166,3 +174,43 @@ async def test_explicit_defaults_preserve_a_supplied_falsy_safety_gate(tmp_path:
     assert state.synthesis is not None
     assert state.synthesis.answer == "Blocked by supplied gate."
     assert state.synthesis.safety_action == "CUSTOM_GATE"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("clean_fallback", [True, False])
+@pytest.mark.parametrize(("invalid_answer", "reason"), [
+    ("MODEL_OUTPUT [E001].</answer><limitations>Important caveat</limitations>",
+     "unexpected_output_markup"),
+    ('MODEL_OUTPUT [C1]. [{"evidence_id":"E001"}]', "invalid_inline_citation"),
+])
+async def test_invalid_synthesis_uses_existing_partial_path_without_publishing_bad_text(
+    tmp_path: Path, clean_fallback: bool, invalid_answer: str, reason: str,
+) -> None:
+    service = _orchestrator(DeterministicRuntime(), tmp_path)
+    fallback = "A bounded answer [E001]." if clean_fallback else invalid_answer
+    operation = AsyncMock(side_effect=[
+        RuntimeResult(
+            output=SynthesisResult(answer=answer),
+            metrics=InvocationMetrics(role=AgentRole.SYNTHESIZER, model_id="test", latency_ms=1),
+        )
+        for answer in (invalid_answer, fallback)
+    ])
+    service._synthesizer.synthesize = operation
+
+    state = await service.run(_request())
+
+    assert operation.await_count == 2
+    assert not operation.await_args_list[0].args[0].partial
+    assert operation.await_args_list[1].args[0].partial
+    assert state.status is TerminalStatus.PARTIAL
+    assert state.terminal_reason == reason
+    assert state.synthesis is not None and state.synthesis.partial
+    if clean_fallback:
+        assert state.synthesis.answer == fallback
+        assert [citation.evidence_id for citation in state.synthesis.citations] == ["E001"]
+    else:
+        assert state.synthesis.answer == (
+            "The pipeline ended before a verified synthesis could be produced."
+        )
+    for path in (tmp_path / state.run_id).iterdir():
+        assert "MODEL_OUTPUT" not in path.read_text()

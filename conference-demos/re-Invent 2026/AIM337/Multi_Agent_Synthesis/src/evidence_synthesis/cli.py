@@ -11,18 +11,22 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import ValidationError
 
-from evidence_synthesis.factory import build_orchestrator
-from evidence_synthesis.models import RunRequest
+from evidence_synthesis.factory import build_runner
+from evidence_synthesis.models import ExecutionMode, RunRequest
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="evidence-synthesis",
-        description="Run the four-agent evidence synthesis pipeline.",
+        description="Run evidence synthesis with a single agent or the four-agent pipeline.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     run = subparsers.add_parser("run", help="Run a manifest through the pipeline.")
     run.add_argument("--manifest", type=Path, required=True)
+    run.add_argument(
+        "--mode", choices=tuple(ExecutionMode),
+        help="Override the manifest's execution mode (default: multi_agent).",
+    )
     run.add_argument(
         "--runtime",
         choices=("deterministic", "strands"),
@@ -42,11 +46,14 @@ def _load_manifest(path: Path) -> RunRequest:
 async def _run(args: argparse.Namespace) -> int:
     manifest = args.manifest.resolve()
     request = _load_manifest(manifest)
-    orchestrator = build_orchestrator(
+    if args.mode:
+        request = request.model_copy(update={"execution_mode": ExecutionMode(args.mode)})
+    runner = build_runner(
+        execution_mode=request.execution_mode,
         runtime_name=args.runtime,
         output_dir=args.output.resolve(),
     )
-    state = await orchestrator.run(request, base_dir=manifest.parent)
+    state = await runner.run(request, base_dir=manifest.parent)
     if args.json:
         print(state.model_dump_json(indent=2))
     else:
@@ -90,4 +97,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

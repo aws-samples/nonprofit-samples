@@ -1,0 +1,13 @@
+[
+  {
+    "measure": "relative_water_level_trend",
+    "value": 4.62,
+    "unit": "millimeters_per_year"
+  },
+  {
+    "measure": "observed_high_tide_days",
+    "earlier_value": 8,
+    "recent_value": 18,
+    "unit": "days_per_year"
+  }
+]

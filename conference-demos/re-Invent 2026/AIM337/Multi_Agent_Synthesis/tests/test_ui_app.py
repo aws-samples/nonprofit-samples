@@ -12,7 +12,7 @@ from unittest.mock import Mock
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from evidence_synthesis.models import ResearchState, SynthesisResult, TerminalStatus
+from evidence_synthesis.models import ExecutionMode, ResearchState, SynthesisResult, TerminalStatus
 from evidence_synthesis.ui import aws, inputs, runners
 from evidence_synthesis.ui.artifact_progress import FileArtifactReader
 from evidence_synthesis.ui.log_progress import RunLogReader
@@ -44,6 +44,7 @@ def test_ui_defaults_to_presenter_mode_without_contacting_aws(
     assert not app.exception
     assert app.toggle(key="presenter-mode").value
     assert app.radio(key="execution-target").value == "AgentCore"
+    assert app.radio(key="execution-mode").value == "multi_agent"
     assert app.selectbox(key="presenter-scenario").value == "coastal-resilience"
     assert not app.button(key="run-pipeline").disabled
     assert app.button(key="run-pipeline").label == "Run synthesis"
@@ -69,7 +70,7 @@ def test_developer_ui_defaults_to_agentcore_and_harris_county(
 
     assert not app.exception
     assert app.title[0].value == "Four Agents, One Answer"
-    assert app.radio[0].value == "AgentCore"
+    assert app.radio(key="execution-target").value == "AgentCore"
     assert app.selectbox[0].value == "harris-county"
     region = next(
         field for field in app.text_input if field.label == "AWS region"
@@ -87,7 +88,7 @@ def test_ui_runs_deterministic_fallback(
     app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
     app.toggle(key="presenter-mode").set_value(False).run(timeout=20)
 
-    app.radio[0].set_value("Offline deterministic").run(timeout=20)
+    app.radio(key="execution-target").set_value("Offline deterministic").run(timeout=20)
     app.button(key="prepare-sources").click().run(timeout=20)
 
     assert not app.button(key="run-pipeline").disabled
@@ -112,7 +113,7 @@ def test_ui_runs_deterministic_fallback(
 def test_ui_prepares_custom_upload_with_optional_metadata() -> None:
     app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
     app.toggle(key="presenter-mode").set_value(False).run(timeout=20)
-    app.radio[0].set_value("Offline deterministic").run(timeout=20)
+    app.radio(key="execution-target").set_value("Offline deterministic").run(timeout=20)
     app.selectbox[0].set_value("custom").run(timeout=20)
     app.file_uploader[0].set_value(
         [
@@ -299,8 +300,10 @@ def test_developer_aws_overrides_survive_switch_to_presenter() -> None:
 
 
 @pytest.mark.parametrize("invocation_fails", [False, True])
+@pytest.mark.parametrize("execution_mode", list(ExecutionMode))
 def test_presenter_waits_for_the_agentcore_result(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, invocation_fails: bool,
+    execution_mode: ExecutionMode,
 ) -> None:
     _, request = inputs.load_scenario("coastal-resilience")
     settings = aws.AwsSettings(
@@ -323,7 +326,7 @@ def test_presenter_waits_for_the_agentcore_result(
     clients = SimpleNamespace(
         runtime=SimpleNamespace(invoke=invoke), s3=Mock(),
         artifact_reader=lambda settings, run_id: FileArtifactReader(tmp_path, run_id),
-        log_reader=lambda settings, run_id: RunLogReader(run_id),
+        log_reader=lambda settings, run_id, **kwargs: RunLogReader(run_id, **kwargs),
     )
     upload = Mock(return_value=request)
     offline = Mock(side_effect=AssertionError("No implicit offline fallback"))
@@ -333,6 +336,7 @@ def test_presenter_waits_for_the_agentcore_result(
     monkeypatch.setattr(runners, "run_deterministic", offline)
 
     app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+    app.radio(key="execution-mode").set_value(execution_mode.value).run(timeout=20)
     _run_and_wait(app)
 
     assert not app.exception
@@ -340,7 +344,9 @@ def test_presenter_waits_for_the_agentcore_result(
     invoke.assert_called_once()
     sent_request = invoke.call_args.args[0]
     assert sent_request.run_id is not None
-    assert sent_request.model_dump(exclude={"run_id"}) == request.model_dump(exclude={"run_id"})
+    assert sent_request.model_dump(exclude={"run_id"}) == request.model_copy(update={
+        "execution_mode": execution_mode,
+    }).model_dump(exclude={"run_id"})
     assert invoke.call_args.kwargs["runtime_arn"] == settings.runtime_arn
     assert invoke.call_args.kwargs["qualifier"] == "live"
     offline.assert_not_called()
@@ -393,6 +399,7 @@ def test_ui_polls_saved_artifacts_while_one_invocation_is_pending(
         assert not app.exception
         assert app.session_state["current_state"] is None
         assert app.button(key="run-pipeline").disabled
+        assert app.radio(key="execution-mode").disabled
         assert any(
             'class="pipeline-stage pipeline-stage-complete"' in item.value for item in app.markdown
         )
@@ -415,3 +422,92 @@ def test_ui_polls_saved_artifacts_while_one_invocation_is_pending(
     )
     assert not app.button(key="run-pipeline").disabled
     operation.assert_called_once()
+
+
+def test_ui_switches_modes_without_repreparing_sources_or_reusing_answers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    prepare = Mock(wraps=inputs.generate_local_from_folder)
+    monkeypatch.setattr(inputs, "generate_local_from_folder", prepare)
+    app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+    app.radio(key="execution-target").set_value("Offline deterministic").run(timeout=20)
+    app.radio(key="execution-mode").set_value("single_agent").run(timeout=20)
+    assert app.title[0].value == "One Agent, One Answer"
+    _run_and_wait(app)
+    assert not app.exception
+    single = app.session_state["current_state"]
+    assert single.request.execution_mode is ExecutionMode.SINGLE_AGENT
+    assert single.status is TerminalStatus.COMPLETED
+    assert len(single.metrics) == 1
+    assert single.verification is None
+    assert [tab.label for tab in app.tabs] == ["Answer", "Citations", "Limitations"]
+    assert not any("Evidence Extractor" in item.value for item in app.markdown)
+    assert len([
+        item for item in app.markdown if 'class="pipeline-stage pipeline-stage-' in item.value
+    ]) == 1
+    assert any("simulation" in item.value.lower() for item in app.info)
+    prepared = app.session_state["prepared"]
+
+    app.radio(key="execution-mode").set_value("multi_agent").run(timeout=20)
+    assert app.session_state["current_state"] is None
+    assert not app.tabs
+    assert app.session_state["saved_outputs"] == {}
+    assert app.session_state["prepared"] == prepared
+    _run_and_wait(app)
+    assert not app.exception
+    multi = app.session_state["current_state"]
+    assert multi.request.execution_mode is ExecutionMode.MULTI_AGENT
+    assert multi.run_id != single.run_id
+    assert len(multi.metrics) == 4
+    assert [tab.label for tab in app.tabs] == ["Answer", "Evidence", "Claims", "Review"]
+    assert prepare.call_count == 1
+
+    app.radio(key="execution-mode").set_value("single_agent").run(timeout=20)
+    assert app.session_state["current_state"] is None
+    assert not app.tabs
+    assert app.session_state["prepared"] == prepared
+    assert prepare.call_count == 1
+
+
+def test_single_agent_shows_one_running_stage_and_disables_mode_switch(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    started, release = threading.Event(), threading.Event()
+    def invoke(request: object, **_: object) -> ResearchState:
+        logging.getLogger("evidence_synthesis.single_agent_runner").info(json.dumps({
+            "event": "evidence_synthesis", "run_id": request.run_id,
+            "stage": "single_agent", "status": "started",
+        }))
+        started.set()
+        release.wait(timeout=20)
+        return ResearchState(
+            run_id=request.run_id, request=request, status=TerminalStatus.COMPLETED,
+            synthesis=SynthesisResult(answer="Final single-agent answer."),
+        )
+    operation = Mock(side_effect=invoke)
+    monkeypatch.setattr(runners, "run_deterministic", operation)
+    app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+    app.radio(key="execution-target").set_value("Offline deterministic").run(timeout=20)
+    app.radio(key="execution-mode").set_value("single_agent").run(timeout=20)
+    try:
+        app.button(key="run-pipeline").click().run(timeout=20)
+        assert started.wait(timeout=5)
+        app.run(timeout=20)
+        assert not app.exception
+        assert app.radio(key="execution-mode").disabled
+        assert app.button(key="run-pipeline").disabled
+        assert len([
+            item for item in app.markdown if 'class="pipeline-stage pipeline-stage-' in item.value
+        ]) == 1
+        assert any("pipeline-stage-running" in item.value for item in app.markdown)
+        assert [tab.label for tab in app.tabs] == ["Answer", "Citations", "Limitations"]
+        operation.assert_called_once()
+    finally:
+        release.set()
+    app.session_state["active_run"].future.result(timeout=5)
+    app.run(timeout=20)
+    assert not app.exception
+    assert app.session_state["current_state"].synthesis.answer == "Final single-agent answer."
+    assert not app.radio(key="execution-mode").disabled

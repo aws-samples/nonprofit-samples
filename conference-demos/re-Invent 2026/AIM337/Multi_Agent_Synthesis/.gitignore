@@ -1,0 +1,137 @@
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+.streamlit/secrets.toml
+
+# Keep PowerPoint presentations and templates local
+*.[pP][pP][tT]
+*.[pP][pP][tT][xXmM]
+*.[pP][pP][sS]
+*.[pP][pP][sS][xXmM]
+*.[pP][oO][tT]
+*.[pP][oO][tT][xXmM]
+
+# Publish only the curated threat-model report; keep other documents local
+/docs/*
+!/docs/threat-model.md
+
+# Local agent and tool state
+.agents/
+.codex/
+
+# Raw security assessments stay local; the maintained report is in docs/
+.threatmodel/
+.protoshield/
+
+# Python environments, caches, coverage, and build outputs
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.hypothesis/
+.tox/
+.nox/
+.pip-cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+dist/
+build/
+site/
+*.egg-info/
+
+# Local environment and shell configuration
+.env
+.env.*
+!.env.example
+.envrc
+.direnv/
+
+# Credentials, private keys, and local secrets
+.aws/
+credentials
+secrets/
+secrets.*
+*.secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+tmp/
+temp/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node dependencies
+node_modules/
+infra/node_modules/
+
+# CDK synthesis and account-specific context
+cdk.out/
+infra/cdk.out/
+infra/cdk.context.json
+cdk-outputs.json
+infra/cdk-outputs.json
+
+# Generated evidence-synthesis artifacts
+runs/
+
+# Publish the runnable Verifier evals; keep learning notes and experiments local.
+/evals/**
+!/evals/verifier/
+!/evals/verifier/README.md
+!/evals/verifier/RESULTS.md
+!/evals/verifier/dataset.json
+!/evals/verifier/source-manifest.json
+!/evals/verifier/run_baseline.py
+!/evals/verifier/validate_dataset.py
+!/evals/verifier/diagnostics.py
+!/evals/verifier/test_run_baseline.py
+!/evals/verifier/prompts/
+!/evals/verifier/prompts/clarify-qualification-v4.txt
+!/evals/verifier/prompts/verifier-handoff-candidate-v1.txt
+!/evals/verifier/sources/
+!/evals/verifier/sources/coastal-claims.csv
+!/evals/verifier/sources/coastal-water-levels.json
+!/evals/verifier/sources/coastal-field-notes.md
+!/evals/verifier/sources/harris-landsat.json
+!/evals/verifier/sources/harris-dataset-notes.md
+!/evals/verifier/sources/harris-noaa-2024.json
+!/evals/verifier/sources/harris-provenance.yml
+!/evals/verifier/sources/noaa-seattle-2024-week1.json
+!/evals/verifier/sources/noaa-seattle-2024-week1.csv
+!/evals/verifier/sources/census-comparing-estimates-2015.pdf
+!/evals/verifier/sources/census-2023-statistical-testing-instructions.pdf
+!/evals/verifier/sources/census-example-page2.txt
+!/evals/verifier/sources/census-moe-guidance-page1.txt
+!/evals/verifier/sources/ipcc-ar6-sea-level-2100.json
+!/evals/verifier/sources/bls-june-2024-initial-estimate.json
+!/evals/verifier/explanation_judge/
+!/evals/verifier/explanation_judge/README.md
+!/evals/verifier/explanation_judge/run_judge.py
+!/evals/verifier/explanation_judge/score_saved.py
+!/evals/verifier/explanation_judge/test_judge.py
+!/evals/verifier/explanation_judge/test_score_saved.py
+!/evals/verifier/explanation_judge/rubric-v1.2.md
+!/evals/verifier/explanation_judge/judge-config.json
+!/evals/verifier/explanation_judge/calibration-v1.2.json
+!/evals/verifier/explanation_judge/validation-v1.2.json

@@ -12,6 +12,7 @@ def test_default_claude_roles_use_sonnet_5() -> None:
     assert settings.model_ids[AgentRole.ANALYST] == "us.anthropic.claude-sonnet-5"
     assert settings.model_ids[AgentRole.VERIFIER] == "us.anthropic.claude-sonnet-5"
     assert settings.model_ids[AgentRole.SYNTHESIZER] == "us.anthropic.claude-sonnet-5"
+    assert settings.model_ids[AgentRole.SINGLE_AGENT] == "us.anthropic.claude-sonnet-5"
 
 
 def test_default_max_tokens_are_role_specific() -> None:
@@ -22,6 +23,7 @@ def test_default_max_tokens_are_role_specific() -> None:
         AgentRole.ANALYST: 10_000,
         AgentRole.VERIFIER: 15_000,
         AgentRole.SYNTHESIZER: 15_000,
+        AgentRole.SINGLE_AGENT: 15_000,
     }
 
 
@@ -30,6 +32,8 @@ def test_role_env_vars_override_defaults(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setenv("EVIDENCE_EXTRACTOR_MAX_TOKENS", "2048")
     monkeypatch.setenv("VERIFIER_MAX_TOKENS", "8000")
     monkeypatch.setenv("ANALYST_MODEL_ID", "us.amazon.nova-pro-v1:0")
+    monkeypatch.setenv("SINGLE_AGENT_MODEL_ID", "single-test-model")
+    monkeypatch.setenv("SINGLE_AGENT_MAX_TOKENS", "12000")
 
     settings = StrandsSettings(_env_file=None)
 
@@ -38,6 +42,8 @@ def test_role_env_vars_override_defaults(monkeypatch: pytest.MonkeyPatch) -> Non
     assert settings.max_tokens[AgentRole.VERIFIER] == 8000
     assert settings.max_tokens[AgentRole.ANALYST] == 10_000
     assert settings.model_ids[AgentRole.ANALYST] == "us.amazon.nova-pro-v1:0"
+    assert settings.model_ids[AgentRole.SINGLE_AGENT] == "single-test-model"
+    assert settings.max_tokens[AgentRole.SINGLE_AGENT] == 12_000
 
 
 def test_pipeline_policy_reads_prefixed_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:

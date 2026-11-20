@@ -28,7 +28,6 @@ from evidence_synthesis.models import (
     SourceContext,
     SourceProfile,
     SourceReference,
-    SynthesisInput,
     TerminalStatus,
     VerificationInput,
     VerificationResult,
@@ -41,6 +40,7 @@ from evidence_synthesis.source_profiles import (
     grounded_profiles,
     merge_evidence_gaps,
 )
+from evidence_synthesis.synthesis_contract import ReviewedContent
 
 
 def _chunk(source_id: str = "records") -> SourceChunk:
@@ -277,15 +277,17 @@ async def test_profiles_and_gaps_survive_retries_partial_synthesis_and_artifacts
     expected_profiles = state.evidence_extractor.source_profiles
     assert expected_profiles[0].origin == "extracted"
     for payload in runtime.payloads:
-        if isinstance(payload, (AnalysisInput, VerificationInput, SynthesisInput)):
+        if isinstance(payload, (AnalysisInput, VerificationInput)):
             assert payload.source_profiles == expected_profiles
         if isinstance(payload, AnalysisInput):
             assert payload.evidence_gaps == state.evidence_extractor.gaps
         if isinstance(payload, VerificationInput):
             assert set(state.evidence_extractor.gaps).issubset(payload.analysis.evidence_gaps)
-        if isinstance(payload, SynthesisInput):
-            assert set(state.evidence_extractor.gaps).issubset(payload.verification.evidence_gaps)
-            assert payload.partial is (cycle_limit == 1)
+        if isinstance(payload, ReviewedContent):
+            assert set(state.evidence_extractor.gaps).issubset(payload.evidence_gaps)
+            assert "source_profiles" not in payload.model_dump()
+    assert state.synthesis is not None
+    assert state.synthesis.partial is (cycle_limit == 1)
     saved = RunSummary.model_validate_json(
         (tmp_path / state.run_id / "state.json").read_text(encoding="utf-8"),
     )

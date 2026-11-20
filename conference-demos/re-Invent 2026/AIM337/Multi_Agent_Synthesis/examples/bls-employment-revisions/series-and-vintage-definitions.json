@@ -1,0 +1,17 @@
+{
+  "series_id": "PAYEMS",
+  "bls_series_code": "CES0000000001",
+  "title": "All Employees, Total Nonfarm",
+  "source_agency": "U.S. Bureau of Labor Statistics",
+  "source_survey": "Current Employment Statistics (Establishment Survey)",
+  "archive": "Federal Reserve Bank of St. Louis ALFRED",
+  "frequency": "Monthly",
+  "seasonal_adjustment": "Seasonally Adjusted",
+  "unit": "Thousands of Persons",
+  "observation_month_definition": "The reference month represented by the observation. It differs from the date the estimate was published or retrieved.",
+  "vintage_date_definition": "The historical as-of date defining which version of an estimate is shown.",
+  "revision_note": "Estimates for earlier observation months can change in later vintages. A historical vintage is not necessarily the latest estimate available today; values can be revised again.",
+  "series_page_url": "https://alfred.stlouisfed.org/series?seid=PAYEMS",
+  "vintage_documentation_url": "https://alfred.stlouisfed.org/help/downloaddata",
+  "prepared_note": "Metadata and definitions summarized from the official ALFRED pages. This is contextual documentation, not an independent measurement source."
+}

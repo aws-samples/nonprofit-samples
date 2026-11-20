@@ -1,0 +1,40 @@
+{
+  "question": "Which airline had better on-time performance in December 2022—Southwest or Spirit?",
+  "sources": [
+    {
+      "source_id": "bts-2022-12-nk",
+      "uri": "nk-december-2022-flight-outcomes.json",
+      "title": "BTS December 2022 flight outcomes: Spirit Air Lines",
+      "methodology": "Carrier-level administrative flight outcome counts, transcribed from BTS Table 7A in the February 2023 revised ATCR.",
+      "media_type": "application/json",
+      "metadata": {
+        "upstream_report_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf",
+        "table": "7A",
+        "printed_page": 33
+      }
+    },
+    {
+      "source_id": "bts-outcome-definitions",
+      "uri": "outcome-definitions.json",
+      "title": "BTS arrival outcome definitions and reporting scope",
+      "methodology": "Definitions summarized from the same DOT/BTS report as the carrier counts.",
+      "media_type": "application/json",
+      "metadata": {
+        "upstream_report_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf"
+      }
+    },
+    {
+      "source_id": "bts-2022-12-wn",
+      "uri": "wn-december-2022-flight-outcomes.json",
+      "title": "BTS December 2022 flight outcomes: Southwest Airlines",
+      "methodology": "Carrier-level administrative flight outcome counts, transcribed from BTS Table 7A in the February 2023 revised ATCR.",
+      "media_type": "application/json",
+      "metadata": {
+        "upstream_report_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf",
+        "table": "7A",
+        "printed_page": 33
+      }
+    }
+  ],
+  "max_evidence": 20
+}

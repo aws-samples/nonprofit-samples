@@ -14,6 +14,7 @@ from evidence_synthesis.models import (
     AnalysisResult,
     EvidenceExtractorInput,
     EvidenceExtractorResult,
+    SingleAgentInput,
     SynthesisInput,
     SynthesisResult,
     VerificationInput,
@@ -64,6 +65,7 @@ def test_strands_invocation_keeps_role_routing_and_uses_fresh_agent_history(
         region="us-east-1", evidence_extractor_model_id="extractor-test",
         analyst_model_id="analyst-test",
         verifier_model_id="verifier-test", synthesizer_model_id="synthesizer-test",
+        single_agent_model_id="single-test",
     )
     runtime = StrandsRuntime(settings)
     question = "What is supported?"
@@ -78,6 +80,9 @@ def test_strands_invocation_keeps_role_routing_and_uses_fresh_agent_history(
         (AgentRole.SYNTHESIZER, SynthesisInput(
             question=question, evidence=[], verification=verification,
         ), SynthesisResult),
+        (AgentRole.SINGLE_AGENT, SingleAgentInput(
+            question=question, chunks=[],
+        ), SynthesisResult),
     ]
     for role, payload, output_type in [*calls, calls[0]]:
         result = runtime.invoke(role, payload, output_type, f"Instructions for {role.value}")
@@ -86,9 +91,9 @@ def test_strands_invocation_keeps_role_routing_and_uses_fresh_agent_history(
         assert result.metrics.model_id == settings.model_ids[role]
         assert result.metrics.total_tokens == 20
 
-    assert agent_factory.call_count == 5
-    assert model_factory.call_count == 5
-    assert [agent.call_count for agent in agents] == [1] * 5
+    assert agent_factory.call_count == 6
+    assert model_factory.call_count == 6
+    assert [agent.call_count for agent in agents] == [1] * 6
     roles = [*AgentRole, AgentRole.EVIDENCE_EXTRACTOR]
     for role, call in zip(roles, model_factory.call_args_list, strict=True):
         actual = {key: value for key, value in call.kwargs.items() if key != "boto_client_config"}

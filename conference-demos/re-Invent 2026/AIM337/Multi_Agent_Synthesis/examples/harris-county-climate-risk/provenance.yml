@@ -2,7 +2,7 @@ dataset:
   name: Harris County climate and environmental risk example
   generated_at: "2026-09-02"
   purpose: Test the evidence-synthesis pipeline with compact real-world public data.
-  question: Does the available evidence support prioritizing targeted climate-resilience planning in Harris County, particularly for communities with elevated environmental and demographic burdens?
+  question: Do some Harris County communities need extra protection from heat and flooding?
 
 sources:
   noaa:

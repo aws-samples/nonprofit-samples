@@ -1,0 +1,45 @@
+# Copyright (c) 2026 Amazon Web Services
+# SPDX-License-Identifier: MIT
+dataset:
+  name: BLS nonfarm payroll employment revisions
+  captured_on: "2026-10-22"
+  publisher: U.S. Bureau of Labor Statistics
+  archive: Federal Reserve Bank of St. Louis ALFRED
+  series_id: PAYEMS
+  bls_series_code: CES0000000001
+  observation_period: "2025-04/2025-06"
+  unit: Thousands of Persons
+  seasonal_adjustment: Seasonally Adjusted
+  series_url: "https://alfred.stlouisfed.org/series?seid=PAYEMS"
+  vintage_documentation_url: "https://alfred.stlouisfed.org/help/downloaddata"
+
+sources:
+  - file: payroll-employment-as-of-2025-07-03.json
+    vintage_date: "2025-07-03"
+    source_url: "https://alfred.stlouisfed.org/graph/alfredgraph.csv?id=PAYEMS&cosd=2025-04-01&coed=2025-06-01&vintage_date=2025-07-03"
+    sha256: "3279fc09af435018e95d0269b61cee6eccee1307ea5a4795e2d659076ca1cb3c"
+  - file: payroll-employment-as-of-2025-08-01.json
+    vintage_date: "2025-08-01"
+    source_url: "https://alfred.stlouisfed.org/graph/alfredgraph.csv?id=PAYEMS&cosd=2025-04-01&coed=2025-06-01&vintage_date=2025-08-01"
+    sha256: "a6798d7f9423fc91f5309d965a48c2adb31883057795d666af2249e223d8c0f8"
+  - file: payroll-employment-as-of-2025-09-05.json
+    vintage_date: "2025-09-05"
+    source_url: "https://alfred.stlouisfed.org/graph/alfredgraph.csv?id=PAYEMS&cosd=2025-04-01&coed=2025-06-01&vintage_date=2025-09-05"
+    sha256: "8deac449da6fc5f4659d862fdaf4f38f039625a5fe0fdaa11d6483e7bc19edae"
+  - file: series-and-vintage-definitions.json
+    source_url: "https://alfred.stlouisfed.org/help/downloaddata"
+    sha256: "a9cb4d635b38f1a904ee304eb883f369024808df8f8a374d35705cbcbb299e54"
+
+preparation:
+  - Retrieved the official CSV responses through a web-fetch tool and saved text snapshots.
+  - Preserved the three numeric observations in each vintage without resampling or imputation.
+  - Made each header's vintage date explicit and represented observation months as YYYY-MM.
+  - Added series metadata and definitions from ALFRED.
+  - Only the JSON data files are model inputs; this provenance record is documentation.
+
+limitations:
+  - These are historical estimates as known on the stated vintage dates, not current estimates.
+  - Employment levels are in thousands of persons, not monthly changes.
+  - The vintages describe revisions to one series and are not independent corroborating sources.
+  - The captures are UTF-8 text snapshots, not byte-for-byte HTTP archives.
+  - ALFRED supplies archived BLS data; these extracts were not downloaded directly from BLS.

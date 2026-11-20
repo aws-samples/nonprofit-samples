@@ -19,12 +19,14 @@ from pydantic import BaseModel, ValidationError
 from evidence_synthesis.models import (
     AnalysisResult,
     EvidenceExtractorResult,
+    ExecutionMode,
     ResearchState,
     RunRequest,
     RunSummary,
     StageSummary,
     SynthesisResult,
     VerificationResult,
+    roles_for_mode,
 )
 from evidence_synthesis.ui.log_progress import RunLogReader
 
@@ -33,6 +35,7 @@ _ARTIFACT_TYPES: dict[str, type[BaseModel]] = {
     "analysis": AnalysisResult,
     "synthesis": SynthesisResult,
     "partial-synthesis": SynthesisResult,
+    "single_agent": SynthesisResult,
     "state": ResearchState,
 }
 _REVIEW = re.compile(r"^(verification|analysis-retry)-([1-9][0-9]*)$")
@@ -55,7 +58,7 @@ def artifact_order(name: str) -> tuple[int, int]:
         return (2, cycle * 2 - (1 if review[1] == "verification" else 0))
     return {
         "evidence_extractor": (0, 0), "analysis": (1, 0), "synthesis": (3, 0),
-        "partial-synthesis": (3, 1), "state": (4, 0),
+        "partial-synthesis": (3, 1), "single_agent": (3, 0), "state": (4, 0),
     }.get(name, (5, 0))
 
 
@@ -188,7 +191,7 @@ class ActiveRun:
 
     def statuses(self) -> dict[str, str]:
         return self.logs.statuses() if self.logs is not None else saved_stage_statuses(
-            self.reader.outputs,
+            self.reader.outputs, execution_mode=self.request.execution_mode,
         )
 
     def result(self) -> ResearchState:
@@ -206,6 +209,8 @@ class ActiveRun:
             raise ValueError(
                 "The runtime returned a different run ID. Update the deployed backend."
             )
+        if state.request != self.request:
+            raise ValueError("The runtime returned a result for a different request or mode.")
         return state
 
 
@@ -240,11 +245,16 @@ def start_run(
 
 def saved_stage_statuses(
     outputs: dict[str, BaseModel], *, finished: bool = False,
+    execution_mode: ExecutionMode = ExecutionMode.MULTI_AGENT,
 ) -> dict[str, str]:
     statuses = dict.fromkeys(
-        ("evidence_extractor", "analyst", "verifier", "synthesizer"),
+        (role.value for role in roles_for_mode(execution_mode)),
         "Not reached" if finished else "Waiting for result",
     )
+    if execution_mode is ExecutionMode.SINGLE_AGENT:
+        if "single_agent" in outputs:
+            statuses["single_agent"] = "Complete"
+        return statuses
     for name in sorted(outputs, key=artifact_order):
         value = outputs[name]
         if isinstance(value, StageSummary):
@@ -280,6 +290,11 @@ def saved_stage_statuses(
 
 
 def state_stage_statuses(state: ResearchState) -> dict[str, str]:
+    if state.request.execution_mode is ExecutionMode.SINGLE_AGENT:
+        return {"single_agent": {
+            "completed": "Complete", "partial": "Partial result",
+            "blocked": "Blocked", "failed": "Failed",
+        }[state.status.value]}
     outputs: dict[str, BaseModel] = {}
     for name, value in [
         ("evidence_extractor", state.evidence_extractor), ("analysis", state.analysis),

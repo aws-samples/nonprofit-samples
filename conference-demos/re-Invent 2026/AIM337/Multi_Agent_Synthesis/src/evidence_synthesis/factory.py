@@ -11,6 +11,7 @@ from evidence_synthesis.agents import (
     SynthesizerAgent,
     VerifierAgent,
 )
+from evidence_synthesis.agents.single_agent import SingleAgent
 from evidence_synthesis.artifacts import (
     ArtifactStore,
     FileArtifactStore,
@@ -19,6 +20,7 @@ from evidence_synthesis.artifacts import (
 )
 from evidence_synthesis.config import GuardrailSettings, PipelinePolicy, StrandsSettings
 from evidence_synthesis.deterministic_runtime import DeterministicRuntime
+from evidence_synthesis.models import ExecutionMode
 from evidence_synthesis.orchestrator import EvidenceSynthesisOrchestrator
 from evidence_synthesis.runtime import AgentRuntime
 from evidence_synthesis.safety import (
@@ -27,6 +29,7 @@ from evidence_synthesis.safety import (
     MissingGuardrailGate,
     SafetyGate,
 )
+from evidence_synthesis.single_agent_runner import SingleAgentRunner
 from evidence_synthesis.source_loader import SourceLoader
 from evidence_synthesis.strands_runtime import StrandsRuntime
 
@@ -39,6 +42,58 @@ def build_orchestrator(
     policy: PipelinePolicy | None = None,
     allow_local_files: bool = True,
 ) -> EvidenceSynthesisOrchestrator:
+    runtime, loader, safety_gate, artifacts = _build_components(
+        runtime_name, output_dir, allow_local_files,
+    )
+    # All four roles use the selected runtime and their own instructions.
+    return EvidenceSynthesisOrchestrator(
+        evidence_extractor=EvidenceExtractorAgent(runtime, loader, safety_gate),
+        analyst=AnalystAgent(runtime),
+        verifier=VerifierAgent(runtime),
+        synthesizer=SynthesizerAgent(runtime),
+        policy=policy,
+        safety_gate=safety_gate,
+        artifact_store=artifacts,
+    )
+
+
+def build_single_agent_runner(
+    *,
+    runtime_name: str,
+    output_dir: Path | None = None,
+    policy: PipelinePolicy | None = None,
+    allow_local_files: bool = True,
+) -> SingleAgentRunner:
+    runtime, loader, safety_gate, artifacts = _build_components(
+        runtime_name, output_dir, allow_local_files,
+    )
+    return SingleAgentRunner(
+        agent=SingleAgent(runtime), source_loader=loader,
+        policy=policy, safety_gate=safety_gate, artifact_store=artifacts,
+    )
+
+
+def build_runner(
+    *,
+    execution_mode: ExecutionMode,
+    runtime_name: str,
+    output_dir: Path | None = None,
+    policy: PipelinePolicy | None = None,
+    allow_local_files: bool = True,
+) -> EvidenceSynthesisOrchestrator | SingleAgentRunner:
+    builder = (
+        build_single_agent_runner
+        if execution_mode is ExecutionMode.SINGLE_AGENT else build_orchestrator
+    )
+    return builder(
+        runtime_name=runtime_name, output_dir=output_dir, policy=policy,
+        allow_local_files=allow_local_files,
+    )
+
+
+def _build_components(
+    runtime_name: str, output_dir: Path | None, allow_local_files: bool,
+) -> tuple[AgentRuntime, SourceLoader, SafetyGate, ArtifactStore]:
     runtime: AgentRuntime
     safety_gate: SafetyGate
     if runtime_name == "deterministic":
@@ -76,13 +131,4 @@ def build_orchestrator(
         )
     else:
         artifacts = NullArtifactStore()
-    # All four roles use the selected runtime and their own instructions.
-    return EvidenceSynthesisOrchestrator(
-        evidence_extractor=EvidenceExtractorAgent(runtime, loader, safety_gate),
-        analyst=AnalystAgent(runtime),
-        verifier=VerifierAgent(runtime),
-        synthesizer=SynthesizerAgent(runtime),
-        policy=policy,
-        safety_gate=safety_gate,
-        artifact_store=artifacts,
-    )
+    return runtime, loader, safety_gate, artifacts

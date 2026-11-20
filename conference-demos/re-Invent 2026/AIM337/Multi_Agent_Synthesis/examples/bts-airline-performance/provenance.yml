@@ -1,0 +1,39 @@
+# Copyright (c) 2026 Amazon Web Services
+# SPDX-License-Identifier: MIT
+dataset:
+  name: BTS airline flight outcomes
+  captured_on: "2026-10-22"
+  publisher: U.S. Department of Transportation
+  data_agency: Bureau of Transportation Statistics
+  report: February 2023 Air Travel Consumer Report, revised April 2023
+  table: Table 7A
+  printed_page: 33
+  observation_month: "2022-12"
+  source_url: "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf"
+  scope: Reported domestic scheduled nonstop flights of the named operating carriers.
+
+sources:
+  - file: nk-december-2022-flight-outcomes.json
+    carrier: Spirit Air Lines
+    sha256: "db550e526ec9f76d94fbfa1422e21887aa81f3dae2fbd0497466e9ba66dfe605"
+  - file: wn-december-2022-flight-outcomes.json
+    carrier: Southwest Airlines
+    sha256: "fe73a8a541b4b040d522da72ad4c3a9d0fc134f118c2bd34771b72f5bc5a7cbd"
+  - file: outcome-definitions.json
+    sha256: "0706238197901daa7995a620f0e5a8c556726e7b98651f36475450a5b8a6e847"
+
+preparation:
+  - Transcribed the two carrier rows from official PDF text returned by a web tool.
+  - Checked that each carrier's four outcome counts sum to its scheduled-flight total.
+  - Summarized arrival definitions and documented the comparison denominators.
+  - Only the three JSON data files are model inputs; this provenance record is documentation.
+  - source-metadata.json provides optional titles and methodology for those files.
+
+limitations:
+  - Direct PDF downloads returned HTTP 403; original PDF bytes and visual page verification were unavailable.
+  - Both carrier extracts and the definitions derive from one report, not independent sources.
+  - This is a compact two-carrier extract, not the full BTS flight-level dataset.
+  - The counts describe operating carriers, not marketing-carrier network aggregates.
+  - These are flight counts, not passenger counts, and cover only December 2022.
+  - The comparison is not adjusted for routes, airports, weather, distance, or passenger volumes.
+  - The completed/nondiverted denominator is explicitly described in the supplied definitions.

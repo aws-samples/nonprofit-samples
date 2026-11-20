@@ -1,5 +1,5 @@
 {
-  "question": "Does the available evidence support prioritizing targeted climate-resilience planning in Harris County, particularly for communities with elevated environmental and demographic burdens?",
+  "question": "Do some Harris County communities need extra protection from heat and flooding?",
   "max_evidence": 30,
   "sources": [
     {"source_id": "noaa-climate-2024", "uri": "noaa-climate-summary-2024.json"},

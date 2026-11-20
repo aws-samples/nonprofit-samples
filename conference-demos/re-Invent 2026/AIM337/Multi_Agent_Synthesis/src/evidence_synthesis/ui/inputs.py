@@ -47,6 +47,18 @@ SCENARIOS = {
         description="Compact fixture with deliberately conflicting evidence.",
         folder=PROJECT_ROOT / "examples" / "coastal-resilience",
     ),
+    "bls-employment": Scenario(
+        key="bls-employment",
+        label="BLS employment revisions",
+        description="U.S. payroll estimates for April–June 2025 at three publication dates.",
+        folder=PROJECT_ROOT / "examples" / "bls-employment-revisions",
+    ),
+    "bts-airlines": Scenario(
+        key="bts-airlines",
+        label="BTS airline on-time performance",
+        description="Southwest and Spirit flight outcomes for December 2022.",
+        folder=PROJECT_ROOT / "examples" / "bts-airline-performance",
+    ),
 }
 
 
