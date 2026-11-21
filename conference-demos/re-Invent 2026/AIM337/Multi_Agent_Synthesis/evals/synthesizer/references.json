@@ -1,0 +1,32 @@
+{
+  "dataset_version": "1.0",
+  "case_ids": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005",
+    "S006"
+  ],
+  "scope": "Normal citation-closed Synthesizer inputs; S006 is fictional. Original inputs and expectations are unchanged.",
+  "files": {
+    "evals/synthesizer/dataset-v1.json": "b1c6f1451419d3887e233478b501a181ca59bdb1edd581678c9e5a5c30bd1eb9",
+    "evals/verifier/dataset.json": "629371831786b7ad8c1de4a53911bad56032ee896eba2573f6dfc638a69dcb9e",
+    "evals/verifier/source-manifest.json": "6fa6f0f41ff868fd2aa793da7e1801397c6249793e91d6e379647d3e2518f03e",
+    "evals/verifier/sources/bls-june-2024-initial-estimate.json": "c7b94fb08b812fc41bd8e4c3ffbd76e0bb5a404850bcfb0258c64b0850aa2549",
+    "evals/verifier/sources/census-2023-statistical-testing-instructions.pdf": "79a714b96daadd9498f516356ac1c1c2f3442df34fffec032a4bbe0a929d9c3f",
+    "evals/verifier/sources/census-comparing-estimates-2015.pdf": "6d1b0b91d31454122703e2b79a981d813d0005665f3253362dbbb0fe300df221",
+    "evals/verifier/sources/census-example-page2.txt": "39f6ae717c022cae5dfb55b7dc2f109de3a82e3462f3c7486381ac61dd76e6b8",
+    "evals/verifier/sources/census-moe-guidance-page1.txt": "af233534d6771b98e7aa8b203595abe876894179edcba54888472e92212730b2",
+    "evals/verifier/sources/coastal-claims.csv": "1095dc635296d33e9ff6cff5d8544a3e3cfda933814e3301d07289dbb7dbb8d4",
+    "evals/verifier/sources/coastal-field-notes.md": "52a2a4ecc2bc76c835162ed23a7551ddd48963e724a3dcd012a51bcabe3430e3",
+    "evals/verifier/sources/coastal-water-levels.json": "ee773d410c0e199cb9f55035e3476cf892b569d96fffa67fd4af0b0df960b5e0",
+    "evals/verifier/sources/harris-dataset-notes.md": "e77ea5f82cf1c5fc77ee59f7ce9831e21d1b0d393d92e986160e8661518e5b84",
+    "evals/verifier/sources/harris-landsat.json": "39adff32599bf26cbb81379e5e911bc9a50c8c02885ecec069f109903ce5153c",
+    "evals/verifier/sources/harris-noaa-2024.json": "aca8c415fac6984d7bf3b0f3c84133dcaae8408d5cad597951ae5ba1aaf7e053",
+    "evals/verifier/sources/harris-provenance.yml": "f7543183f62afa2f29b257b201e6bcbc73e310beb84c33776411d89e942faafa",
+    "evals/verifier/sources/ipcc-ar6-sea-level-2100.json": "a85dfa1264c2e5d27e57f60f0fc1f60e7bf31aa14cafa8e11b7bee5540f76898",
+    "evals/verifier/sources/noaa-seattle-2024-week1.csv": "5831901032f9225ab797fd339ce3283ea7dafb76421b673dd0299a264a08ff01",
+    "evals/verifier/sources/noaa-seattle-2024-week1.json": "75d2715e3bcaf7febbc9fa153daeafb90b2a97eceafd2b72f6b2ae8911bb2271"
+  }
+}

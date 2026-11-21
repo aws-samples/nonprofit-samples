@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 import uuid
@@ -24,6 +23,7 @@ from evidence_synthesis.artifacts import ArtifactStore, NullArtifactStore
 from evidence_synthesis.config import PipelinePolicy
 from evidence_synthesis.models import (
     AnalysisInput,
+    ExecutionMode,
     ResearchState,
     RunRequest,
     StageEvent,
@@ -34,6 +34,7 @@ from evidence_synthesis.models import (
     VerificationResult,
     VerificationStatus,
 )
+from evidence_synthesis.run_logging import log_run_event
 from evidence_synthesis.runtime import RuntimeInvocationError, RuntimeResult
 from evidence_synthesis.safety import LocalSafetyGate, SafetyGate, SafetyViolation
 from evidence_synthesis.source_loader import SourceLimitError
@@ -99,6 +100,8 @@ class EvidenceSynthesisOrchestrator:
         *,
         base_dir: Path | None = None,
     ) -> ResearchState:
+        if request.execution_mode is not ExecutionMode.MULTI_AGENT:
+            raise ValueError("The orchestrator requires execution_mode='multi_agent'")
         # Reuse the caller's ID so the UI can find this run's logs and artifacts.
         state = ResearchState(run_id=request.run_id or uuid.uuid4().hex, request=request)
         started_at = time.monotonic()
@@ -477,38 +480,6 @@ class EvidenceSynthesisOrchestrator:
         emit_metrics: bool = False,
         **metadata: object,
     ) -> None:
-        payload: dict[str, object] = {
-            "event": "evidence_synthesis",
-            "run_id": run_id,
-            "stage": stage,
-            "status": status,
-            **metadata,
-        }
-        if emit_metrics:
-            payload.update(
-                {
-                    "Runtime": "evidence-synthesis",
-                    "Runs": 1,
-                    "TotalTokens": metadata.get("total_tokens", 0),
-                    "VerificationCycles": metadata.get("verification_cycles", 0),
-                    "SafetyInterventions": metadata.get("safety_interventions", 0),
-                    "_aws": {
-                        "Timestamp": int(time.time() * 1000),
-                        "CloudWatchMetrics": [
-                            {
-                                "Namespace": "EvidenceSynthesis",
-                                "Dimensions": [["Runtime"]],
-                                "Metrics": [
-                                    {"Name": "Runs", "Unit": "Count"},
-                                    {"Name": "TotalTokens", "Unit": "Count"},
-                                    {"Name": "VerificationCycles", "Unit": "Count"},
-                                    {"Name": "SafetyInterventions", "Unit": "Count"},
-                                ],
-                            }
-                        ],
-                    },
-                }
-            )
-        _LOGGER.info(
-            json.dumps(payload, sort_keys=True)
+        log_run_event(
+            _LOGGER, run_id, stage, status, emit_metrics=emit_metrics, **metadata,
         )

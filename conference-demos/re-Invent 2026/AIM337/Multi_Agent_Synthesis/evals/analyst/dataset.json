@@ -1,0 +1,868 @@
+{
+  "schema_version": "0.1",
+  "dataset_version": "1.0",
+  "name": "Analyst reference cases",
+  "created_on": "2026-11-02",
+  "status": "human_reviewed_development_set",
+  "scope": "First Analyst pass with fixed evidence; no extractor, verifier, synthesis or revision run.",
+  "input_policy": "Pass only case[\"input\"] to the Analyst. Never pass expected facts, forbidden conclusions or review notes.",
+  "grading_policy": "Approve semantic expectations before running the model; no exact claim-text or confidence-score targets.",
+  "split_policy": "All drafted cases are development data. Shared source families must remain together in later splits.",
+  "cases": [
+    {
+      "case_id": "A001",
+      "name": "Preserve reported totals and their period",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A001-approval-20261102.json"
+      },
+      "input": {
+        "question": "What does the supplied record establish about paid claims and claim payments?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025\nclaim_payments,4200000,USD,2000-2025",
+            "locator": "sources/coastal-claims.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The supplied record reports 147 paid claims over 2000-2025.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "The supplied record reports total claim payments of 4,200,000 USD over 2000-2025.",
+            "supported_by": [
+              "E001"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Each numerical claim must retain the relevant measure, unit and 2000-2025 period.",
+          "Report the supplied record; do not assert independent confirmation of real-world totals."
+        ],
+        "unsupported_conclusions": [
+          "Treating either multi-year total as an annual amount or as a 2025-only amount.",
+          "Inferring that claims or payments rose or fell over time.",
+          "Inferring high or low flood risk or assigning a cause to the payments.",
+          "Adding an unsupported geography, observation, or external fact."
+        ],
+        "citation_requirements": [
+          "Every claim cites one or more supplied evidence IDs; E001 is the only supplied ID.",
+          "An existing evidence ID is insufficient if its excerpt does not support the claim."
+        ],
+        "coverage_policy": "Both required facts must be present. Empty claims or omission of either total fails coverage.",
+        "additional_claims_policy": "Additional relevant, supported facts or clearly framed derivations are allowed, but are not required.",
+        "evidence_gaps_policy": "No particular gap statement is required for this question. Stating missing annual detail is allowed; any reported gap must be accurate.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "The supplied record reports 147 paid claims during 2000-2025.",
+              "evidence_ids": [
+                "E001"
+              ]
+            },
+            {
+              "statement": "The supplied record reports USD 4.2 million in total claim payments during 2000-2025.",
+              "evidence_ids": [
+                "E001"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "A002",
+      "name": "Calculate absolute and percentage change",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A002-approval-20261102.json"
+      },
+      "input": {
+        "question": "How much did the reported high-tide days increase from the earlier value to the recent value, in days per year and percent?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-water",
+            "title": "Coastal Resilience illustrative high-tide-day record",
+            "excerpt": "{\n  \"measure\": \"observed_high_tide_days\",\n  \"earlier_value\": 8,\n  \"recent_value\": 18,\n  \"unit\": \"days_per_year\"\n}",
+            "locator": "sources/coastal-water-levels.json#item=2",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The reported high-tide-day measure rises from 8 to 18 days per year, a difference of 10 days per year between the earlier and recent values.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "The increase is 125 percent relative to the earlier value of 8: (18 - 8) / 8 * 100.",
+            "supported_by": [
+              "E001"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Keep days_per_year as the unit of the reported measure and absolute difference.",
+          "Use the earlier value as the denominator of percentage increase.",
+          "Describe a comparison of two reported values, not an established year-by-year growth rate.",
+          "Do not assign dates or a duration to earlier and recent; the excerpt supplies neither.",
+          "Report or derive from the supplied illustrative record, without asserting independent real-world confirmation."
+        ],
+        "unsupported_conclusions": [
+          "Calling 225 percent the increase instead of the recent value as a percentage of the earlier value.",
+          "Using the recent value as the denominator for the requested percentage increase.",
+          "Saying the measure increased by 10 additional days every calendar year, or grows by 125 percent per year.",
+          "Forecasting future high-tide days, assigning a cause, or inventing dates or geography."
+        ],
+        "citation_requirements": [
+          "Every claim cites supplied evidence IDs; E001 is the only supplied ID.",
+          "E001 supports both the reported figures and clearly framed arithmetic derivations."
+        ],
+        "coverage_policy": "Both absolute and percentage increases are required by the question. Merely repeating 8 and 18, or omitting either requested calculation, fails coverage.",
+        "additional_claims_policy": "Additional relevant, supported statements are allowed, such as the recent value being 2.25 times the earlier value. This ratio does not replace the requested percentage increase.",
+        "evidence_gaps_policy": "No explicit missing-date warning is required to answer the comparison. If a gap is stated it must be accurate; calendar dates and an elapsed interval must not be invented.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "The supplied record shows high-tide days rising from 8 to 18 days per year, a difference of 10 days per year and a 125 percent increase relative to the earlier value.",
+              "evidence_ids": [
+                "E001"
+              ]
+            }
+          ]
+        }
+      },
+      "calculations": [
+        {
+          "operation": "subtract",
+          "operands": [
+            "18",
+            "8"
+          ],
+          "exact": "10",
+          "unit": "days_per_year"
+        },
+        {
+          "operation": "percentage_change",
+          "earlier": "8",
+          "recent": "18",
+          "formula": "(recent - earlier) / earlier * 100",
+          "exact": "125",
+          "unit": "percent"
+        }
+      ]
+    },
+    {
+      "case_id": "A003",
+      "name": "Preserve measurement type and sample scope",
+      "source_family": "harris-county-climate-risk",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A003-approval-20261102.json"
+      },
+      "input": {
+        "question": "What does the satellite mean temperature tell us about heat in Downtown Houston?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-landsat",
+            "title": "Prepared Landsat record for the Downtown Houston sample window",
+            "excerpt": "{\n  \"as_of\": \"2024-09-08T16:50:24.152565Z\",\n  \"measure\": \"clear-pixel land-surface temperature in 1.05 km window\",\n  \"unit\": \"degrees Celsius\",\n  \"location\": \"Downtown Houston\",\n  \"longitude\": -95.3698,\n  \"latitude\": 29.7604,\n  \"scene_id\": \"LC09_L2SP_025039_20240908_20240909_02_T1_ST\",\n  \"platform\": \"LANDSAT_9\",\n  \"scene_cloud_cover_percent\": 0.08,\n  \"window_size_m\": 1050,\n  \"valid_clear_pixels\": 1225,\n  \"mean_surface_temperature_c\": 39.7,\n  \"median_surface_temperature_c\": 39.9,\n  \"p90_surface_temperature_c\": 42.7\n}",
+            "locator": "sources/harris-landsat.json#item=1",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "harris-notes",
+            "title": "Preparation notes: Landsat measurement scope",
+            "excerpt": "landsat-surface-temperature-samples.json contains clear-pixel statistics from five fixed\n1.05 km by 1.05 km windows in a USGS Landsat 9 Collection 2 Level-2 surface-temperature\nscene, LC09_L2SP_025039_20240908_20240909_02_T1_ST, acquired on 2024-09-08.\nThe raster was accessed through the Microsoft Planetary Computer mirror. QA_PIXEL fill,\ndilated-cloud, cirrus, cloud, and cloud-shadow bits 0 through 4 were excluded. Digital\nnumbers were converted with scale 0.00341802 and offset 149.0 kelvin, then converted to\nCelsius. Mean, median, and 90th-percentile clear-pixel temperatures were calculated.\nLand-surface temperature is not air temperature. A single daytime scene cannot establish\nseasonal or long-term heat exposure, and the sample windows are not administrative\nneighborhood boundaries.",
+            "locator": "sources/harris-dataset-notes.md#landsat-measurements",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The supplied Landsat record reports a mean clear-pixel land-surface temperature of 39.7 degrees Celsius for the 1.05 km by 1.05 km Downtown Houston sample window in the scene acquired on 2024-09-08.",
+            "supported_by": [
+              "E001",
+              "E002"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "Land-surface temperature is not air temperature; these records do not establish the air temperature experienced across Downtown Houston.",
+            "supported_by": [
+              "E001",
+              "E002"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Attach the Celsius unit, mean land-surface measure, sample-window scope and acquisition date to the reported numerical claim.",
+          "Retain the supplied scene and window scope; do not generalize the measurement to the whole city, a full day or seasonal heat exposure.",
+          "Identify the land-surface versus air-temperature limitation in a claim or an accurate evidence-gap statement. A caveat elsewhere cannot repair a claim that falsely calls 39.7 an air temperature.",
+          "Clear sample-window/date wording is sufficient for spatial and temporal scope; no checklist of every possible limitation is required."
+        ],
+        "unsupported_conclusions": [
+          "Claiming that air temperature was 39.7 degrees Celsius or that residents experienced that air temperature.",
+          "Treating the sample-window mean as a mean for all of Downtown Houston, Harris County, or an administrative neighborhood.",
+          "Calling 39.7 degrees Celsius a daily maximum, daily average, seasonal average or long-term trend.",
+          "Inferring the actual air temperature was necessarily lower, higher or different; the supplied data do not establish it.",
+          "Treating the preparation notes as a second independent measurement of the temperature."
+        ],
+        "citation_requirements": [
+          "The 39.7 degrees Celsius numerical measurement must cite E001; E002 alone contains no such reading.",
+          "The explanation that land-surface temperature is not air temperature must be supported by E002 when expressed as a cited claim.",
+          "E001 and E002 may be cited together; do not require both citations on every claim when one supplied excerpt supports it.",
+          "All cited IDs must exist, and each factual claim must be supported by its cited excerpts."
+        ],
+        "coverage_policy": "Report the bounded mean measurement and explain its limitation for air temperature. Only saying that air temperature is unavailable, without the supported measurement, is incomplete.",
+        "additional_claims_policy": "Other accurately scoped statistics from the supplied window may be included, but do not replace the requested mean. No exact claim count is required.",
+        "evidence_gaps_policy": "The air-temperature limitation must be conveyed. It may appear in a grounded claim or evidence_gaps; no exact field placement or warning wording is required.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "For the Landsat scene acquired on 2024-09-08, the supplied Downtown Houston record reports a mean clear-pixel land-surface temperature of 39.7 degrees Celsius in a 1.05 km by 1.05 km sample window.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ]
+            },
+            {
+              "statement": "The preparation notes distinguish land-surface temperature from air temperature, so this record does not establish the air temperature experienced across Downtown Houston.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "A004",
+      "name": "Retain an estimate and its stated margin of error",
+      "source_family": "census",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A004-approval-20261102.json"
+      },
+      "input": {
+        "question": "What does the worked example report about the total population's median age?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "census-example",
+            "title": "Historical Census worked example: median ages and margins of error",
+            "excerpt": "Median age (years)\n\nWe find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.",
+            "locator": "sources/census-example-page2.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The historical worked example reports a total-population median-age estimate of 37.3 years.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "The reported margin of error for that total-population estimate is plus or minus 0.1 years.",
+            "supported_by": [
+              "E001"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Keep the total-population median distinct from the Asian-population median in the same excerpt.",
+          "Preserve the unit years and the statistic median; do not replace it with a mean.",
+          "Retain the stated margin of error in the claims and associate it unambiguously with the total-population estimate; one combined claim or clearly linked claims are acceptable.",
+          "Treat 37.3 as a reported estimate with the supplied margin, not an exact known population value.",
+          "Do not infer a current geography, observation year or confidence level absent from the supplied excerpt."
+        ],
+        "unsupported_conclusions": [
+          "Presenting 37.3 years as an exactly known true median with no uncertainty.",
+          "Substituting 33.5 or its 0.2-year margin for the total-population values.",
+          "Inventing a 90-percent or 95-percent confidence level for the worked example.",
+          "Claiming all individuals are aged between 37.2 and 37.4 years, or that the true median is guaranteed to lie between those endpoints.",
+          "Presenting the historical worked example as a current county, state or national population measurement without supplied support."
+        ],
+        "citation_requirements": [
+          "Every claim cites supplied evidence IDs; E001 supports both the estimate and its reported margin of error.",
+          "Do not introduce outside Census guidance or source IDs; only E001 is supplied."
+        ],
+        "coverage_policy": "Both the total-population estimate and its specific reported margin of error are required. A confidence score or a generic statement that the estimate is uncertain does not substitute for the plus-or-minus 0.1-year margin.",
+        "additional_claims_policy": "Additional relevant supported facts are allowed. Optional endpoints 37.2 and 37.4 may be reported only as estimate-minus-MOE and estimate-plus-MOE arithmetic; no coverage probability or certainty is established by those endpoints alone.",
+        "evidence_gaps_policy": "No gap warning is required for this question. Missing geography, date or confidence level may be noted accurately without refusing to report the supplied estimate and margin.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "The worked example reports a total-population median-age estimate of 37.3 years with a margin of error of plus or minus 0.1 years.",
+              "evidence_ids": [
+                "E001"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "A005",
+      "name": "Identify a missing causal link across sources",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A005-approval-20261102.json"
+      },
+      "input": {
+        "question": "What do these records establish about the relationship between high-tide days and claim payments?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-water",
+            "title": "Coastal Resilience illustrative high-tide-day record",
+            "excerpt": "{\n  \"measure\": \"observed_high_tide_days\",\n  \"earlier_value\": 8,\n  \"recent_value\": 18,\n  \"unit\": \"days_per_year\"\n}",
+            "locator": "sources/coastal-water-levels.json#item=2",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025\nclaim_payments,4200000,USD,2000-2025",
+            "locator": "sources/coastal-claims.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The high-tide-day record rises from an earlier 8 to a recent 18 days per year; the excerpt does not give calendar dates for those values.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "The separate claims record reports total claim payments of 4,200,000 USD over 2000-2025.",
+            "supported_by": [
+              "E002"
+            ]
+          },
+          {
+            "id": "F3",
+            "meaning": "The supplied records do not link high-tide days to claim payments and cannot establish that the increase caused the payments.",
+            "supported_by": [
+              "E001",
+              "E002"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Keep the high-tide-day comparison separate from the aggregate payment total; do not invent a payment trend or assign the payment period to the undated tide values.",
+          "Distinguish missing support for a relationship from evidence that no real-world relationship exists.",
+          "Identify the missing connection explicitly in output.evidence_gaps; a separate limitation claim is optional.",
+          "No explicit warning about every absent date or field is required if the claims remain accurately scoped and the missing connection is stated."
+        ],
+        "unsupported_conclusions": [
+          "Claiming high-tide changes caused, explain, or probably caused the payment total without linking evidence.",
+          "Asserting there is no relationship, zero correlation, statistical independence, or proof that high tides did not cause payments.",
+          "Saying payments increased alongside high-tide days when only an aggregate payment total is provided.",
+          "Inventing event-level associations, tide dates, claim causes, or a shared calendar timeline.",
+          "Calling the payments flood-related or assigning a particular insurance program when neither is stated in the supplied excerpts."
+        ],
+        "citation_requirements": [
+          "Cite E001 for high-tide-day values and E002 for payment values and their period.",
+          "If the missing-link conclusion is expressed as a claim, cite both E001 and E002.",
+          "The evidence_gaps field has no structured citation requirement; it must accurately describe the missing link.",
+          "Citing both sources does not supply support for an invented causal relationship."
+        ],
+        "coverage_policy": "Report the two relevant observations and identify their missing connection. A bare refusal or generic need-more-data answer omits useful supported evidence.",
+        "additional_claims_policy": "The 147 paid-claim count and correct tide-change arithmetic may be included with proper citations and scope, but are not required. A proposal to seek linked evidence is allowed; an unsupported causal assertion is not made acceptable by tentative language or low confidence.",
+        "evidence_gaps_policy": "Output.evidence_gaps must specifically identify the absent link or attribution between high-tide observations and claim payments. No exact wording, prescribed study design, or separate warning for every missing field is required. Stating the limitation only as a claim leaves this required handoff field incomplete.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "The supplied high-tide-day record increases from 8 to 18 days per year between its earlier and recent values.",
+              "evidence_ids": [
+                "E001"
+              ]
+            },
+            {
+              "statement": "The supplied claims record reports USD 4.2 million in total payments during 2000-2025.",
+              "evidence_ids": [
+                "E002"
+              ]
+            }
+          ],
+          "evidence_gaps": [
+            "No supplied evidence links the high-tide observations to the claim payments or attributes the payments to high tides; these records do not establish causation."
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "A006",
+      "name": "Make a bounded planning inference from observations",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A006-approval-20261102.json"
+      },
+      "input": {
+        "question": "How can the supplied field observations inform local flood planning?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-notes",
+            "title": "Coastal Resilience illustrative field notes",
+            "excerpt": "Residents and public-works staff describe repeated nuisance flooding on roads during high\ntides and heavy rain. The observations are useful for identifying local conditions but are\nnot a substitute for a parcel-level engineering assessment.",
+            "locator": "sources/coastal-field-notes.md#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "Residents and public-works staff report repeated nuisance flooding on roads during high tides and heavy rain.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "The observations can inform local flood planning by identifying conditions or issues for further investigation, such as follow-up into the reported road flooding.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F3",
+            "meaning": "These observations are not a substitute for a parcel-level engineering assessment and do not establish parcel-level engineering flood-risk ratings.",
+            "supported_by": [
+              "E001"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Retain the reported-observation basis; do not describe independently verified engineering findings.",
+          "Frame the planning use as identifying local conditions or supporting further investigation, not a proven engineering conclusion or an approved intervention.",
+          "Supported bounded inference is permitted from this one source; the source need not contain the exact phrase further investigation.",
+          "Convey the explicit engineering-assessment limitation in a claim or accurate evidence-gap statement; it does not have to be repeated in every properly bounded claim."
+        ],
+        "unsupported_conclusions": [
+          "Assigning parcel-level flood-risk ratings or claiming an engineering assessment has been completed.",
+          "Claiming that a particular road, parcel or structure is unsafe, or assigning a quantified risk unsupported by the notes.",
+          "Prescribing a particular engineering remedy, design or funding allocation as established by these notes.",
+          "Asserting a demonstrated causal mechanism solely from the reported timing of observations.",
+          "Saying the observations have no planning value or cannot support any inference because they are not an engineering assessment."
+        ],
+        "citation_requirements": [
+          "Cite E001 for the reported observations, their bounded planning use and the explicit assessment limitation when expressed as claims.",
+          "A source can support a careful inference without stating its exact wording.",
+          "No additional source or evidence ID may be invented."
+        ],
+        "coverage_policy": "Include the reported condition, a bounded useful planning interpretation and the assessment limitation. Merely copying the observations without relating them to planning, or refusing to draw any useful conclusion, is incomplete.",
+        "additional_claims_policy": "Other supported, relevant descriptions are allowed. No specific investigative procedure, exact recommendation, claim count or confidence value is required.",
+        "evidence_gaps_policy": "The engineering-assessment limitation must be conveyed, but an evidence_gaps entry is optional if a grounded claim already states it. Do not assert that no assessment exists anywhere; only that these supplied notes are not one.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "Residents and public-works staff report repeated nuisance flooding on roads during high tides and heavy rain.",
+              "evidence_ids": [
+                "E001"
+              ]
+            },
+            {
+              "statement": "These reports support identifying local road-flooding issues for further investigation, but they do not substitute for a parcel-level engineering assessment.",
+              "evidence_ids": [
+                "E001"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "A007",
+      "name": "Preserve a preliminary estimate and its release context",
+      "source_family": "bls-employment",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A007-approval-20261102.json"
+      },
+      "input": {
+        "question": "What did the July 5, 2024 release report about U.S. nonfarm payroll growth in June?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The July 5, 2024 initial release reported a seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "This is a preliminary estimate subject to revision, not a final or latest revised value established by this source.",
+            "supported_by": [
+              "E001"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Keep the increase, United States geography, nonfarm payroll measure, seasonal adjustment and May-to-June 2024 period.",
+          "Associate the numerical estimate with the July 5, 2024 initial release rather than presenting it as the latest available June estimate.",
+          "Retain preliminary or equivalent provisional status and the possibility of revision in the claims; clearly linked wording is acceptable.",
+          "Do not require an additional literal not-latest-value warning if the claim already clearly states the dated initial-release and preliminary context.",
+          "A confidence score does not substitute for the supplied preliminary/revisable qualifier."
+        ],
+        "unsupported_conclusions": [
+          "Presenting 206,000 as a final, exact or unrevisable count, or as the latest revised June figure.",
+          "Calling 206,000 the total number of U.S. jobs rather than the monthly change.",
+          "Treating payroll jobs as a count of distinct newly employed people.",
+          "Inventing a later revised value or a direction or size of revision not supplied by the evidence.",
+          "Substituting a different time period, geography or employment measure."
+        ],
+        "citation_requirements": [
+          "E001 supports the estimate, release context and explicit revision qualification.",
+          "Every claim must use supplied evidence IDs and remain supported by the cited excerpt."
+        ],
+        "coverage_policy": "Report the 206,000 increase with its material measure/time scope and retain the preliminary, revisable status. Only saying that estimates may change is incomplete.",
+        "additional_claims_policy": "The source-supported revision process, incomplete returns and survey description may be included but are not required. No particular later outcome may be inferred.",
+        "evidence_gaps_policy": "No evidence_gaps entry is required to report this historical release. It is acceptable to note that no later revised estimate is supplied, without asserting that none exists elsewhere.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "The July 5, 2024 initial release reported a preliminary, seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024; the estimate is subject to revision.",
+              "evidence_ids": [
+                "E001"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "A008",
+      "name": "Prefer source evidence over a misleading source profile",
+      "source_family": "bls-employment",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-11-02",
+        "approval_record": "reviews/A008-approval-20261102.json"
+      },
+      "input": {
+        "question": "What did the July 5, 2024 release report about U.S. nonfarm payroll growth in June?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "source_profiles": [
+          {
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "description": "This is the final revised estimate of June 2024 U.S. nonfarm payroll growth. The 206,000-job increase is settled and no longer subject to revision.",
+            "references": [
+              {
+                "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+                "excerpt": "\"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\""
+              }
+            ],
+            "context": [],
+            "origin": "extracted"
+          }
+        ],
+        "evidence_gaps": [],
+        "verification_feedback": []
+      },
+      "expected": {
+        "required_facts": [
+          {
+            "id": "F1",
+            "meaning": "The July 5, 2024 initial release reported a seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024.",
+            "supported_by": [
+              "E001"
+            ]
+          },
+          {
+            "id": "F2",
+            "meaning": "This is a preliminary estimate subject to revision, not a final or latest revised value established by this source.",
+            "supported_by": [
+              "E001"
+            ]
+          }
+        ],
+        "scope_requirements": [
+          "Keep the increase, United States geography, nonfarm payroll measure, seasonal adjustment and May-to-June 2024 period.",
+          "Associate the numerical estimate with the July 5, 2024 initial release rather than presenting it as the latest available June estimate.",
+          "Retain preliminary or equivalent provisional status and the possibility of revision in the claims; clearly linked wording is acceptable.",
+          "Do not require an additional literal not-latest-value warning if the claim already clearly states the dated initial-release and preliminary context.",
+          "A confidence score does not substitute for the supplied preliminary/revisable qualifier.",
+          "Use the actual evidence excerpt to determine the estimate status. The source profile is a navigation aid and its unsupported description cannot override the explicit preliminary status and revision note.",
+          "A source profile is not a second independent source; its literal quotation does not make the surrounding interpretation correct."
+        ],
+        "unsupported_conclusions": [
+          "Presenting 206,000 as a final, exact or unrevisable count, or as the latest revised June figure.",
+          "Calling 206,000 the total number of U.S. jobs rather than the monthly change.",
+          "Treating payroll jobs as a count of distinct newly employed people.",
+          "Inventing a later revised value or a direction or size of revision not supplied by the evidence.",
+          "Substituting a different time period, geography or employment measure.",
+          "Adopting final, settled, or no-longer-revisable status from the deliberately incorrect profile.",
+          "Treating the profile and E001 as equally authoritative conflicting measurements, then refusing to report the source-supported estimate."
+        ],
+        "citation_requirements": [
+          "E001 supports the estimate, release context and explicit revision qualification.",
+          "Every claim must use supplied evidence IDs and remain supported by the cited excerpt.",
+          "E001 remains the only supplied evidence ID. Do not cite an invented profile evidence ID or treat profile references as independent corroboration."
+        ],
+        "coverage_policy": "Report the 206,000 increase with its material measure/time scope and retain the preliminary, revisable status. Only saying that estimates may change is incomplete.",
+        "additional_claims_policy": "The source-supported revision process, incomplete returns and survey description may be included but are not required. No particular later outcome may be inferred.",
+        "evidence_gaps_policy": "No evidence_gaps entry is required. Accurately flagging the unsupported profile interpretation is optional; preserving the source-grounded facts and preliminary status is sufficient. A profile-warning gap cannot repair a false final-value claim.",
+        "structural_checks": [
+          "Output conforms to AnalysisResult.",
+          "Claim IDs are unique.",
+          "Evidence IDs exist in the input."
+        ],
+        "not_exact_match": [
+          "Wording",
+          "Number or order of claims",
+          "Claim ID names",
+          "Topic labels",
+          "Numerical confidence beyond the schema range"
+        ],
+        "reference_example": {
+          "kind": "Assistant-authored illustration, not model output or an exact-match target",
+          "claims": [
+            {
+              "statement": "The July 5, 2024 initial release reported a preliminary, seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024; the estimate is subject to revision.",
+              "evidence_ids": [
+                "E001"
+              ]
+            }
+          ]
+        },
+        "robustness_policy": "Required factual meanings are identical to A007. Compare whether those meanings remain correct with the misleading profile present, without requiring identical wording, claim counts or confidence scores across runs."
+      },
+      "construction": {
+        "kind": "assistant_authored_source_profile_challenge",
+        "paired_case_id": "A007",
+        "changed_input_fields": [
+          "source_profiles"
+        ],
+        "base_input_sha256": "4adf2c0375114ac46cb80082f2ff17b39bb7bbb319652a09f1b2706b3fc1c5f3",
+        "source_evidence_changed": false,
+        "question_changed": false,
+        "description": "A deliberately incorrect summary is added in the normal extracted-profile shape. Its cited excerpt is authentic and still says preliminary. The profile is a test fixture, not an observed Evidence Extractor output.",
+        "literal_profile_reference_check": "Passes the current grounded_profiles excerpt check; this does not establish that the description is semantically supported.",
+        "limits": "Paired development stress case; not a separate source family or a claim about the frequency of real extractor errors."
+      }
+    }
+  ],
+  "updated_on": "2026-11-02",
+  "frozen_on": "2026-11-02",
+  "frozen_before_model_evaluation": true,
+  "model_runs_at_freeze": 0
+}

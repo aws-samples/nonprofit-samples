@@ -17,6 +17,7 @@ import streamlit as st
 from evidence_synthesis.models import (
     AnalysisResult,
     EvidenceExtractorResult,
+    ExecutionMode,
     RunRequest,
     StageSummary,
     VerificationResult,
@@ -57,21 +58,24 @@ from evidence_synthesis.ui.runners import run_deterministic
 BACKEND_AGENTCORE = "AgentCore"
 BACKEND_DETERMINISTIC = "Offline deterministic"
 CUSTOM_SCENARIO = "custom"
+AWS_LOGO_PATH = Path(__file__).parent / "assets" / "aws-logo.png"
 
 
 def main() -> None:
     st.set_page_config(
-        page_title="Four Agents, One Answer",
+        page_title="Evidence Synthesis",
         page_icon=None,
         layout="wide",
         initial_sidebar_state="collapsed",
     )
+    st.logo(str(AWS_LOGO_PATH), size="large")
     _initialize_state()
+    execution_mode = ExecutionMode(st.session_state.get("execution-mode", "multi_agent"))
     running = st.session_state.get("active_run") is not None
     presenter_mode = st.sidebar.toggle(
         "Presenter mode", value=True, key="presenter-mode", disabled=running,
     )
-    _render_header()
+    _render_header(execution_mode)
     preparation_message = st.session_state.pop("preparation_message", None)
     if preparation_message:
         st.success(str(preparation_message))
@@ -108,8 +112,8 @@ def main() -> None:
             accept_multiple_files=True,
             disabled=running,
             help=(
-                "Upload up to 20 source files. The Evidence Extractor will describe "
-                "their contents and identify relevant context; no metadata file is needed."
+                "Upload up to 20 source files. The selected approach reads their contents; "
+                "no metadata file is needed."
             ),
         )
         _render_uploaded_preview(uploads)
@@ -137,7 +141,11 @@ def main() -> None:
                     st.caption(
                         Path(source.uri).suffix.lstrip(".").upper() if source.uri else "Inline"
                     )
-        st.caption("Source descriptions and relevant context appear in Evidence after extraction.")
+        st.caption(
+            "Source descriptions and relevant context appear in Evidence after extraction."
+            if execution_mode is ExecutionMode.MULTI_AGENT
+            else "The single agent reads these sources and returns a cited answer."
+        )
     else:
         question = st.text_area(
             "Research question",
@@ -154,6 +162,13 @@ def main() -> None:
 
     max_evidence, aws_values = _configuration(
         scenario_request, presenter_mode=presenter_mode, disabled=running,
+        execution_mode=execution_mode,
+    )
+    st.radio(
+        "Execution mode",
+        options=[mode.value for mode in ExecutionMode],
+        format_func=lambda mode: "Multi-agent" if mode == "multi_agent" else "Single agent",
+        key="execution-mode", horizontal=True, disabled=running, on_change=_clear_run_result,
     )
     fingerprint = _fingerprint(
         backend=backend,
@@ -224,7 +239,9 @@ def main() -> None:
             prepared_is_current = False
 
     if prepared and prepared_is_current:
-        request: RunRequest = prepared["request"]
+        request: RunRequest = prepared["request"].model_copy(update={
+            "execution_mode": execution_mode,
+        })
         if not presenter_mode:
             st.download_button(
                 "Download generated manifest",
@@ -245,7 +262,7 @@ def main() -> None:
 
     if run_clicked and prepared_is_current and prepared and not running:
         try:
-            _start_prepared_run(prepared)
+            _start_prepared_run(prepared, execution_mode=execution_mode)
             st.rerun()
         except Exception as error:
             st.session_state["run_error"] = str(error).strip() or type(error).__name__
@@ -254,21 +271,22 @@ def main() -> None:
     if st.session_state.get("active_run") is not None:
         _render_active_run(presenter_mode=presenter_mode)
     elif current_state is not None and prepared_is_current:
-        render_pipeline(state_stage_statuses(current_state))
+        render_pipeline(state_stage_statuses(current_state), execution_mode=execution_mode)
         st.divider()
-        slots = _result_slots(presenter_mode=presenter_mode)
+        slots = _result_slots(presenter_mode=presenter_mode, execution_mode=execution_mode)
         render_state(current_state, slots=slots, presenter_mode=presenter_mode)
     else:
-        render_pipeline()
+        render_pipeline(execution_mode=execution_mode)
         if st.session_state.get("run_error"):
             st.error(st.session_state["run_error"])
             if st.session_state.get("saved_outputs"):
-                slots = _result_slots(presenter_mode=presenter_mode)
+                slots = _result_slots(presenter_mode=presenter_mode, execution_mode=execution_mode)
                 _render_saved_outputs(st.session_state["saved_outputs"], slots)
 
 
 def _configuration(
     request: RunRequest | None, *, presenter_mode: bool, disabled: bool = False,
+    execution_mode: ExecutionMode = ExecutionMode.MULTI_AGENT,
 ) -> tuple[int, dict[str, str]]:
     defaults = {
         "region": os.getenv("EVIDENCE_SYNTHESIS_REGION", "us-east-1"),
@@ -283,7 +301,9 @@ def _configuration(
     if not presenter_mode:
         with st.expander("Advanced configuration"):
             max_evidence = st.slider(
-                "Maximum evidence records", 1, 100, max_evidence, disabled=disabled,
+                "Maximum evidence records", 1, 100, max_evidence,
+                disabled=disabled or execution_mode is ExecutionMode.SINGLE_AGENT,
+                help="Multi-agent only. Single agent reads all chunks within the source limits.",
             )
             labels = {
                 "region": "AWS region",
@@ -310,7 +330,14 @@ def _initialize_state() -> None:
     st.session_state.setdefault("saved_outputs", {})
 
 
-def _render_header() -> None:
+def _clear_run_result() -> None:
+    # Changing modes keeps uploaded sources but discards the previous answer and progress.
+    st.session_state["current_state"] = None
+    st.session_state["run_error"] = None
+    st.session_state["saved_outputs"] = {}
+
+
+def _render_header(execution_mode: ExecutionMode) -> None:
     st.markdown(
         """
         <style>
@@ -366,11 +393,15 @@ def _render_header() -> None:
         """,
         unsafe_allow_html=True,
     )
-    st.title("Four Agents, One Answer")
-    st.markdown(
-        "Find the evidence. Explain what it suggests. Challenge the claims. "
-        "Write an answer you can trace."
-    )
+    if execution_mode is ExecutionMode.SINGLE_AGENT:
+        st.title("One Agent, One Answer")
+        st.markdown("Read the sources, assess their support, and write an answer with citations.")
+    else:
+        st.title("Four Agents, One Answer")
+        st.markdown(
+            "Find the evidence. Explain what it suggests. Challenge the claims. "
+            "Write an answer you can trace."
+        )
 
 
 def _scenario_label(key: str) -> str:
@@ -515,8 +546,12 @@ def _remove_previous_upload_directory() -> None:
         shutil.rmtree(path, ignore_errors=True)
 
 
-def _start_prepared_run(prepared: dict[str, Any]) -> None:
-    request: RunRequest = prepared["request"].model_copy(update={"run_id": uuid.uuid4().hex})
+def _start_prepared_run(
+    prepared: dict[str, Any], *, execution_mode: ExecutionMode = ExecutionMode.MULTI_AGENT,
+) -> None:
+    request: RunRequest = prepared["request"].model_copy(update={
+        "run_id": uuid.uuid4().hex, "execution_mode": execution_mode,
+    })
     assert request.run_id is not None
     backend = str(prepared["backend"])
     st.session_state["current_state"] = None
@@ -528,7 +563,7 @@ def _start_prepared_run(prepared: dict[str, Any]) -> None:
         settings: AwsSettings = prepared["aws_settings"]
         clients = create_demo_clients(settings)
         reader = clients.artifact_reader(settings, request.run_id)
-        logs = clients.log_reader(settings, request.run_id)
+        logs = clients.log_reader(settings, request.run_id, execution_mode=execution_mode)
         invoke = partial(
             clients.runtime.invoke,
             request,
@@ -538,7 +573,7 @@ def _start_prepared_run(prepared: dict[str, Any]) -> None:
         )
     else:
         reader = FileArtifactReader(Path("runs"), request.run_id)
-        logs = LocalLogReader(request.run_id)
+        logs = LocalLogReader(request.run_id, execution_mode=execution_mode)
         invoke = partial(
             run_deterministic, request, base_dir=prepared["base_dir"], output_dir=Path("runs"),
         )
@@ -569,12 +604,14 @@ def _render_active_run(*, presenter_mode: bool) -> None:
         "Yellow: running · Green: complete · Red: failed. "
         "Status follows the latest available log message; log delivery can lag."
     )
-    render_pipeline(run.statuses())
+    render_pipeline(run.statuses(), execution_mode=run.request.execution_mode)
     if run.warning:
         st.warning(run.warning)
     if run.log_warning:
         st.warning(run.log_warning)
-    slots = _result_slots(presenter_mode=presenter_mode)
+    slots = _result_slots(
+        presenter_mode=presenter_mode, execution_mode=run.request.execution_mode,
+    )
     with slots["answer"].container():
         st.info("The final answer will appear after the run and its safety checks finish.")
     _render_saved_outputs(run.reader.outputs, slots)
@@ -624,9 +661,23 @@ def _render_saved_outputs(outputs: dict[str, Any], slots: dict[str, Any]) -> Non
                 render_contradictions(value)
 
 
-def _result_slots(*, presenter_mode: bool = False) -> dict[str, Any]:
-    if presenter_mode:
+def _result_slots(
+    *, presenter_mode: bool = False, execution_mode: ExecutionMode = ExecutionMode.MULTI_AGENT,
+) -> dict[str, Any]:
+    if execution_mode is ExecutionMode.SINGLE_AGENT:
         slots: dict[str, Any] = {}
+        for name, tab in zip(
+            ["answer", "citations", "limitations"],
+            st.tabs(["Answer", "Citations", "Limitations"]), strict=True,
+        ):
+            with tab:
+                slots[name] = st.empty()
+        with st.expander("Run details"):
+            slots["metrics"] = st.empty()
+            slots["raw"] = st.empty()
+        return slots
+    if presenter_mode:
+        slots = {}
         tabs = st.tabs(["Answer", "Evidence", "Claims", "Review"])
         names = ["answer", "evidence_extractor", "analyst", "verifier"]
         for name, tab in zip(names, tabs, strict=True):

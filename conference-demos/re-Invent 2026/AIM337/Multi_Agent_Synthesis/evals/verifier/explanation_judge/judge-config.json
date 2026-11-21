@@ -1,0 +1,13 @@
+{
+  "model_id": "us.anthropic.claude-opus-5-5",
+  "region": "us-east-1",
+  "rubric_version": "1.2",
+  "prompt_sha256": "5a415ed7d2666bf731c3ad13fff748b3c803b1b4962939a3ff64434a1c79da43",
+  "max_tokens": 6000,
+  "timeout_seconds": 120,
+  "strands_version": "1.59.0",
+  "runtime_sha256": "5def9901567bfb3c354e70e99683c6aa8247f371414c59bac4392617176887bf",
+  "runner_sha256": "bfaebf14ac8516b4a9058beaa8e69d97fd32bc63574685306e7f9594b1ace343",
+  "updated_on": "2026-11-01",
+  "change_note": "Public packaging uses current CLI defaults and rubric v1.2 assets; model inputs, rubric text and scoring are unchanged. No new model validation run is claimed."
+}

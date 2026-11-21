@@ -1,0 +1,11 @@
+{
+  "case_id": "A008",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "approve",
+  "scope": "A007 factual expectations remain correct with the authored misleading source profile; no model output was graded.",
+  "input_sha256": "adc46f7ed7a05dfa98472e569bd858eb453ea1f80ca338f4c54d194c70689495",
+  "expected_sha256": "878793f36f556d4bcdbef216900c3100f0df7aa11681316ac081854d3c2a1593",
+  "model_calls_before_approval": 0
+}

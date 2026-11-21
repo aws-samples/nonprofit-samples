@@ -1,0 +1,726 @@
+{
+  "version": "synthesizer-v1",
+  "status": "frozen_before_model_calls",
+  "scope": "Six development stage cases; one fictional; not end-to-end or held-out evaluation.",
+  "cases": [
+    {
+      "case_id": "S001",
+      "title": "Payment arithmetic and period",
+      "input": {
+        "question": "What do the recorded claim counts and payments establish?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025\nclaim_payments,4200000,USD,2000-2025",
+            "locator": "sources/coastal-claims.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verification": {
+          "claims": [
+            {
+              "claim": {
+                "claim_id": "C1",
+                "statement": "Recorded claim payments total 4.2 million USD for 2000-2025.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "The payment row reports 4,200,000 USD over the stated period. USD; 2000-2025",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C2",
+                "statement": "The ratio of the recorded payments to the recorded paid-claim count is approximately 28,571.43 USD per claim.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "4,200,000 divided by 147 is approximately 28,571.43; this is a ratio of the supplied totals, not a distribution of individual payments. ratio of recorded totals; approximately",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C3",
+                "statement": "The dataset reports annual claim payments of 4.2 million USD.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "rejected",
+              "reason": "The reported payment is for the entire period; no annualized payment is supplied. period total is not an annual amount",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C4",
+                "statement": "The illustrative record reports 147 paid claims for 2000-2025.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "The count, period and illustrative scope match E001.",
+              "independent_source_count": 1
+            }
+          ],
+          "contradictions": [],
+          "evidence_gaps": [
+            "The supplied totals do not provide annual breakdowns or individual payment amounts."
+          ],
+          "retry_queries": [],
+          "citation_closure_complete": true
+        },
+        "source_profiles": [],
+        "partial": false,
+        "terminal_reason": null
+      },
+      "expected": {
+        "required_meanings": [
+          "4.2 million USD is the total for 2000-2025, not an annual amount.",
+          "The ratio is approximately 28,571.43 USD per paid claim from 4,200,000/147.",
+          "The ratio of totals does not describe every individual payment."
+        ],
+        "prohibited_assertions": [
+          "Annual 4.2 million USD, a single-year 147 count, or identical individual payments."
+        ]
+      },
+      "origin": {
+        "kind": "adapted_reviewed_verifier_fixture",
+        "source_case": "V003",
+        "source_file": "evals/verifier/dataset.json",
+        "source_sha256": "629371831786b7ad8c1de4a53911bad56032ee896eba2573f6dfc638a69dcb9e",
+        "transformations": [
+          "Evidence and existing claims copied unchanged from the approved Verifier case.",
+          "Review statuses use approved reference v1.2; reasons are authored from its rationales and required meanings.",
+          "Added source-bounded review gaps for stage evaluation; all source profiles remain empty.",
+          "Added a reviewed C4 making the payment denominator explicit."
+        ]
+      },
+      "review": {
+        "status": "reviewed_before_model_calls",
+        "reviewer": "assistant",
+        "authority": "User standing approval for recommended assessments.",
+        "independent_human_annotation": false
+      }
+    },
+    {
+      "case_id": "S002",
+      "title": "Surface-temperature scope",
+      "input": {
+        "question": "What temperature conclusions are supported by the supplied Houston observation?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-landsat",
+            "title": "Prepared Harris County Landsat surface-temperature extract",
+            "excerpt": "  {\n    \"as_of\": \"2024-09-08T16:50:24.152565Z\",\n    \"measure\": \"clear-pixel land-surface temperature in 1.05 km window\",\n    \"unit\": \"degrees Celsius\",\n    \"location\": \"Downtown Houston\",\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604,\n    \"scene_id\": \"LC09_L2SP_025039_20240908_20240909_02_T1_ST\",\n    \"platform\": \"LANDSAT_9\",\n    \"scene_cloud_cover_percent\": 0.08,\n    \"window_size_m\": 1050,\n    \"valid_clear_pixels\": 1225,\n    \"mean_surface_temperature_c\": 39.7,\n    \"median_surface_temperature_c\": 39.9,\n    \"p90_surface_temperature_c\": 42.7\n  }",
+            "locator": "sources/harris-landsat.json#first-record",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "landsat-surface-temperature-samples.json contains clear-pixel statistics from five fixed\n1.05 km by 1.05 km windows in a USGS Landsat 9 Collection 2 Level-2 surface-temperature\nscene, LC09_L2SP_025039_20240908_20240909_02_T1_ST, acquired on 2024-09-08.\nThe raster was accessed through the Microsoft Planetary Computer mirror. QA_PIXEL fill,\ndilated-cloud, cirrus, cloud, and cloud-shadow bits 0 through 4 were excluded. Digital\nnumbers were converted with scale 0.00341802 and offset 149.0 kelvin, then converted to\nCelsius. Mean, median, and 90th-percentile clear-pixel temperatures were calculated.\nLand-surface temperature is not air temperature. A single daytime scene cannot establish\nseasonal or long-term heat exposure, and the sample windows are not administrative\nneighborhood boundaries.",
+            "locator": "sources/harris-dataset-notes.md#section=Landsat-measurements",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verification": {
+          "claims": [
+            {
+              "claim": {
+                "claim_id": "C1",
+                "statement": "The Downtown Houston sample window had a mean clear-pixel land-surface temperature of 39.7 C in the 2024-09-08 scene.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "The statistic, measurement, location, and acquisition date match the record. mean land-surface temperature; one sample window and scene",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C2",
+                "statement": "The air temperature in Downtown Houston was 39.7 C in that observation.",
+                "evidence_ids": [
+                  "E001",
+                  "E002"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "rejected",
+              "reason": "The measured quantity is land-surface temperature; the notes explicitly distinguish it from air temperature. surface temperature is not air temperature",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C3",
+                "statement": "Every part of Houston had a mean land-surface temperature of 39.7 C that day.",
+                "evidence_ids": [
+                  "E001",
+                  "E002"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "rejected",
+              "reason": "One fixed 1.05 km window does not establish a citywide value. sample window does not represent every part of Houston",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C4",
+                "statement": "The preparation notes describe fixed 1.05 km by 1.05 km sample windows. Land-surface temperature is not air temperature; one daytime scene cannot establish seasonal or long-term heat exposure, and the sample windows are not administrative neighborhood boundaries.",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "These measurement limitations are explicit in E002.",
+              "independent_source_count": 1
+            }
+          ],
+          "contradictions": [],
+          "evidence_gaps": [
+            "No air-temperature or multi-date measurement series is supplied for comparison."
+          ],
+          "retry_queries": [],
+          "citation_closure_complete": true
+        },
+        "source_profiles": [],
+        "partial": false,
+        "terminal_reason": null
+      },
+      "expected": {
+        "required_meanings": [
+          "39.7 C is the mean clear-pixel land-surface temperature in the Downtown Houston sample window on 2024-09-08.",
+          "The result describes a fixed 1.05 km window, not all Houston.",
+          "Surface temperature is not air temperature, and one scene does not establish seasonal or long-term heat exposure."
+        ],
+        "prohibited_assertions": [
+          "39.7 C as air temperature, all-city temperature, a multi-year trend, or a personal heat-risk determination.",
+          "New numeric measurements or processing details that were not included in surviving reviewed claims."
+        ]
+      },
+      "origin": {
+        "kind": "adapted_reviewed_verifier_fixture",
+        "source_case": "V002",
+        "source_file": "evals/verifier/dataset.json",
+        "source_sha256": "629371831786b7ad8c1de4a53911bad56032ee896eba2573f6dfc638a69dcb9e",
+        "transformations": [
+          "Evidence and existing claims copied unchanged from the approved Verifier case.",
+          "Review statuses use approved reference v1.2; reasons are authored from its rationales and required meanings.",
+          "Added source-bounded review gaps for stage evaluation; all source profiles remain empty.",
+          "Added a reviewed C4 making the E002 measurement limitations explicit."
+        ]
+      },
+      "review": {
+        "status": "reviewed_before_model_calls",
+        "reviewer": "assistant",
+        "authority": "User standing approval for recommended assessments.",
+        "independent_human_annotation": false
+      }
+    },
+    {
+      "case_id": "S003",
+      "title": "Estimate uncertainty",
+      "input": {
+        "question": "What does the Census worked example establish about its total-population median-age estimate?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "census-example",
+            "title": "Historical Census worked example: median ages and margins of error",
+            "excerpt": "Median age (years)\n\nWe find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.",
+            "locator": "sources/census-example-page2.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "census-guidance",
+            "title": "Census guidance: interpretation of published ACS margins of error",
+            "excerpt": "All published ACS estimates on data.census.gov include the 90 percent margin of error (MOE).",
+            "locator": "sources/census-moe-guidance-page1.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verification": {
+          "claims": [
+            {
+              "claim": {
+                "claim_id": "C1",
+                "statement": "The worked example reports a total-population median-age estimate of 37.3 years with a margin of error of plus or minus 0.1 years.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "The estimate and its margin of error are stated together in the example. estimate; 37.3; margin of error 0.1",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C2",
+                "statement": "The population's true median age is known to be exactly 37.3 years, with no sampling uncertainty.",
+                "evidence_ids": [
+                  "E001",
+                  "E002"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "rejected",
+              "reason": "The supplied margin of error directly contradicts treating the estimate as exact and free of sampling uncertainty. estimate is not exact; reported margin of error",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C3",
+                "statement": "The population's median age is 37.3 years.",
+                "evidence_ids": [
+                  "E001",
+                  "E002"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "qualified",
+              "reason": "The number has support as a point estimate, but the statement omits that it is an estimate with a margin of error of 0.1 years. point estimate; margin of error 0.1",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C4",
+                "statement": "The estimate-minus-MOE and estimate-plus-MOE endpoints are 37.2 and 37.4 years.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "37.3 minus 0.1 is 37.2, and 37.3 plus 0.1 is 37.4. These are interval endpoints, not the range of individual ages. estimate interval endpoints; not individual ages",
+              "independent_source_count": 1
+            }
+          ],
+          "contradictions": [],
+          "evidence_gaps": [
+            "The excerpts do not establish that the worked example is an ACS estimate governed by the separate 90-percent-MOE guidance."
+          ],
+          "retry_queries": [],
+          "citation_closure_complete": true
+        },
+        "source_profiles": [],
+        "partial": false,
+        "terminal_reason": null
+      },
+      "expected": {
+        "required_meanings": [
+          "37.3 years is a total-population median-age estimate with margin of error plus or minus 0.1 years.",
+          "37.2 and 37.4 years are estimate-minus/plus-MOE endpoints, not individual ages.",
+          "The estimate does not establish an exact true population median."
+        ],
+        "prohibited_assertions": [
+          "Certainty about the true median or a range covering all individual ages.",
+          "Attributing a 90 percent confidence level, ACS origin, survey year or geography to this worked example without a supplied link."
+        ]
+      },
+      "origin": {
+        "kind": "adapted_reviewed_verifier_fixture",
+        "source_case": "V010",
+        "source_file": "evals/verifier/dataset.json",
+        "source_sha256": "629371831786b7ad8c1de4a53911bad56032ee896eba2573f6dfc638a69dcb9e",
+        "transformations": [
+          "Evidence and existing claims copied unchanged from the approved Verifier case.",
+          "Review statuses use approved reference v1.2; reasons are authored from its rationales and required meanings.",
+          "Added source-bounded review gaps for stage evaluation; all source profiles remain empty."
+        ]
+      },
+      "review": {
+        "status": "reviewed_before_model_calls",
+        "reviewer": "assistant",
+        "authority": "User standing approval for recommended assessments.",
+        "independent_human_annotation": false
+      }
+    },
+    {
+      "case_id": "S004",
+      "title": "Scenario and assessment confidence",
+      "input": {
+        "question": "What does the supplied IPCC assessment project for global mean sea level by 2100?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "ipcc-sea-level",
+            "title": "IPCC AR6 scenario-specific global mean sea-level projections",
+            "excerpt": "{\n  \"assessment\": \"IPCC AR6 Working Group I Summary for Policymakers, section B.5.3\",\n  \"assessment_year\": 2021,\n  \"quantity\": \"global mean sea-level rise\",\n  \"target_year\": 2100,\n  \"reference_period\": \"1995-2014\",\n  \"unit\": \"meters\",\n  \"range_description\": \"likely range\",\n  \"assessment_confidence\": \"medium\",\n  \"scenario_projections\": [\n    {\n      \"scenario\": \"SSP1-1.9\",\n      \"emissions\": \"very low\",\n      \"lower\": 0.28,\n      \"upper\": 0.55\n    },\n    {\n      \"scenario\": \"SSP1-2.6\",\n      \"emissions\": \"low\",\n      \"lower\": 0.32,\n      \"upper\": 0.62\n    },\n    {\n      \"scenario\": \"SSP2-4.5\",\n      \"emissions\": \"intermediate\",\n      \"lower\": 0.44,\n      \"upper\": 0.76\n    },\n    {\n      \"scenario\": \"SSP5-8.5\",\n      \"emissions\": \"very high\",\n      \"lower\": 0.63,\n      \"upper\": 1.01\n    }\n  ]\n}",
+            "locator": "sources/ipcc-ar6-sea-level-2100.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verification": {
+          "claims": [
+            {
+              "claim": {
+                "claim_id": "C1",
+                "statement": "Under intermediate emissions scenario SSP2-4.5, the projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "qualified",
+              "reason": "The scenario, likely range, horizon, baseline, and units match the evidence, but the claim omits the reported medium assessment confidence. This is a material uncertainty qualifier that must accompany the projection in the review. SSP2-4.5; likely range 0.44-0.76 meters; 2100 relative to 1995-2014; reported medium assessment confidence is a material qualifier that must accompany the projection The relevant projection is for SSP2-4.5, a likely range of 0.44-0.76 meters by 2100 relative to 1995-2014, with medium assessment confidence.",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C2",
+                "statement": "The projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "qualified",
+              "reason": "The values have support specifically under SSP2-4.5. The review must state that condition so the range is not presented as an unconditional projection. conditional on SSP2-4.5; other emissions scenarios have different ranges The relevant projection is for SSP2-4.5, a likely range of 0.44-0.76 meters by 2100 relative to 1995-2014, with medium assessment confidence.",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C3",
+                "statement": "All four listed emissions scenarios project the same likely global mean sea-level rise range of 0.44-0.76 meters by 2100 relative to 1995-2014.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "rejected",
+              "reason": "The supplied assessment explicitly lists different ranges for the other scenarios. different ranges across scenarios The relevant projection is for SSP2-4.5, a likely range of 0.44-0.76 meters by 2100 relative to 1995-2014, with medium assessment confidence.",
+              "independent_source_count": 1
+            }
+          ],
+          "contradictions": [],
+          "evidence_gaps": [
+            "This global mean projection does not supply a local flood-depth assessment."
+          ],
+          "retry_queries": [],
+          "citation_closure_complete": true
+        },
+        "source_profiles": [],
+        "partial": false,
+        "terminal_reason": null
+      },
+      "expected": {
+        "required_meanings": [
+          "Under intermediate emissions SSP2-4.5, likely global mean sea-level rise is 0.44-0.76 meters by 2100 relative to 1995-2014.",
+          "The projection carries medium assessment confidence, attached to that projection in the answer.",
+          "The range is conditional, not an unconditional forecast shared by every scenario."
+        ],
+        "prohibited_assertions": [
+          "All scenarios have the same range, a guaranteed outcome, or a local inundation depth.",
+          "Additional scenario-specific numerical projections that have not been reviewed as surviving claims."
+        ]
+      },
+      "origin": {
+        "kind": "adapted_reviewed_verifier_fixture",
+        "source_case": "V011",
+        "source_file": "evals/verifier/dataset.json",
+        "source_sha256": "629371831786b7ad8c1de4a53911bad56032ee896eba2573f6dfc638a69dcb9e",
+        "transformations": [
+          "Evidence and existing claims copied unchanged from the approved Verifier case.",
+          "Review statuses use approved reference v1.2; reasons are authored from its rationales and required meanings.",
+          "Added source-bounded review gaps for stage evaluation; all source profiles remain empty.",
+          "Attached the supplied medium assessment confidence to both qualified projection reviews."
+        ]
+      },
+      "review": {
+        "status": "reviewed_before_model_calls",
+        "reviewer": "assistant",
+        "authority": "User standing approval for recommended assessments.",
+        "independent_human_annotation": false
+      }
+    },
+    {
+      "case_id": "S005",
+      "title": "Preliminary employment estimate",
+      "input": {
+        "question": "What does the July 5, 2024 BLS release establish about the May-to-June 2024 change in U.S. nonfarm payroll employment and the status of that figure?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verification": {
+          "claims": [
+            {
+              "claim": {
+                "claim_id": "C1",
+                "statement": "The release gives a preliminary, seasonally adjusted estimate of 206,000 more U.S. nonfarm payroll jobs in June 2024 than in May, subject to revision.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "verified",
+              "reason": "The value, measure, comparison period, adjustment, and preliminary status all match the historical release. 206,000 payroll jobs; May to June 2024, seasonally adjusted; preliminary and subject to revision",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C2",
+                "statement": "U.S. nonfarm payroll employment increased by 206,000 jobs from May to June 2024, seasonally adjusted.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "qualified",
+              "reason": "The core estimate is supported, but the review must identify it as the preliminary estimate in the July 5 release, subject to later revision. initial July 5 release estimate; preliminary, subject to revision; does not establish the latest revised value",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C3",
+                "statement": "The seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024 is a final figure that cannot be revised.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "rejected",
+              "reason": "The release explicitly marks the figure preliminary and describes later revisions. Calling it final and immune to revision contradicts that status. not final; explicit revision process",
+              "independent_source_count": 1
+            }
+          ],
+          "contradictions": [],
+          "evidence_gaps": [
+            "No subsequent revised June estimate is supplied."
+          ],
+          "retry_queries": [],
+          "citation_closure_complete": true
+        },
+        "source_profiles": [],
+        "partial": false,
+        "terminal_reason": null
+      },
+      "expected": {
+        "required_meanings": [
+          "The July 5, 2024 release reports a preliminary seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024.",
+          "The estimate is subject to revision; it is not the final or necessarily latest revised value."
+        ],
+        "prohibited_assertions": [
+          "The figure is final, immune to revision, a latest/current estimate, or an unemployment-rate result.",
+          "Unsupported contents of an unseen later release."
+        ]
+      },
+      "origin": {
+        "kind": "adapted_reviewed_verifier_fixture",
+        "source_case": "V012",
+        "source_file": "evals/verifier/dataset.json",
+        "source_sha256": "629371831786b7ad8c1de4a53911bad56032ee896eba2573f6dfc638a69dcb9e",
+        "transformations": [
+          "Evidence and existing claims copied unchanged from the approved Verifier case.",
+          "Review statuses use approved reference v1.2; reasons are authored from its rationales and required meanings.",
+          "Added source-bounded review gaps for stage evaluation; all source profiles remain empty."
+        ]
+      },
+      "review": {
+        "status": "reviewed_before_model_calls",
+        "reviewer": "assistant",
+        "authority": "User standing approval for recommended assessments.",
+        "independent_human_annotation": false
+      }
+    },
+    {
+      "case_id": "S006",
+      "title": "Unresolved fictional household counts",
+      "input": {
+        "question": "According to these fictional records, how many unique households did Cedar Table serve in 2025?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "fictional-report-a",
+            "title": "Fictional Cedar Table report A",
+            "excerpt": "Fictional evaluation record. Cedar Table program, calendar year 2025. Report A: total unique households served = 120. Unit: deduplicated households served during the calendar year. Program boundary: the full Cedar Table program. No reconciled household register or explanation of report differences is supplied.",
+            "locator": "synthetic:cedar-table-report-a",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "fictional-report-b",
+            "title": "Fictional Cedar Table report B",
+            "excerpt": "Fictional evaluation record. Cedar Table program, calendar year 2025. Report B: total unique households served = 180. Unit: deduplicated households served during the calendar year. Program boundary: the full Cedar Table program. No reconciled household register or explanation of report differences is supplied.",
+            "locator": "synthetic:cedar-table-report-b",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verification": {
+          "claims": [
+            {
+              "claim": {
+                "claim_id": "C1",
+                "statement": "Cedar Table served 120 unique households during calendar year 2025.",
+                "evidence_ids": [
+                  "E001"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "qualified",
+              "reason": "Report A supports this count, but the other report gives an incompatible total for the same program, period and measure. Present this as that report's value, not a reconciled program total.",
+              "independent_source_count": 1
+            },
+            {
+              "claim": {
+                "claim_id": "C2",
+                "statement": "Cedar Table served 180 unique households during calendar year 2025.",
+                "evidence_ids": [
+                  "E002"
+                ],
+                "confidence": 0.5,
+                "methodology": "unspecified",
+                "topic": "general",
+                "stance": null
+              },
+              "status": "qualified",
+              "reason": "Report B supports this count, but the other report gives an incompatible total for the same program, period and measure. Present this as that report's value, not a reconciled program total.",
+              "independent_source_count": 1
+            }
+          ],
+          "contradictions": [
+            {
+              "topic": "2025 unique households served",
+              "claim_ids": [
+                "C1",
+                "C2"
+              ],
+              "explanation": "120 and 180 are incompatible totals for the same program, calendar year and measure.",
+              "methodology_note": "Both reports define deduplicated households for the full program; no explanation of the difference is supplied.",
+              "resolution": "Unresolved: attribute each value to its report; do not select, average or add the totals."
+            }
+          ],
+          "evidence_gaps": [
+            "A reconciled household register or explanation resolving the two reports is not supplied."
+          ],
+          "retry_queries": [],
+          "citation_closure_complete": true
+        },
+        "source_profiles": [],
+        "partial": false,
+        "terminal_reason": null
+      },
+      "expected": {
+        "required_meanings": [
+          "Report A says 120 households and Report B says 180, each with its own citation.",
+          "These are incompatible calendar-2025 totals, not two independent groups to add.",
+          "A single reconciled count cannot be established from the supplied records."
+        ],
+        "prohibited_assertions": [
+          "A total of 300, an average of 150 as the true total, or selecting a report without supporting evidence.",
+          "Invented differences in dates, scope or household definitions that supposedly resolve the conflict."
+        ]
+      },
+      "origin": {
+        "kind": "assistant_authored_fictional_control",
+        "note": "No real organization or public source; authored and reviewed under standing user approval."
+      },
+      "review": {
+        "status": "reviewed_before_model_calls",
+        "reviewer": "assistant",
+        "authority": "User standing approval for recommended assessments.",
+        "independent_human_annotation": false
+      }
+    }
+  ]
+}

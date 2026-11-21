@@ -1,0 +1,3 @@
+*.pdf binary
+# This frozen reference retains the original source's final blank line.
+evals/analyst/sources/coastal-field-notes.md whitespace=-blank-at-eof

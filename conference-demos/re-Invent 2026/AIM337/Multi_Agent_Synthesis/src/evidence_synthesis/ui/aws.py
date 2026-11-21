@@ -12,6 +12,7 @@ import boto3
 from botocore.config import Config
 
 from evidence_synthesis.agentcore_client import AgentCoreRuntimeClient
+from evidence_synthesis.models import ExecutionMode
 from evidence_synthesis.ui.artifact_progress import S3ArtifactReader
 from evidence_synthesis.ui.log_progress import CloudWatchLogReader
 
@@ -52,8 +53,13 @@ class DemoAwsClients:
             self.artifact_client, settings.results_bucket, run_id, prefix=settings.results_prefix,
         )
 
-    def log_reader(self, settings: AwsSettings, run_id: str) -> CloudWatchLogReader:
-        return CloudWatchLogReader(self.log_client, settings.runtime_log_group, run_id)
+    def log_reader(
+        self, settings: AwsSettings, run_id: str,
+        *, execution_mode: ExecutionMode = ExecutionMode.MULTI_AGENT,
+    ) -> CloudWatchLogReader:
+        return CloudWatchLogReader(
+            self.log_client, settings.runtime_log_group, run_id, execution_mode=execution_mode,
+        )
 
 
 class PutObjectS3Adapter:

@@ -1,0 +1,11 @@
+{
+  "case_id": "A004",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "Yes",
+  "scope": "Reported estimate, explicit margin of error, population scope and citation expectations presented for A004; no model output was graded.",
+  "input_sha256": "94fbd3cbe7b63a415c04096d5c114920ca1baeae1fd61335cb23f738ec702481",
+  "expected_sha256": "4dbd363e65723ce3c2f16746e6948b9ec12967c6e0b9a145c9cfab466d1ae3d4",
+  "model_calls_before_approval": 0
+}

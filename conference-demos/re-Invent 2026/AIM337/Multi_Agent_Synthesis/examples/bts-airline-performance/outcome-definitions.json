@@ -1,0 +1,16 @@
+{
+  "title": "BTS airline outcome definitions and comparison scope",
+  "source_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf",
+  "reporting_period": "2022-12",
+  "on_time_definition": "A flight is on time if it arrives less than 15 minutes after its scheduled arrival time. This is an arrival measure, not an on-time departure measure.",
+  "count_columns": {
+    "scheduled_flights": "Total reported flights in the carrier row.",
+    "on_time_flights": "Flights in the on-time category.",
+    "delayed_flights": "Flights in the delayed category.",
+    "canceled_flights": "Flights in the canceled category.",
+    "diverted_flights": "Flights in the diverted category."
+  },
+  "partition": "The four outcome counts in each supplied row sum to the scheduled flight count. For a completed, nondiverted comparison, include the on-time and delayed categories, excluding both canceled and diverted categories.",
+  "limits": "These are flight counts, not passenger counts. A single month's aggregate outcomes do not adjust for routes, airports, weather exposure, flight distance, or passenger volumes and do not establish causal or year-round superiority.",
+  "preparation_note": "Definitions and scope are summarized from the report, with the comparison denominator stated explicitly for this exercise. This file does not represent an independent measurement source."
+}

@@ -1,0 +1,74 @@
+dataset:
+  name: Harris County climate and environmental risk example
+  generated_at: "2026-09-02"
+  purpose: Test the evidence-synthesis pipeline with compact real-world public data.
+  question: Does the available evidence support prioritizing targeted climate-resilience planning in Harris County, particularly for communities with elevated environmental and demographic burdens?
+
+sources:
+  noaa:
+    publisher: NOAA National Centers for Environmental Information
+    dataset: Global Historical Climatology Network Daily Summaries
+    station_id: USW00012960
+    station_name: HOUSTON INTERCONTINENTAL AIRPORT, TX US
+    period: "2024-01-01/2024-12-31"
+    source_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&stations=USW00012960&startDate=2024-01-01&endDate=2024-12-31&format=csv&units=metric&includeAttributes=false"
+    transformation:
+      - Parsed 366 daily records.
+      - Calculated annual and warm-season summaries from TMAX, TMIN, and PRCP.
+      - Counted hot days at 35 C and 38 C, warm nights at 25 C, and heavy-precipitation days at 25 mm.
+    limitations:
+      - One airport station is a regional proxy and does not measure neighborhood-scale conditions.
+      - The summary covers one year and does not establish a long-term climate trend.
+
+  fema:
+    publisher: Federal Emergency Management Agency
+    dataset: National Risk Index
+    geography: Harris County, Texas
+    county_fips: "48201"
+    version: "1.19.0"
+    source_url: "https://hazards.fema.gov/nri/report/viewer?dataLOD=Counties&dataIDs=C48201"
+    transformation:
+      - Transcribed the county overall index and four planning-relevant hazard rows.
+      - Preserved displayed risk scores, ratings, annualized frequency, exposure, and expected annual loss.
+    limitations:
+      - The National Risk Index is an archived model and FEMA now directs users to RAPT.
+      - County-level model values do not identify parcel- or neighborhood-level risk.
+
+  environmental_justice:
+    publisher: Public Environmental Data Partners
+    service: Environmental Justice Analysis Multisite
+    relationship_to_epa: Reconstructed analysis service using archived EJScreen-style indicators; not an EPA service.
+    api_url: "https://api.ejanalysis.com/data"
+    request:
+      buffer: 0
+      fips:
+        - "48201"
+      scale: blockgroup
+      geometries: false
+    transformation:
+      - Retrieved 2,830 Harris County block-group records.
+      - Limited selection candidates to 2,733 valid records with population at least 500.
+      - Selected two low-demographic-burden comparisons, two highest-demographic-burden records, and two records combining high demographic and projected flood burden.
+      - Retained selected environmental, demographic, flood, and health-access fields with national percentiles.
+    limitations:
+      - The six selected block groups are illustrative and are not a statistically representative county sample.
+      - Indicator definitions and vintages vary; values are not current real-time measurements.
+      - EPA's original EJScreen service was retired and is not the API used for this extract.
+
+  landsat:
+    publisher: U.S. Geological Survey
+    dataset: Landsat Collection 2 Level-2 Surface Temperature
+    official_catalog_url: "https://landsatlook.usgs.gov/stac-server/collections/landsat-c2l2-st"
+    scene_id: LC09_L2SP_025039_20240908_20240909_02_T1_ST
+    scene_datetime_utc: "2024-09-08T16:50:24.152565Z"
+    scene_cloud_cover_percent: 0.08
+    raster_access: Microsoft Planetary Computer mirror of the USGS Landsat Collection 2 asset.
+    transformation:
+      - Sampled five fixed 1.05 km by 1.05 km windows.
+      - Excluded QA_PIXEL fill, dilated cloud, cirrus, cloud, and cloud-shadow bits 0 through 4.
+      - Converted ST_B10 digital numbers using scale 0.00341802 and offset 149.0 kelvin, then converted kelvin to Celsius.
+      - Calculated mean, median, and 90th-percentile clear-pixel surface temperature.
+    limitations:
+      - Land-surface temperature is not air temperature.
+      - A single daytime scene cannot establish seasonal or long-term heat exposure.
+      - Named points and windows are illustrative planning locations rather than administrative neighborhood boundaries.

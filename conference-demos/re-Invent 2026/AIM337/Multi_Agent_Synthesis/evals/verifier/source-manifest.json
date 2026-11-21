@@ -1,0 +1,204 @@
+{
+  "sources": [
+    {
+      "source_id": "coastal-claims",
+      "title": "Coastal Resilience illustrative claims records",
+      "path": "sources/coastal-claims.csv",
+      "origin": "existing_repository_fixture",
+      "sha256": "1095dc635296d33e9ff6cff5d8544a3e3cfda933814e3301d07289dbb7dbb8d4",
+      "repository_path": "examples/coastal-resilience/claims.csv",
+      "limitations": [
+        "Illustrative sample; not independently observed real-world measurements."
+      ]
+    },
+    {
+      "source_id": "coastal-water",
+      "title": "Coastal Resilience illustrative water-level records",
+      "path": "sources/coastal-water-levels.json",
+      "origin": "existing_repository_fixture",
+      "sha256": "ee773d410c0e199cb9f55035e3476cf892b569d96fffa67fd4af0b0df960b5e0",
+      "repository_path": "examples/coastal-resilience/water-levels.json",
+      "limitations": [
+        "Illustrative sample; not independently observed real-world measurements."
+      ]
+    },
+    {
+      "source_id": "coastal-notes",
+      "title": "Coastal Resilience illustrative field notes",
+      "path": "sources/coastal-field-notes.md",
+      "origin": "existing_repository_fixture",
+      "sha256": "52a2a4ecc2bc76c835162ed23a7551ddd48963e724a3dcd012a51bcabe3430e3",
+      "repository_path": "examples/coastal-resilience/field-notes.md",
+      "limitations": [
+        "Illustrative sample; not independently observed real-world measurements."
+      ]
+    },
+    {
+      "source_id": "harris-landsat",
+      "title": "Prepared Harris County Landsat surface-temperature extract",
+      "path": "sources/harris-landsat.json",
+      "origin": "existing_repository_fixture",
+      "sha256": "39adff32599bf26cbb81379e5e911bc9a50c8c02885ecec069f109903ce5153c",
+      "repository_path": "examples/harris-county-climate-risk/landsat-surface-temperature-samples.json",
+      "limitations": [
+        "Existing prepared extract or preparation notes; upstream data was not re-fetched for this draft."
+      ]
+    },
+    {
+      "source_id": "harris-notes",
+      "title": "Preparation notes for the Harris County extracts",
+      "path": "sources/harris-dataset-notes.md",
+      "origin": "existing_repository_fixture",
+      "sha256": "e77ea5f82cf1c5fc77ee59f7ce9831e21d1b0d393d92e986160e8661518e5b84",
+      "repository_path": "examples/harris-county-climate-risk/dataset-notes.md",
+      "limitations": [
+        "Existing prepared extract or preparation notes; upstream data was not re-fetched for this draft."
+      ]
+    },
+    {
+      "source_id": "harris-noaa",
+      "title": "Prepared 2024 Houston airport NOAA summary",
+      "path": "sources/harris-noaa-2024.json",
+      "origin": "existing_repository_fixture",
+      "sha256": "aca8c415fac6984d7bf3b0f3c84133dcaae8408d5cad597951ae5ba1aaf7e053",
+      "repository_path": "examples/harris-county-climate-risk/noaa-climate-summary-2024.json",
+      "limitations": [
+        "Existing prepared extract or preparation notes; upstream data was not re-fetched for this draft."
+      ]
+    },
+    {
+      "source_id": "harris-provenance",
+      "title": "Provenance of the prepared Harris County extracts",
+      "path": "sources/harris-provenance.yml",
+      "origin": "existing_repository_fixture",
+      "sha256": "f7543183f62afa2f29b257b201e6bcbc73e310beb84c33776411d89e942faafa",
+      "repository_path": "examples/harris-county-climate-risk/provenance.yml",
+      "limitations": [
+        "Existing prepared extract or preparation notes; upstream data was not re-fetched for this draft."
+      ]
+    },
+    {
+      "source_id": "noaa-seattle-raw",
+      "title": "NOAA daily observations: Seattle Tacoma Airport",
+      "path": "sources/noaa-seattle-2024-week1.json",
+      "origin": "official_public_download",
+      "sha256": "75d2715e3bcaf7febbc9fa153daeafb90b2a97eceafd2b72f6b2ae8911bb2271",
+      "url": "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&stations=USW00024233&startDate=2024-01-01&endDate=2024-01-07&dataTypes=TMAX%2CTMIN%2CPRCP&format=json&units=metric&includeAttributes=true&includeStationName=true&includeStationLocation=true",
+      "retrieved_at": "2026-10-19T17:02:51.891274+00:00",
+      "limitations": []
+    },
+    {
+      "source_id": "census-example-pdf",
+      "title": "Census: Comparing ACS Estimates Using Margins of Error",
+      "path": "sources/census-comparing-estimates-2015.pdf",
+      "origin": "official_public_download",
+      "sha256": "6d1b0b91d31454122703e2b79a981d813d0005665f3253362dbbb0fe300df221",
+      "url": "https://www.census.gov/content/dam/Census/newsroom/press-kits/2015/comparing_acs_estimates.pdf",
+      "retrieved_at": "2026-10-19T17:03:48.507053+00:00",
+      "limitations": [
+        "Historical worked example, not a current county data extract. The press-kit URL year is not the observation year."
+      ]
+    },
+    {
+      "source_id": "census-guidance-pdf",
+      "title": "Census: Instructions for Applying Statistical Testing to ACS Data",
+      "path": "sources/census-2023-statistical-testing-instructions.pdf",
+      "origin": "official_public_download",
+      "sha256": "79a714b96daadd9498f516356ac1c1c2f3442df34fffec032a4bbe0a929d9c3f",
+      "url": "https://www2.census.gov/programs-surveys/acs/tech_docs/statistical_testing/2023_Instructions_for_Stat_Testing_ACS.pdf",
+      "retrieved_at": "2026-10-19T17:03:20.239322+00:00",
+      "limitations": []
+    },
+    {
+      "source_id": "noaa-seattle",
+      "title": "NOAA daily observations: Seattle Tacoma Airport, 1-7 January 2024",
+      "path": "sources/noaa-seattle-2024-week1.csv",
+      "origin": "documented_transcription",
+      "sha256": "5831901032f9225ab797fd339ce3283ea7dafb76421b673dd0299a264a08ff01",
+      "parents": [
+        "noaa-seattle-raw"
+      ],
+      "transformation": "Selected DATE, STATION, NAME, TMAX, TMIN and PRCP. Values are unchanged from the units=metric API response; no interpolation or rescaling. Column labels expand variable meanings and metric units.",
+      "period": "2024-01-01/2024-01-07",
+      "geography": "Seattle Tacoma Airport station USW00024233; not every location in Seattle",
+      "units": {
+        "TMAX": "degrees Celsius",
+        "TMIN": "degrees Celsius",
+        "PRCP": "millimeters"
+      },
+      "units_reference": "https://www.ncei.noaa.gov/support/access-data-service-api-user-documentation",
+      "limitations": [
+        "Seven daily observations at one airport station; not a monthly total or long-term climate trend."
+      ]
+    },
+    {
+      "source_id": "census-example",
+      "title": "Historical Census worked example: median ages and margins of error",
+      "path": "sources/census-example-page2.txt",
+      "origin": "documented_transcription",
+      "sha256": "39f6ae717c022cae5dfb55b7dc2f109de3a82e3462f3c7486381ac61dd76e6b8",
+      "parents": [
+        "census-example-pdf"
+      ],
+      "transformation": "Transcribed the table row label 'Median age (years)' and the explanatory paragraph on PDF page 2. Whitespace normalized; label and numbers visually verified against the page. No geography or observation year was inferred.",
+      "page": 2,
+      "limitations": [
+        "A historical worked example; not 2024 King County data and not a current population assessment."
+      ]
+    },
+    {
+      "source_id": "census-guidance",
+      "title": "Census guidance: interpretation of published ACS margins of error",
+      "path": "sources/census-moe-guidance-page1.txt",
+      "origin": "documented_transcription",
+      "sha256": "af233534d6771b98e7aa8b203595abe876894179edcba54888472e92212730b2",
+      "parents": [
+        "census-guidance-pdf"
+      ],
+      "transformation": "Transcribed the sentence under Converting ACS Margins of Errors to Standard Errors on PDF page 1. Whitespace normalized.",
+      "page": 1
+    },
+    {
+      "source_id": "ipcc-sea-level",
+      "title": "IPCC AR6 scenario-specific global mean sea-level projections",
+      "path": "sources/ipcc-ar6-sea-level-2100.json",
+      "origin": "documented_transcription",
+      "sha256": "a85dfa1264c2e5d27e57f60f0fc1f60e7bf31aa14cafa8e11b7bee5540f76898",
+      "url": "https://www.ipcc.ch/report/ar6/wg1/chapter/summary-for-policymakers/",
+      "retrieved_at": "2026-10-19T18:58:29.656058+00:00",
+      "source_document_sha256": "9a67eb7fa2427d44d1299f280ea1da25292e4285404ba9ee3b508bb9b334c6aa",
+      "source_section": "B.5.3",
+      "transformation": "Transcribed the four 2100 likely ranges, scenario names, confidence, units, and 1995-2014 reference period into JSON. The 2150 projections were not included. No inference or current local flood-risk assessment was added.",
+      "limitations": [
+        "Scenario-conditional projections, not observed changes or unconditional predictions.",
+        "Global mean sea level is not a local coastal flood-depth forecast.",
+        "Assessment confidence and likely ranges are retained; no probability definition is inferred."
+      ]
+    },
+    {
+      "source_id": "bls-june-initial",
+      "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+      "path": "sources/bls-june-2024-initial-estimate.json",
+      "origin": "documented_transcription",
+      "sha256": "c7b94fb08b812fc41bd8e4c3ffbd76e0bb5a404850bcfb0258c64b0850aa2549",
+      "url": "https://www.bls.gov/news.release/archives/empsit_07052024.htm",
+      "verified_at": "2026-10-19T19:47:12.777455+00:00",
+      "source_sections": [
+        "Release header and opening paragraph",
+        "Summary table B: June 2024(p), total nonfarm monthly change in thousands",
+        "Table B-1: seasonally adjusted May-to-June change",
+        "Technical Note, Reliability of the estimates: incomplete returns and preliminary status",
+        "Frequently Asked Questions, question 3: monthly and annual revisions"
+      ],
+      "transformation": "Transcribed the initial total-nonfarm monthly change, publication date, measure, seasonal adjustment and preliminary status into JSON. Paraphrased the release notes on incomplete returns, the next two monthly revisions, recalculated seasonal factors and annual benchmarking. No later release values were substituted.",
+      "acquisition_note": "Verified against the archived official page through web retrieval. A direct Python download returned HTTP 403; the original HTML was not retained. No original-document hash is claimed.",
+      "limitations": [
+        "Historical initial-release estimate, not the latest revised value.",
+        "Counts payroll jobs, not unique workers or household-survey employment.",
+        "Source snapshot contains a factual transcription and paraphrased revision notes, not the complete archived release."
+      ]
+    }
+  ],
+  "acquisition_note": "The 2024 King County ACS API request returned an HTML Missing Key page, not data. It is excluded. V010 instead uses a published Census worked example, explicitly labeled historical.",
+  "provenance_policy": "Existing fixtures are copied byte-for-byte. Downloaded raw responses and PDFs are frozen; transcriptions identify parent snapshots or official source sections, transformations, and any acquisition limits."
+}

@@ -1,0 +1,23 @@
+{
+  "carrier": "Spirit Air Lines",
+  "carrier_code": "NK",
+  "scheduled_flights": 21236,
+  "on_time_flights": 13795,
+  "delayed_flights": 6436,
+  "canceled_flights": 994,
+  "diverted_flights": 11,
+  "observation_month": "2022-12",
+  "provenance": {
+    "source_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf",
+    "publisher": "U.S. Department of Transportation",
+    "data_agency": "Bureau of Transportation Statistics",
+    "report": "February 2023 Air Travel Consumer Report, revised April 2023",
+    "table": "Table 7A",
+    "printed_page": 33,
+    "observation_month": "2022-12",
+    "scope": "Reported domestic scheduled nonstop flights of the named reporting operating carriers; these are not marketing-carrier network aggregates.",
+    "capture_method": "Selected numeric rows transcribed from the official PDF text returned by the web tool. The direct local PDF download returned HTTP 403. The original PDF bytes were not saved and page rendering was unavailable.",
+    "retrieved_at": "2026-10-22T14:36:38.167015+00:00",
+    "independence_note": "Both carrier extracts and the definitions refer to the same report. Splitting that report into files does not create independent sources."
+  }
+}

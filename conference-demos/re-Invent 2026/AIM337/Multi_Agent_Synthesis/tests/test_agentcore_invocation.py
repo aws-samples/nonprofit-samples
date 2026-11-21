@@ -14,7 +14,7 @@ from starlette.testclient import TestClient
 import evidence_synthesis.agentcore_app as agentcore_app
 from evidence_synthesis.agentcore_client import AgentCoreRuntimeClient
 from evidence_synthesis.config import PipelinePolicy
-from evidence_synthesis.factory import build_orchestrator
+from evidence_synthesis.factory import build_orchestrator, build_single_agent_runner
 from evidence_synthesis.models import ResearchState, RunRequest, TerminalStatus
 
 
@@ -69,6 +69,52 @@ async def test_agentcore_returns_the_complete_pipeline_state(
     assert len(state.metrics) == 4
     assert state.events[-1].status == "completed"
     assert json.loads(json.dumps(result)) == result
+
+
+def test_agentcore_http_dispatches_single_agent_and_preserves_final_json(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    pipeline = AsyncMock()
+    monkeypatch.setattr(agentcore_app, "orchestrator", pipeline)
+    monkeypatch.setattr(
+        agentcore_app, "single_agent",
+        build_single_agent_runner(
+            runtime_name="deterministic", output_dir=tmp_path, allow_local_files=False,
+        ),
+    )
+    payload = {**_request().model_dump(mode="json"), "execution_mode": "single_agent"}
+    with TestClient(agentcore_app.app) as client:
+        response = client.post("/invocations", json=payload)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    state = ResearchState.model_validate(response.json())
+    assert state.status is TerminalStatus.COMPLETED
+    assert state.request.execution_mode.value == "single_agent"
+    assert [metric.role.value for metric in state.metrics] == ["single_agent"]
+    assert state.evidence_extractor is state.analysis is state.verification is None
+    assert state.synthesis.citations
+    pipeline.run.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_single_agent_runtime_cannot_load_local_files(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    source = tmp_path / "source.md"
+    source.write_text("PRIVATE_SOURCE_TEXT")
+    monkeypatch.setattr(
+        agentcore_app, "single_agent",
+        build_single_agent_runner(
+            runtime_name="deterministic", output_dir=tmp_path / "runs", allow_local_files=False,
+        ),
+    )
+    state = ResearchState.model_validate(await agentcore_app.invoke({
+        "question": "What is supported?", "execution_mode": "single_agent",
+        "sources": [{"source_id": "local", "uri": str(source)}],
+    }))
+    assert state.status is TerminalStatus.FAILED
+    assert not state.metrics
+    assert "PRIVATE_SOURCE_TEXT" not in state.synthesis.answer
 
 
 @pytest.mark.parametrize(("question", "deadline", "status"), [

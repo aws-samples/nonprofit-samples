@@ -1,0 +1,1504 @@
+{
+  "schema_version": "0.1",
+  "name": "Verifier learning dataset - IPCC confidence adjudication",
+  "created_at": "2026-10-19T17:08:05.465980+00:00",
+  "status": "human_reviewed_learning_set",
+  "scope": "Fixed VerificationInput payloads and human-reviewable expected claim judgments.",
+  "frozen_before_model_evaluation": false,
+  "input_policy": "Pass only case['input'] to the Verifier. Never include case names, expected judgments, teaching points, or reviewer notes in the model input.",
+  "split_policy": "All cases are learning/development. No held-out set exists. Keep cases sharing a source family together, including V008/V009. Census, IPCC, and BLS are separate source families.",
+  "confidence_policy": "Input claim confidence is fixed at 0.5 as a neutral fixture value; it is not an expected correctness score.",
+  "cases": [
+    {
+      "case_id": "V001",
+      "name": "Preserve the evidence's time period",
+      "source_group": "coastal_resilience",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "What does the supplied paid-claims record establish?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025",
+            "locator": "sources/coastal-claims.csv#lines=1-2",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The dataset records 147 paid claims during 2000–2025.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The dataset records 147 paid claims in 2025.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The number, measure, and period match the evidence.",
+            "reason_requirements": [
+              "147 paid claims",
+              "2000-2025"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "The evidence gives a total across multiple years, not a count for 2025 alone.",
+            "reason_requirements": [
+              "multi-year total does not establish the single-year count"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "A valid evidence ID does not establish that a claim preserves the source's meaning.",
+      "calculations": [],
+      "source_topic": "coastal-claims"
+    },
+    {
+      "case_id": "V002",
+      "name": "Surface temperature is not air temperature",
+      "source_group": "harris_county",
+      "source_family": "harris-county",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "What temperature conclusions are supported by the supplied Houston observation?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-landsat",
+            "title": "Prepared Harris County Landsat surface-temperature extract",
+            "excerpt": "  {\n    \"as_of\": \"2024-09-08T16:50:24.152565Z\",\n    \"measure\": \"clear-pixel land-surface temperature in 1.05 km window\",\n    \"unit\": \"degrees Celsius\",\n    \"location\": \"Downtown Houston\",\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604,\n    \"scene_id\": \"LC09_L2SP_025039_20240908_20240909_02_T1_ST\",\n    \"platform\": \"LANDSAT_9\",\n    \"scene_cloud_cover_percent\": 0.08,\n    \"window_size_m\": 1050,\n    \"valid_clear_pixels\": 1225,\n    \"mean_surface_temperature_c\": 39.7,\n    \"median_surface_temperature_c\": 39.9,\n    \"p90_surface_temperature_c\": 42.7\n  }",
+            "locator": "sources/harris-landsat.json#first-record",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "landsat-surface-temperature-samples.json contains clear-pixel statistics from five fixed\n1.05 km by 1.05 km windows in a USGS Landsat 9 Collection 2 Level-2 surface-temperature\nscene, LC09_L2SP_025039_20240908_20240909_02_T1_ST, acquired on 2024-09-08.\nThe raster was accessed through the Microsoft Planetary Computer mirror. QA_PIXEL fill,\ndilated-cloud, cirrus, cloud, and cloud-shadow bits 0 through 4 were excluded. Digital\nnumbers were converted with scale 0.00341802 and offset 149.0 kelvin, then converted to\nCelsius. Mean, median, and 90th-percentile clear-pixel temperatures were calculated.\nLand-surface temperature is not air temperature. A single daytime scene cannot establish\nseasonal or long-term heat exposure, and the sample windows are not administrative\nneighborhood boundaries.",
+            "locator": "sources/harris-dataset-notes.md#section=Landsat-measurements",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The Downtown Houston sample window had a mean clear-pixel land-surface temperature of 39.7 C in the 2024-09-08 scene.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The air temperature in Downtown Houston was 39.7 C in that observation.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "Every part of Houston had a mean land-surface temperature of 39.7 C that day.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The statistic, measurement, location, and acquisition date match the record.",
+            "reason_requirements": [
+              "mean land-surface temperature",
+              "one sample window and scene"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "The measured quantity is land-surface temperature; the notes explicitly distinguish it from air temperature.",
+            "reason_requirements": [
+              "surface temperature is not air temperature"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "One fixed 1.05 km window does not establish a citywide value.",
+            "reason_requirements": [
+              "sample window does not represent every part of Houston"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "The number can be copied accurately while the measurement or geographic scope is wrong.",
+      "calculations": [],
+      "source_topic": "harris-landsat"
+    },
+    {
+      "case_id": "V003",
+      "name": "Keep payment units and arithmetic straight",
+      "source_group": "coastal_resilience",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "What do the recorded claim counts and payments establish?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025\nclaim_payments,4200000,USD,2000-2025",
+            "locator": "sources/coastal-claims.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "Recorded claim payments total 4.2 million USD for 2000-2025.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The ratio of the recorded payments to the recorded paid-claim count is approximately 28,571.43 USD per claim.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "The dataset reports annual claim payments of 4.2 million USD.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The payment row reports 4,200,000 USD over the stated period.",
+            "reason_requirements": [
+              "USD",
+              "2000-2025"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "verified",
+            "rationale": "4,200,000 divided by 147 is approximately 28,571.43; this is a ratio of the supplied totals, not a distribution of individual payments.",
+            "reason_requirements": [
+              "ratio of recorded totals",
+              "approximately"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The reported payment is for the entire period; no annualized payment is supplied.",
+            "reason_requirements": [
+              "period total is not an annual amount"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "Check units and simple derivations while keeping the result bounded to what was supplied.",
+      "calculations": [
+        {
+          "operation": "divide",
+          "operands": [
+            "4200000",
+            "147"
+          ],
+          "rounded": "28571.43",
+          "decimal_places": 2
+        }
+      ],
+      "source_topic": "coastal-claims"
+    },
+    {
+      "case_id": "V004",
+      "name": "Do not infer risk or causation from counts",
+      "source_group": "coastal_resilience",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "Do the supplied records establish that this neighborhood has low flood risk?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025\nclaim_payments,4200000,USD,2000-2025",
+            "locator": "sources/coastal-claims.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "coastal-water",
+            "title": "Coastal Resilience illustrative water-level records",
+            "excerpt": "[\n  {\n    \"measure\": \"relative_water_level_trend\",\n    \"value\": 4.62,\n    \"unit\": \"millimeters_per_year\"\n  },\n  {\n    \"measure\": \"observed_high_tide_days\",\n    \"earlier_value\": 8,\n    \"recent_value\": 18,\n    \"unit\": \"days_per_year\"\n  }\n]",
+            "locator": "sources/coastal-water-levels.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The supplied high-tide-day measure rises from 8 to 18 days per year between the earlier and recent values.",
+              "evidence_ids": [
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The 147 paid claims prove that the neighborhood has low flood risk.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "The increase in high-tide days caused all 147 paid claims.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "Both values and the days-per-year unit are present; no dates beyond earlier/recent are claimed.",
+            "reason_requirements": [
+              "8 to 18 days per year"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "A claim count alone provides no exposure denominator or threshold establishing low risk.",
+            "reason_requirements": [
+              "count alone cannot establish a low-risk classification"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The records do not link individual claims to the high-tide observations or establish a causal relationship.",
+            "reason_requirements": [
+              "no causal attribution in the supplied evidence"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "Different records can coexist without establishing either a risk category or a causal relationship.",
+      "calculations": [],
+      "source_topic": "coastal-claims-water"
+    },
+    {
+      "case_id": "V005",
+      "name": "Bound planning inferences to observations",
+      "source_group": "coastal_resilience",
+      "source_family": "coastal-resilience",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and revised verified / verified / rejected verdicts, approved in conversation.",
+        "questions": [],
+        "decisions": [
+          {
+            "claim_id": "C2",
+            "previous_judgment": {
+              "claim_id": "C2",
+              "status": "qualified",
+              "rationale": "This is a reasonable planning inference from qualitative reports, but those reports do not quantify risk or substitute for a parcel-level engineering assessment.",
+              "reason_requirements": [
+                "qualitative reports",
+                "not a parcel-level engineering assessment"
+              ]
+            },
+            "approved_status": "verified",
+            "reason": "The claim is already bounded to further investigation and does not assert an engineering finding.",
+            "decided_by": "user",
+            "decided_at": "2026-10-19"
+          }
+        ]
+      },
+      "input": {
+        "question": "How can the supplied field observations inform local flood planning?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-notes",
+            "title": "Coastal Resilience illustrative field notes",
+            "excerpt": "Residents and public-works staff describe repeated nuisance flooding on roads during high\ntides and heavy rain. The observations are useful for identifying local conditions but are\nnot a substitute for a parcel-level engineering assessment.",
+            "locator": "sources/coastal-field-notes.md#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "Residents and public-works staff describe repeated nuisance flooding on roads during high tides and heavy rain.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The field observations support further investigation of local road flooding.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "The field observations establish parcel-level engineering flood-risk ratings.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "This is the observation described by the source.",
+            "reason_requirements": [
+              "reported observations"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "verified",
+            "rationale": "The source says the observations are useful for identifying local conditions. Supporting further investigation is a bounded inference; it does not assert an engineering finding or a quantified risk rating.",
+            "reason_requirements": [
+              "further investigation is a bounded inference supported by the reported local observations"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The source explicitly says the observations are not a substitute for a parcel-level engineering assessment.",
+            "reason_requirements": [
+              "explicit limitation on parcel-level assessment"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "A bounded planning inference can be verified without elevating qualitative observations into engineering findings.",
+      "calculations": [],
+      "source_topic": "coastal-field-notes"
+    },
+    {
+      "case_id": "V006",
+      "name": "Selected records are not a representative sample",
+      "source_group": "harris_county",
+      "source_family": "harris-county",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "What can the selected environmental and demographic records establish about Harris County?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "environmental-justice-blockgroups.json uses the Public Environmental Data Partners'\nEnvironmental Justice Analysis Multisite service, which reconstructs archived EJScreen-style\nindicators and is not an EPA service. Of 2,830 retrieved Harris County block groups, 2,733\nvalid records with population at least 500 were eligible for selection. The six illustrative\nrecords include two low-demographic-burden comparisons, two highest-demographic-burden\nrecords, and two combining high demographic and projected flood burden. They are not a\nstatistically representative county sample. Indicator definitions and vintages vary; the\naccess date of 2026-09-02 is not the observation date of every indicator.",
+            "locator": "sources/harris-dataset-notes.md#section=Environmental-and-demographic-indicators",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The six selected records are illustrative comparisons rather than a statistically representative county sample.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The selected records establish that most Harris County residents have high demographic burden.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "Every indicator describes conditions observed on 2026-09-02.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The preparation notes state this limitation explicitly.",
+            "reason_requirements": [
+              "six illustrative records",
+              "not statistically representative"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "A deliberately selected set of six records cannot establish a county population proportion.",
+            "reason_requirements": [
+              "selection does not support countywide population prevalence"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The notes identify 2026-09-02 as an access date and state that indicator vintages vary.",
+            "reason_requirements": [
+              "access date is not observation date"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "Evaluate sampling and date interpretation using documentation as evidence about preparation, not as independent risk measurements.",
+      "calculations": [],
+      "source_topic": "harris-environmental-indicators"
+    },
+    {
+      "case_id": "V007",
+      "name": "One station-year does not establish a climate trend",
+      "source_group": "harris_county",
+      "source_family": "harris-county",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "What heat conclusions follow from the supplied 2024 Houston airport summary?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-noaa",
+            "title": "Prepared 2024 Houston airport NOAA summary",
+            "excerpt": "{\n  \"as_of\": \"2024\",\n  \"measure\": \"temperature and precipitation extremes\",\n  \"unit\": \"mixed metric units\",\n  \"station\": {\n    \"station_id\": \"USW00012960\",\n    \"station_name\": \"HOUSTON INTERCONTINENTAL AIRPORT, TX US\",\n    \"period\": \"2024-01-01/2024-12-31\",\n    \"observation_days\": 366\n  },\n  \"annual_summary\": {\n    \"mean_daily_maximum_temperature_c\": 28.3,\n    \"mean_daily_minimum_temperature_c\": 17.4,\n    \"maximum_temperature_c\": 38.9,\n    \"maximum_temperature_date\": \"2024-08-20\",\n    \"days_maximum_temperature_at_least_35c\": 64,\n    \"days_maximum_temperature_at_least_38c\": 3,\n    \"nights_minimum_temperature_at_least_25c\": 58,\n    \"precipitation_total_mm\": 1503.3,\n    \"days_precipitation_at_least_25mm\": 20,\n    \"maximum_daily_precipitation_mm\": 119.9,\n    \"maximum_daily_precipitation_date\": \"2024-07-08\"\n  },\n  \"warm_season_summary\": [\n    {\n      \"month\": \"2024-05\",\n      \"mean_daily_maximum_temperature_c\": 30.8,\n      \"mean_daily_minimum_temperature_c\": 21.8,\n      \"days_maximum_temperature_at_least_35c\": 1,\n      \"precipitation_total_mm\": 280.8,\n      \"maximum_daily_precipitation_mm\": 60.2\n    },\n    {\n      \"month\": \"2024-06\",\n      \"mean_daily_maximum_temperature_c\": 33.9,\n      \"mean_daily_minimum_temperature_c\": 24.5,\n      \"days_maximum_temperature_at_least_35c\": 8,\n      \"precipitation_total_mm\": 198.1,\n      \"maximum_daily_precipitation_mm\": 75.4\n    },\n    {\n      \"month\": \"2024-07\",\n      \"mean_daily_maximum_temperature_c\": 33.2,\n      \"mean_daily_minimum_temperature_c\": 24.7,\n      \"days_maximum_temperature_at_least_35c\": 12,\n      \"precipitation_total_mm\": 276.7,\n      \"maximum_daily_precipitation_mm\": 119.9\n    },\n    {\n      \"month\": \"2024-08\",\n      \"mean_daily_maximum_temperature_c\": 36.1,\n      \"mean_daily_minimum_temperature_c\": 25.7,\n      \"days_maximum_temperature_at_least_35c\": 25,\n      \"precipitation_total_mm\": 46.2,\n      \"maximum_daily_precipitation_mm\": 30.2\n    },\n    {\n      \"month\": \"2024-09\",\n      \"mean_daily_maximum_temperature_c\": 33.8,\n      \"mean_daily_minimum_temperature_c\": 22.5,\n      \"days_maximum_temperature_at_least_35c\": 15,\n      \"precipitation_total_mm\": 64.4,\n      \"maximum_daily_precipitation_mm\": 16.3\n    }\n  ],\n  \"five_wettest_days\": [\n    {\n      \"date\": \"2024-07-08\",\n      \"precipitation_mm\": 119.9\n    },\n    {\n      \"date\": \"2024-06-11\",\n      \"precipitation_mm\": 75.4\n    },\n    {\n      \"date\": \"2024-06-10\",\n      \"precipitation_mm\": 66\n    },\n    {\n      \"date\": \"2024-05-31\",\n      \"precipitation_mm\": 60.2\n    },\n    {\n      \"date\": \"2024-05-13\",\n      \"precipitation_mm\": 51.8\n    }\n  ]\n}",
+            "locator": "sources/harris-noaa-2024.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "noaa-climate-summary-2024.json summarizes 366 daily NOAA NCEI observations from Houston\nIntercontinental Airport, station USW00012960, for 2024. Annual and warm-season statistics\nwere derived from daily maximum temperature, minimum temperature, and precipitation.\nOne airport station is a regional proxy, not a neighborhood-level measurement. One year\ndoes not establish a long-term climate trend.",
+            "locator": "sources/harris-dataset-notes.md#section=NOAA-observations",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The 2024 Houston Intercontinental Airport summary records 64 days with a daily maximum temperature of at least 35 C.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "Every Harris County neighborhood had 64 days at or above 35 C in 2024.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "This one-year summary establishes a long-term warming trend.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The station, year, threshold, statistic and count match the summary.",
+            "reason_requirements": [
+              "daily maximum",
+              "64 days",
+              "2024 airport station"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "The evidence is from one airport station and does not measure every neighborhood.",
+            "reason_requirements": [
+              "one station is not every neighborhood"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "A single year supplies no multi-year comparison establishing a long-term trend.",
+            "reason_requirements": [
+              "one year does not establish a long-term trend"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "Keep claims inside both the spatial and temporal scope of the measurements.",
+      "calculations": [],
+      "source_topic": "harris-noaa-2024"
+    },
+    {
+      "case_id": "V008",
+      "name": "Read unfamiliar station measurements accurately",
+      "source_group": "new_public_data",
+      "source_family": "noaa-seattle-week1",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "What temperatures were recorded at Seattle Tacoma Airport on 3 January 2024?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "noaa-seattle",
+            "title": "NOAA daily observations: Seattle Tacoma Airport, 1-7 January 2024",
+            "excerpt": "date,station_id,station_name,daily_max_air_temperature_c,daily_min_air_temperature_c,daily_precipitation_mm\n2024-01-01,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,1.1,0.0\n2024-01-02,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,3.3,6.1\n2024-01-03,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",10.0,5.0,2.5\n2024-01-04,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",7.8,5.0,3.6\n2024-01-05,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,4.4,5.8\n2024-01-06,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",6.7,2.2,10.7\n2024-01-07,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",5.0,2.2,2.8",
+            "locator": "sources/noaa-seattle-2024-week1.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The station's daily maximum air temperature on 2024-01-03 was 10.0 C.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The station's daily minimum air temperature on 2024-01-03 was 5.0 C.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "The station's daily maximum air temperature on 2024-01-03 was 10.0 F.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The date and daily-maximum Celsius column match the claim.",
+            "reason_requirements": [
+              "2024-01-03",
+              "daily maximum",
+              "Celsius"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "verified",
+            "rationale": "The date and daily-minimum Celsius column match the claim.",
+            "reason_requirements": [
+              "2024-01-03",
+              "daily minimum",
+              "Celsius"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The reported value is in Celsius; changing the unit without converting the value changes the claim.",
+            "reason_requirements": [
+              "Celsius was relabeled as Fahrenheit without conversion"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "Test a new location with an unchanged grading rule for dates, variables, and units.",
+      "calculations": [],
+      "source_topic": "noaa-seattle-week1"
+    },
+    {
+      "case_id": "V009",
+      "name": "Aggregate only the observed window",
+      "source_group": "new_public_data",
+      "source_family": "noaa-seattle-week1",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and expected verdicts, approved in conversation.",
+        "questions": []
+      },
+      "input": {
+        "question": "How much precipitation is recorded in the supplied Seattle Tacoma Airport time window?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "noaa-seattle",
+            "title": "NOAA daily observations: Seattle Tacoma Airport, 1-7 January 2024",
+            "excerpt": "date,station_id,station_name,daily_max_air_temperature_c,daily_min_air_temperature_c,daily_precipitation_mm\n2024-01-01,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,1.1,0.0\n2024-01-02,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,3.3,6.1\n2024-01-03,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",10.0,5.0,2.5\n2024-01-04,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",7.8,5.0,3.6\n2024-01-05,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,4.4,5.8\n2024-01-06,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",6.7,2.2,10.7\n2024-01-07,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",5.0,2.2,2.8",
+            "locator": "sources/noaa-seattle-2024-week1.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The seven supplied daily precipitation values for 1-7 January 2024 sum to 31.5 mm at Seattle Tacoma Airport.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "Seattle Tacoma Airport received exactly 31.5 mm of precipitation during the whole of January 2024.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "These seven days establish a long-term decline in Seattle precipitation.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "Summing 0.0, 6.1, 2.5, 3.6, 5.8, 10.7 and 2.8 gives 31.5 mm over exactly the supplied seven dates.",
+            "reason_requirements": [
+              "sum",
+              "seven supplied days",
+              "31.5 mm"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "The extract ends on 7 January; it supplies no observations for the rest of the month.",
+            "reason_requirements": [
+              "partial month cannot establish a full-month total"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "One week at one station supplies no long-term series or comparison establishing a trend.",
+            "reason_requirements": [
+              "no long-term comparison"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "A correct sum becomes unsupported if its time window is expanded.",
+      "calculations": [
+        {
+          "operation": "sum",
+          "operands": [
+            "0.0",
+            "6.1",
+            "2.5",
+            "3.6",
+            "5.8",
+            "10.7",
+            "2.8"
+          ],
+          "exact": "31.5"
+        }
+      ],
+      "source_topic": "noaa-seattle-week1"
+    },
+    {
+      "case_id": "V010",
+      "name": "Keep uncertainty attached to an estimate",
+      "source_group": "new_public_data",
+      "source_family": "census-historical-worked-example",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3/C4 statements and verified / rejected / qualified / verified verdicts, approved in conversation.",
+        "questions": [],
+        "decisions": [
+          {
+            "claim_id": "C3",
+            "approved_status": "qualified",
+            "reason": "The value is supported as a point estimate, but the review must attach the explicitly supplied margin of error. Explicit denial of uncertainty remains rejected for C2.",
+            "decided_by": "user",
+            "decided_at": "2026-10-19"
+          }
+        ]
+      },
+      "input": {
+        "question": "What does the Census worked example establish about its total-population median-age estimate?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "census-example",
+            "title": "Historical Census worked example: median ages and margins of error",
+            "excerpt": "Median age (years)\n\nWe find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.",
+            "locator": "sources/census-example-page2.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "census-guidance",
+            "title": "Census guidance: interpretation of published ACS margins of error",
+            "excerpt": "All published ACS estimates on data.census.gov include the 90 percent margin of error (MOE).",
+            "locator": "sources/census-moe-guidance-page1.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The worked example reports a total-population median-age estimate of 37.3 years with a margin of error of plus or minus 0.1 years.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The population's true median age is known to be exactly 37.3 years, with no sampling uncertainty.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "The population's median age is 37.3 years.",
+              "evidence_ids": [
+                "E001",
+                "E002"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C4",
+              "statement": "The estimate-minus-MOE and estimate-plus-MOE endpoints are 37.2 and 37.4 years.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The estimate and its margin of error are stated together in the example.",
+            "reason_requirements": [
+              "estimate",
+              "37.3",
+              "margin of error 0.1"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "rejected",
+            "rationale": "The supplied margin of error directly contradicts treating the estimate as exact and free of sampling uncertainty.",
+            "reason_requirements": [
+              "estimate is not exact",
+              "reported margin of error"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "qualified",
+            "rationale": "The number has support as a point estimate, but the statement omits that it is an estimate with a margin of error of 0.1 years.",
+            "reason_requirements": [
+              "point estimate",
+              "margin of error 0.1"
+            ]
+          },
+          {
+            "claim_id": "C4",
+            "status": "verified",
+            "rationale": "37.3 minus 0.1 is 37.2, and 37.3 plus 0.1 is 37.4. These are interval endpoints, not the range of individual ages.",
+            "reason_requirements": [
+              "estimate interval endpoints",
+              "not individual ages"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Judge verdicts and the meaning of reasons; do not require exact explanation wording."
+      },
+      "teaching_point": "Grade preservation of uncertainty without inventing current geography or treating an estimate as a certainty.",
+      "calculations": [
+        {
+          "operation": "interval",
+          "estimate": "37.3",
+          "moe": "0.1",
+          "lower": "37.2",
+          "upper": "37.4"
+        }
+      ],
+      "source_topic": "census-historical-worked-example"
+    },
+    {
+      "case_id": "V011",
+      "name": "Keep the emissions scenario attached to a projection",
+      "source_group": "new_public_data",
+      "source_family": "ipcc-ar6-sea-level",
+      "source_topic": "ipcc-ar6-sea-level",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "Original claim statements and judgments approved on 2026-10-19. The user revised C1 to qualified and required the omitted medium assessment confidence on 2026-10-30; C2 and C3 remain unchanged.",
+        "questions": [],
+        "decisions": [
+          {
+            "claim_id": "C2",
+            "approved_status": "qualified",
+            "reason": "The projected range has support under SSP2-4.5, but that condition must accompany it. Claiming all four scenarios have the same range remains rejected for C3.",
+            "decided_by": "user",
+            "decided_at": "2026-10-19"
+          },
+          {
+            "claim_id": "C1",
+            "previous_status": "verified",
+            "approved_status": "qualified",
+            "reason": "Omitting the source's medium assessment confidence requires qualification, even though the claim includes its scenario and likely range.",
+            "decided_by": "user",
+            "decided_at": "2026-10-30",
+            "user_response": "It should be Qualified"
+          }
+        ],
+        "last_adjudicated_at": "2026-10-30"
+      },
+      "input": {
+        "question": "What does the supplied IPCC assessment project for global mean sea level by 2100?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "ipcc-sea-level",
+            "title": "IPCC AR6 scenario-specific global mean sea-level projections",
+            "excerpt": "{\n  \"assessment\": \"IPCC AR6 Working Group I Summary for Policymakers, section B.5.3\",\n  \"assessment_year\": 2021,\n  \"quantity\": \"global mean sea-level rise\",\n  \"target_year\": 2100,\n  \"reference_period\": \"1995-2014\",\n  \"unit\": \"meters\",\n  \"range_description\": \"likely range\",\n  \"assessment_confidence\": \"medium\",\n  \"scenario_projections\": [\n    {\n      \"scenario\": \"SSP1-1.9\",\n      \"emissions\": \"very low\",\n      \"lower\": 0.28,\n      \"upper\": 0.55\n    },\n    {\n      \"scenario\": \"SSP1-2.6\",\n      \"emissions\": \"low\",\n      \"lower\": 0.32,\n      \"upper\": 0.62\n    },\n    {\n      \"scenario\": \"SSP2-4.5\",\n      \"emissions\": \"intermediate\",\n      \"lower\": 0.44,\n      \"upper\": 0.76\n    },\n    {\n      \"scenario\": \"SSP5-8.5\",\n      \"emissions\": \"very high\",\n      \"lower\": 0.63,\n      \"upper\": 1.01\n    }\n  ]\n}",
+            "locator": "sources/ipcc-ar6-sea-level-2100.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "Under intermediate emissions scenario SSP2-4.5, the projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "The projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "All four listed emissions scenarios project the same likely global mean sea-level rise range of 0.44-0.76 meters by 2100 relative to 1995-2014.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "qualified",
+            "rationale": "The scenario, likely range, horizon, baseline, and units match the evidence, but the claim omits the reported medium assessment confidence. This is a material uncertainty qualifier that must accompany the projection in the review.",
+            "reason_requirements": [
+              "SSP2-4.5",
+              "likely range 0.44-0.76 meters",
+              "2100 relative to 1995-2014",
+              "reported medium assessment confidence is a material qualifier that must accompany the projection"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "qualified",
+            "rationale": "The values have support specifically under SSP2-4.5. The review must state that condition so the range is not presented as an unconditional projection.",
+            "reason_requirements": [
+              "conditional on SSP2-4.5",
+              "other emissions scenarios have different ranges"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The supplied assessment explicitly lists different ranges for the other scenarios.",
+            "reason_requirements": [
+              "different ranges across scenarios"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Grade the verdict and meaning of the explanation, not exact reference wording."
+      },
+      "teaching_point": "An omitted scenario or material assessment-confidence qualifier can require qualification; an explicit claim that all scenarios agree contradicts the source.",
+      "calculations": []
+    },
+    {
+      "case_id": "V012",
+      "name": "Keep preliminary figures distinct from final results",
+      "source_group": "new_public_data",
+      "source_family": "bls-june-2024-initial-release",
+      "source_topic": "payroll-employment",
+      "split": "learning_development",
+      "review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-19",
+        "approval_scope": "C1/C2/C3 statements and verified / qualified / rejected verdicts, approved in conversation.",
+        "questions": [],
+        "decisions": [
+          {
+            "claim_id": "C2",
+            "approved_status": "qualified",
+            "reason": "The value is supported as the preliminary estimate in the July 5 release, but its revision status must accompany it. Calling the figure final and immune to revision remains rejected for C3.",
+            "decided_by": "user",
+            "decided_at": "2026-10-19"
+          }
+        ]
+      },
+      "input": {
+        "question": "What does the July 5, 2024 BLS release establish about the May-to-June 2024 change in U.S. nonfarm payroll employment and the status of that figure?",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "analysis": {
+          "claims": [
+            {
+              "claim_id": "C1",
+              "statement": "The release gives a preliminary, seasonally adjusted estimate of 206,000 more U.S. nonfarm payroll jobs in June 2024 than in May, subject to revision.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C2",
+              "statement": "U.S. nonfarm payroll employment increased by 206,000 jobs from May to June 2024, seasonally adjusted.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            },
+            {
+              "claim_id": "C3",
+              "statement": "The seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024 is a final figure that cannot be revised.",
+              "evidence_ids": [
+                "E001"
+              ],
+              "confidence": 0.5,
+              "methodology": "unspecified",
+              "topic": "general",
+              "stance": null
+            }
+          ],
+          "evidence_gaps": []
+        },
+        "source_profiles": []
+      },
+      "expected": {
+        "judgments": [
+          {
+            "claim_id": "C1",
+            "status": "verified",
+            "rationale": "The value, measure, comparison period, adjustment, and preliminary status all match the historical release.",
+            "reason_requirements": [
+              "206,000 payroll jobs",
+              "May to June 2024, seasonally adjusted",
+              "preliminary and subject to revision"
+            ]
+          },
+          {
+            "claim_id": "C2",
+            "status": "qualified",
+            "rationale": "The core estimate is supported, but the review must identify it as the preliminary estimate in the July 5 release, subject to later revision.",
+            "reason_requirements": [
+              "initial July 5 release estimate",
+              "preliminary, subject to revision",
+              "does not establish the latest revised value"
+            ]
+          },
+          {
+            "claim_id": "C3",
+            "status": "rejected",
+            "rationale": "The release explicitly marks the figure preliminary and describes later revisions. Calling it final and immune to revision contradicts that status.",
+            "reason_requirements": [
+              "not final",
+              "explicit revision process"
+            ]
+          }
+        ],
+        "structural_checks": [
+          "Review every original claim exactly once.",
+          "Preserve each original claim unchanged."
+        ],
+        "not_scored_yet": [
+          "contradictions",
+          "revision_feedback",
+          "citation_closure_complete",
+          "independent_source_count"
+        ],
+        "grading_note": "Grade the verdict and meaning of the explanation, not exact reference wording."
+      },
+      "teaching_point": "A supported preliminary value needs its revision status. Calling that value final and immune to revision contradicts the release. This tests publication status, rather than a numerical margin of error or an emissions scenario.",
+      "calculations": []
+    }
+  ],
+  "dataset_version": "1.2",
+  "review_completed_at": "2026-10-30",
+  "approved_base_version": "1.1",
+  "reference_revision": {
+    "date": "2026-10-30",
+    "previous_version": "1.1",
+    "adjudication": "versions/adjudication-v1.2.json",
+    "timing": "Revised after reviewing saved v3 and v4 outputs; not a pre-model or held-out reference.",
+    "scope": "V011/C1 reference verdict, rationale and explanation requirements only; all model inputs and other judgments are unchanged."
+  }
+}

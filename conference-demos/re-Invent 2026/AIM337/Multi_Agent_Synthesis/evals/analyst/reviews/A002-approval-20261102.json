@@ -1,0 +1,11 @@
+{
+  "case_id": "A002",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "Yes",
+  "scope": "Absolute and percentage change expectations and scope boundaries presented for A002; no model output was graded.",
+  "input_sha256": "c0801051d20da65b313eadef379228d36a8d491134e9d2f5806755d9c790bca9",
+  "expected_sha256": "3a84c001f0a682d1d79e62548871c0125ed4d54536611a448a6ecc9566a666de",
+  "model_calls_before_approval": 0
+}

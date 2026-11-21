@@ -18,12 +18,14 @@ MODELS = {
     "analyst": "us.anthropic.claude-sonnet-5",
     "verifier": "us.anthropic.claude-sonnet-5",
     "synthesizer": "us.anthropic.claude-sonnet-5",
+    "single_agent": "us.anthropic.claude-sonnet-5",
 }
 MAX_TOKENS = {
     "evidence_extractor": 4096,
     "analyst": 6144,
     "verifier": 8192,
     "synthesizer": 4096,
+    "single_agent": 15000,
 }
 
 
@@ -202,10 +204,12 @@ def test_runtime_has_agentcore_iam_logs_dashboard_and_no_alerting() -> None:
                         "ANALYST_MODEL_ID": "us.anthropic.claude-sonnet-5",
                         "VERIFIER_MODEL_ID": "us.anthropic.claude-sonnet-5",
                         "SYNTHESIZER_MODEL_ID": "us.anthropic.claude-sonnet-5",
+                        "SINGLE_AGENT_MODEL_ID": "us.anthropic.claude-sonnet-5",
                         "EVIDENCE_EXTRACTOR_MAX_TOKENS": "4096",
                         "ANALYST_MAX_TOKENS": "6144",
                         "VERIFIER_MAX_TOKENS": "8192",
                         "SYNTHESIZER_MAX_TOKENS": "4096",
+                        "SINGLE_AGENT_MAX_TOKENS": "15000",
                         "PIPELINE_DEADLINE_SECONDS": "300",
                     }
                 ),

@@ -1,0 +1,30 @@
+{
+  "wn-december-2022-flight-outcomes.json": {
+    "source_id": "bts-2022-12-wn",
+    "title": "BTS December 2022 flight outcomes: Southwest Airlines",
+    "methodology": "Carrier-level administrative flight outcome counts, transcribed from BTS Table 7A in the February 2023 revised ATCR.",
+    "metadata": {
+      "upstream_report_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf",
+      "table": "7A",
+      "printed_page": 33
+    }
+  },
+  "nk-december-2022-flight-outcomes.json": {
+    "source_id": "bts-2022-12-nk",
+    "title": "BTS December 2022 flight outcomes: Spirit Air Lines",
+    "methodology": "Carrier-level administrative flight outcome counts, transcribed from BTS Table 7A in the February 2023 revised ATCR.",
+    "metadata": {
+      "upstream_report_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf",
+      "table": "7A",
+      "printed_page": 33
+    }
+  },
+  "outcome-definitions.json": {
+    "source_id": "bts-outcome-definitions",
+    "title": "BTS arrival outcome definitions and reporting scope",
+    "methodology": "Definitions summarized from the same DOT/BTS report as the carrier counts.",
+    "metadata": {
+      "upstream_report_url": "https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf"
+    }
+  }
+}

@@ -43,11 +43,13 @@ class StrandsSettings(BaseSettings):
     analyst_model_id: str = "us.anthropic.claude-sonnet-5"
     verifier_model_id: str = "us.anthropic.claude-sonnet-5"
     synthesizer_model_id: str = "us.anthropic.claude-sonnet-5"
+    single_agent_model_id: str = "us.anthropic.claude-sonnet-5"
 
     evidence_extractor_max_tokens: int = 4096
     analyst_max_tokens: int = 10_000
     verifier_max_tokens: int = 15_000
     synthesizer_max_tokens: int = 15_000
+    single_agent_max_tokens: int = 15_000
 
     @property
     def model_ids(self) -> dict[AgentRole, str]:
@@ -56,6 +58,7 @@ class StrandsSettings(BaseSettings):
             AgentRole.ANALYST: self.analyst_model_id,
             AgentRole.VERIFIER: self.verifier_model_id,
             AgentRole.SYNTHESIZER: self.synthesizer_model_id,
+            AgentRole.SINGLE_AGENT: self.single_agent_model_id,
         }
 
     @property
@@ -65,6 +68,7 @@ class StrandsSettings(BaseSettings):
             AgentRole.ANALYST: self.analyst_max_tokens,
             AgentRole.VERIFIER: self.verifier_max_tokens,
             AgentRole.SYNTHESIZER: self.synthesizer_max_tokens,
+            AgentRole.SINGLE_AGENT: self.single_agent_max_tokens,
         }
 
 

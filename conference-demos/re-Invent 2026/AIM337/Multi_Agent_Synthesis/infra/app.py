@@ -34,7 +34,7 @@ environment = cdk.Environment(
     account=os.getenv("CDK_DEFAULT_ACCOUNT"),
     region=region,
 )
-roles = ("evidence_extractor", "analyst", "verifier", "synthesizer")
+roles = ("evidence_extractor", "analyst", "verifier", "synthesizer", "single_agent")
 model_ids = {
     role: str(
         app.node.try_get_context(f"{role}_model_id")

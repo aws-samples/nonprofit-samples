@@ -1,0 +1,26 @@
+{
+  "series_id": "PAYEMS",
+  "series_title": "All Employees, Total Nonfarm",
+  "data_source": "U.S. Bureau of Labor Statistics",
+  "archive_provider": "Federal Reserve Bank of St. Louis, ALFRED",
+  "vintage_date": "2025-07-03",
+  "frequency": "Monthly",
+  "seasonal_adjustment": "Seasonally Adjusted",
+  "unit": "Thousands of Persons",
+  "measure": "Payroll employment level, not the change from the previous month",
+  "source_url": "https://alfred.stlouisfed.org/graph/alfredgraph.csv?id=PAYEMS&cosd=2025-04-01&coed=2025-06-01&vintage_date=2025-07-03",
+  "observations": [
+    {
+      "observation_month": "2025-04",
+      "payroll_employment_level_thousands": 159433
+    },
+    {
+      "observation_month": "2025-05",
+      "payroll_employment_level_thousands": 159577
+    },
+    {
+      "observation_month": "2025-06",
+      "payroll_employment_level_thousands": 159724
+    }
+  ]
+}

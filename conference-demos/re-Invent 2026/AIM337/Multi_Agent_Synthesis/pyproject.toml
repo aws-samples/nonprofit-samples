@@ -15,19 +15,19 @@ authors = [
 dependencies = [
   "pydantic==2.14.0",
   "pydantic-settings==2.15.0",
-  "pypdf==6.19.0",
+  "pypdf==6.21.4",
   "psutil==7.2.2",
 ]
 
 [project.optional-dependencies]
 aws = [
-  "aws-opentelemetry-distro==0.21.0",
+  "aws-opentelemetry-distro==0.23.0",
   "bedrock-agentcore==1.24.1",
   "boto3==1.43.110",
-  "strands-agents[otel]==1.59.0",
+  "strands-agents[otel]==1.63.0",
 ]
 ui = [
-  "streamlit==1.65.0",
+  "streamlit==1.67.0",
 ]
 dev = [
   "mypy==1.20.2",
@@ -52,6 +52,14 @@ evidence-synthesis = "evidence_synthesis.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/evidence_synthesis"]
+
+[tool.uv]
+# Keep these transitive security fixes when regenerating the lock.
+constraint-dependencies = [
+  "certifi>=2026.10.18",
+  "mcp>=2.2.0",
+  "pillow>=13.0.0",
+]
 
 [tool.pytest.ini_options]
 addopts = "-q"
