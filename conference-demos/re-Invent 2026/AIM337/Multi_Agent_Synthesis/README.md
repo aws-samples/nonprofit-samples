@@ -393,17 +393,32 @@ Deleting stacks alone does not remove retained data or all associated costs.
 Run the offline checks from the repository root:
 
 ```bash
-PYTHONPATH=src:infra pytest tests infra/tests evals/verifier
+PYTHONPATH=src:infra pytest tests infra/tests evals/verifier evals/test_stage_evals.py
 ruff check src tests scripts infra/app.py infra/evidence_synthesis_infra infra/tests evals/verifier
+ruff check evals/run_stage.py evals/test_stage_evals.py evals/analyst/score_saved.py \
+  evals/analyst/validate_dataset.py evals/synthesizer/validate_dataset.py
 mypy
 python evals/verifier/validate_dataset.py
+python evals/analyst/validate_dataset.py
+python evals/synthesizer/validate_dataset.py
 ```
 
 The [Verifier evaluation guide](evals/verifier/README.md) covers the reviewed dataset,
 offline checks, and optional paid Verifier and explanation-judge runs. The sample
 uses the Verifier handoff candidate v1 prompt; see the
 [results and limitations](evals/verifier/RESULTS.md).
-The dataset is a small development set, not a broad reliability benchmark.
+The [Analyst suite](evals/analyst/README.md) adds eight frozen cases and an optional
+judge for saved outputs. The [Synthesizer suite](evals/synthesizer/README.md) adds six
+reviewed-input cases and a manual rubric. Preview either without making model calls:
+
+```bash
+python evals/run_stage.py analyst --case A001
+python evals/run_stage.py synthesizer --case S001
+```
+
+Add `--execute` for paid calls. Each run records the current prompt, SDK, source
+snapshots, outputs, and usage under ignored `runs/`. These are small development
+sets; contract validity and semantic quality are assessed separately.
 
 Dependencies are pinned in `pyproject.toml` and `uv.lock`. The runtime bundle installs
 hash-checked dependencies from `requirements-runtime.txt`; build tools use

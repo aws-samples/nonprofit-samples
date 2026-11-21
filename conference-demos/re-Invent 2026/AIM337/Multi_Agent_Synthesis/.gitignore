@@ -95,7 +95,7 @@ infra/cdk-outputs.json
 # Generated evidence-synthesis artifacts
 runs/
 
-# Publish the runnable Verifier evals; keep learning notes and experiments local.
+# Publish curated eval suites; keep learning notes and experiments local.
 /evals/**
 !/evals/verifier/
 !/evals/verifier/README.md
@@ -135,3 +135,49 @@ runs/
 !/evals/verifier/explanation_judge/judge-config.json
 !/evals/verifier/explanation_judge/calibration-v1.2.json
 !/evals/verifier/explanation_judge/validation-v1.2.json
+
+# Analyst and Synthesizer public suites
+!/evals/analyst/
+!/evals/analyst/judge/
+!/evals/analyst/reviews/
+!/evals/analyst/sources/
+!/evals/analyst/versions/
+!/evals/synthesizer/
+!/evals/analyst/README.md
+!/evals/analyst/RESULTS.md
+!/evals/analyst/analyst-prompt-baseline.txt
+!/evals/analyst/analyst-prompt-v1.txt
+!/evals/analyst/dataset.json
+!/evals/analyst/judge-settings.json
+!/evals/analyst/judge/rubric-v1.1.md
+!/evals/analyst/reviews/A001-approval-20261102.json
+!/evals/analyst/reviews/A002-approval-20261102.json
+!/evals/analyst/reviews/A003-approval-20261102.json
+!/evals/analyst/reviews/A004-approval-20261102.json
+!/evals/analyst/reviews/A005-approval-20261102.json
+!/evals/analyst/reviews/A006-approval-20261102.json
+!/evals/analyst/reviews/A007-approval-20261102.json
+!/evals/analyst/reviews/A008-approval-20261102.json
+!/evals/analyst/score_saved.py
+!/evals/analyst/source-manifest.json
+!/evals/analyst/sources/bls-june-2024-initial-estimate.json
+!/evals/analyst/sources/census-comparing-estimates-2015.pdf
+!/evals/analyst/sources/census-example-page2.txt
+!/evals/analyst/sources/coastal-claims.csv
+!/evals/analyst/sources/coastal-field-notes.md
+!/evals/analyst/sources/coastal-water-levels.json
+!/evals/analyst/sources/harris-dataset-notes.md
+!/evals/analyst/sources/harris-landsat.json
+!/evals/analyst/validate_dataset.py
+!/evals/analyst/versions/dataset-v1.0.json
+!/evals/analyst/versions/freeze-v1.0.json
+!/evals/analyst/versions/source-manifest-v1.0.json
+!/evals/run_stage.py
+!/evals/synthesizer/README.md
+!/evals/synthesizer/RESULTS.md
+!/evals/synthesizer/RUBRIC.md
+!/evals/synthesizer/dataset-v1.json
+!/evals/synthesizer/prompt-v4.txt
+!/evals/synthesizer/references.json
+!/evals/synthesizer/validate_dataset.py
+!/evals/test_stage_evals.py

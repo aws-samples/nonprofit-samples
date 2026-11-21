@@ -1,0 +1,11 @@
+{
+  "case_id": "A003",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "Yes",
+  "scope": "Measurement type, sample scope, coverage and citation expectations presented for A003; no model output was graded.",
+  "input_sha256": "87dc3368751bec6e9621dc4cc47c04c1af26b0256952ca7b6c45f1cd6434301e",
+  "expected_sha256": "f81936e376d9b47c15d5cc8e4f94404aceb5263adf55fccd31d65138b3739f67",
+  "model_calls_before_approval": 0
+}

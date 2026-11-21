@@ -1,0 +1,11 @@
+{
+  "case_id": "A006",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "yes",
+  "scope": "Reported observations, bounded planning inference, assessment limitation and citation expectations presented for A006; no model output was graded.",
+  "input_sha256": "47e45b75e1a4c40cdf28a1680f192050eb313a2f7a9a088724d04a94b8d61480",
+  "expected_sha256": "f29bfd3da3ce265db5707e4b825303105bc0ee5908eaaa676506074d3efa32aa",
+  "model_calls_before_approval": 0
+}

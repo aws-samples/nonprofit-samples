@@ -1,0 +1,3 @@
+Median age (years)
+
+We find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.
