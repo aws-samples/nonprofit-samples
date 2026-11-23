@@ -1,0 +1,525 @@
+{
+  "calibration_version": "1.2",
+  "rubric_version": "1.2",
+  "status": "approved",
+  "frozen_on": "2026-10-28",
+  "split": "calibration",
+  "selection": "Eight deliberately selected saved explanations with user-approved grades. Source families overlap; not a held-out or representative sample.",
+  "original_verifier_dataset_sha256": "448a679041f6ead5be52e753945da57204f404131101366532da25d3e7c17d3b",
+  "examples": [
+    {
+      "example_id": "J001",
+      "source_family": "bls-june-2024-initial-release",
+      "input": {
+        "question": "What does the July 5, 2024 BLS release establish about the May-to-June 2024 change in U.S. nonfarm payroll employment and the status of that figure?",
+        "claim": "The release gives a preliminary, seasonally adjusted estimate of 206,000 more U.S. nonfarm payroll jobs in June 2024 than in May, subject to revision.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "E001 explicitly records change=206000 for the May-to-June 2024 period, adjustment='seasonally adjusted', status='preliminary', and a revision_note explaining that the two newest monthly estimates are based on incomplete returns and are revised in subsequent months and via annual benchmarking. All elements of the claim (figure, seasonal adjustment, preliminary status, subject to revision) are directly supported by the single cited source.",
+        "reason_requirements": [
+          "206,000 payroll jobs",
+          "May to June 2024, seasonally adjusted",
+          "preliminary and subject to revision"
+        ],
+        "claim_id": "C1",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The release gives a preliminary, seasonally adjusted estimate of 206,000 more U.S. nonfarm payroll jobs in June 2024 than in May, subject to revision."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "U.S. nonfarm payroll employment increased by 206,000 jobs from May to June 2024, seasonally adjusted."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024 is a final figure that cannot be revised."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "3da9ee389b424db6271d9845dcbbeb9fe976305592cdf634f5d90036b2f668d4",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V012",
+        "trial": 1,
+        "claim_id": "C1",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V012-trial-1.json",
+        "saved_trial_sha256": "7edfa10e4ee91596b98f147f5ffccbd850536a0a764287c1e5042213cb9d75ff",
+        "reference_verdict": "verified"
+      }
+    },
+    {
+      "example_id": "J002",
+      "source_family": "bls-june-2024-initial-release",
+      "input": {
+        "question": "What does the July 5, 2024 BLS release establish about the May-to-June 2024 change in U.S. nonfarm payroll employment and the status of that figure?",
+        "claim": "U.S. nonfarm payroll employment increased by 206,000 jobs from May to June 2024, seasonally adjusted.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "E001 reports change=206000 for period 'May 2024 to June 2024' under adjustment='seasonally adjusted', directly matching the claim. This is the core numeric fact from the single available source.",
+        "reason_requirements": [
+          "initial July 5 release estimate",
+          "preliminary, subject to revision",
+          "does not establish the latest revised value"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The release gives a preliminary, seasonally adjusted estimate of 206,000 more U.S. nonfarm payroll jobs in June 2024 than in May, subject to revision."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "U.S. nonfarm payroll employment increased by 206,000 jobs from May to June 2024, seasonally adjusted."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024 is a final figure that cannot be revised."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "56d0316a9e441699c1fc4e753db4df4f9cc4fe7ac08d73c4dc25863b1bf06aa6",
+      "expected": {
+        "grounded": "pass",
+        "complete": "fail",
+        "supports_verdict": "fail",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V012",
+        "trial": 1,
+        "claim_id": "C2",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V012-trial-1.json",
+        "saved_trial_sha256": "7edfa10e4ee91596b98f147f5ffccbd850536a0a764287c1e5042213cb9d75ff",
+        "reference_verdict": "qualified"
+      }
+    },
+    {
+      "example_id": "J003",
+      "source_family": "bls-june-2024-initial-release",
+      "input": {
+        "question": "What does the July 5, 2024 BLS release establish about the May-to-June 2024 change in U.S. nonfarm payroll employment and the status of that figure?",
+        "claim": "The seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024 is a final figure that cannot be revised.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "bls-june-initial",
+            "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+            "excerpt": "{\n  \"publisher\": \"U.S. Bureau of Labor Statistics\",\n  \"release\": \"The Employment Situation - June 2024\",\n  \"release_date\": \"2024-07-05\",\n  \"geography\": \"United States\",\n  \"survey\": \"establishment survey\",\n  \"measure\": \"over-the-month change in total nonfarm payroll employment\",\n  \"period\": \"May 2024 to June 2024\",\n  \"adjustment\": \"seasonally adjusted\",\n  \"change\": 206000,\n  \"unit\": \"payroll jobs\",\n  \"status\": \"preliminary\",\n  \"revision_note\": \"The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur.\"\n}",
+            "locator": "sources/bls-june-2024-initial-estimate.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "This claim directly contradicts its cited source. E001 labels status as 'preliminary' (not final) and includes an explicit revision_note stating that the newest monthly estimates use incomplete survey returns and are revised over the next two months, with additional annual benchmark revisions. The source does not support the assertion that the figure is final or unrevisable; the claim misrepresents the evidence.",
+        "reason_requirements": [
+          "not final",
+          "explicit revision process"
+        ],
+        "claim_id": "C3",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The release gives a preliminary, seasonally adjusted estimate of 206,000 more U.S. nonfarm payroll jobs in June 2024 than in May, subject to revision."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "U.S. nonfarm payroll employment increased by 206,000 jobs from May to June 2024, seasonally adjusted."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The seasonally adjusted increase of 206,000 U.S. nonfarm payroll jobs from May to June 2024 is a final figure that cannot be revised."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "43f53986398184ecf99b321e3fbbb109924dcc915c89da8e1a0af0e2418c80f0",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V012",
+        "trial": 1,
+        "claim_id": "C3",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V012-trial-1.json",
+        "saved_trial_sha256": "7edfa10e4ee91596b98f147f5ffccbd850536a0a764287c1e5042213cb9d75ff",
+        "reference_verdict": "rejected"
+      }
+    },
+    {
+      "example_id": "J004",
+      "source_family": "ipcc-ar6-sea-level",
+      "input": {
+        "question": "What does the supplied IPCC assessment project for global mean sea level by 2100?",
+        "claim": "The projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "ipcc-sea-level",
+            "title": "IPCC AR6 scenario-specific global mean sea-level projections",
+            "excerpt": "{\n  \"assessment\": \"IPCC AR6 Working Group I Summary for Policymakers, section B.5.3\",\n  \"assessment_year\": 2021,\n  \"quantity\": \"global mean sea-level rise\",\n  \"target_year\": 2100,\n  \"reference_period\": \"1995-2014\",\n  \"unit\": \"meters\",\n  \"range_description\": \"likely range\",\n  \"assessment_confidence\": \"medium\",\n  \"scenario_projections\": [\n    {\n      \"scenario\": \"SSP1-1.9\",\n      \"emissions\": \"very low\",\n      \"lower\": 0.28,\n      \"upper\": 0.55\n    },\n    {\n      \"scenario\": \"SSP1-2.6\",\n      \"emissions\": \"low\",\n      \"lower\": 0.32,\n      \"upper\": 0.62\n    },\n    {\n      \"scenario\": \"SSP2-4.5\",\n      \"emissions\": \"intermediate\",\n      \"lower\": 0.44,\n      \"upper\": 0.76\n    },\n    {\n      \"scenario\": \"SSP5-8.5\",\n      \"emissions\": \"very high\",\n      \"lower\": 0.63,\n      \"upper\": 1.01\n    }\n  ]\n}",
+            "locator": "sources/ipcc-ar6-sea-level-2100.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "E001 does not provide a single, scenario-independent 'the' likely range; it provides four distinct scenario-specific ranges (SSP1-1.9: 0.28-0.55, SSP1-2.6: 0.32-0.62, SSP2-4.5: 0.44-0.76, SSP5-8.5: 0.63-1.01). By dropping the SSP2-4.5 qualifier present in C1, this claim misrepresents the source as if it gives one universal projection, when the 0.44-0.76 figure is specific to the intermediate-emissions scenario only. Context is unsupported as stated.",
+        "reason_requirements": [
+          "conditional on SSP2-4.5",
+          "other emissions scenarios have different ranges"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "Under intermediate emissions scenario SSP2-4.5, the projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "All four listed emissions scenarios project the same likely global mean sea-level rise range of 0.44-0.76 meters by 2100 relative to 1995-2014."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "4b9c0df2d508841881cca75278536dc3eb2fce012199a7dc59e583b4998af91e",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "fail",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V011",
+        "trial": 1,
+        "claim_id": "C2",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V011-trial-1.json",
+        "saved_trial_sha256": "07494fa49b586708928c1a92b325cc9fcb6fc9f06e974482100d45dd0ab4a7b3",
+        "reference_verdict": "qualified"
+      }
+    },
+    {
+      "example_id": "J005",
+      "source_family": "coastal-resilience",
+      "input": {
+        "question": "How can the supplied field observations inform local flood planning?",
+        "claim": "The field observations support further investigation of local road flooding.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-notes",
+            "title": "Coastal Resilience illustrative field notes",
+            "excerpt": "Residents and public-works staff describe repeated nuisance flooding on roads during high\ntides and heavy rain. The observations are useful for identifying local conditions but are\nnot a substitute for a parcel-level engineering assessment.",
+            "locator": "sources/coastal-field-notes.md#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "qualified",
+        "verifier_reason": "The excerpt states the observations are 'useful for identifying local conditions,' which reasonably supports a call for further investigation. However, this is an interpretive inference rather than an explicit statement in the source, so it is qualified rather than fully verified. Only one source exists, so this inference has not been independently corroborated.",
+        "reason_requirements": [
+          "further investigation is a bounded inference supported by the reported local observations"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "Residents and public-works staff describe repeated nuisance flooding on roads during high tides and heavy rain."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The field observations support further investigation of local road flooding."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The field observations establish parcel-level engineering flood-risk ratings."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "61a33c6c5435129aa7fc77a2c4a0a0e05520b8862cd7191d7c2ad054998c70df",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "fail",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V005",
+        "trial": 1,
+        "claim_id": "C2",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V005-trial-1.json",
+        "saved_trial_sha256": "79ab8d0d09e7d7edbd96c8b1d7fbdb132e9ae2972ccaaadde0bcc1965fe6ca4a",
+        "reference_verdict": "verified"
+      }
+    },
+    {
+      "example_id": "J006",
+      "source_family": "ipcc-ar6-sea-level",
+      "input": {
+        "question": "What does the supplied IPCC assessment project for global mean sea level by 2100?",
+        "claim": "The projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "ipcc-sea-level",
+            "title": "IPCC AR6 scenario-specific global mean sea-level projections",
+            "excerpt": "{\n  \"assessment\": \"IPCC AR6 Working Group I Summary for Policymakers, section B.5.3\",\n  \"assessment_year\": 2021,\n  \"quantity\": \"global mean sea-level rise\",\n  \"target_year\": 2100,\n  \"reference_period\": \"1995-2014\",\n  \"unit\": \"meters\",\n  \"range_description\": \"likely range\",\n  \"assessment_confidence\": \"medium\",\n  \"scenario_projections\": [\n    {\n      \"scenario\": \"SSP1-1.9\",\n      \"emissions\": \"very low\",\n      \"lower\": 0.28,\n      \"upper\": 0.55\n    },\n    {\n      \"scenario\": \"SSP1-2.6\",\n      \"emissions\": \"low\",\n      \"lower\": 0.32,\n      \"upper\": 0.62\n    },\n    {\n      \"scenario\": \"SSP2-4.5\",\n      \"emissions\": \"intermediate\",\n      \"lower\": 0.44,\n      \"upper\": 0.76\n    },\n    {\n      \"scenario\": \"SSP5-8.5\",\n      \"emissions\": \"very high\",\n      \"lower\": 0.63,\n      \"upper\": 1.01\n    }\n  ]\n}",
+            "locator": "sources/ipcc-ar6-sea-level-2100.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "qualified",
+        "verifier_reason": "The 0.44-0.76 m range is present in E001, but only as the figure attached to one specific scenario (SSP2-4.5, intermediate emissions). The source provides four distinct scenario-specific ranges (0.28-0.55 for SSP1-1.9, 0.32-0.62 for SSP1-2.6, 0.44-0.76 for SSP2-4.5, and 0.63-1.01 for SSP5-8.5), so presenting 0.44-0.76 m as 'the' unqualified global projection omits necessary scenario context and could mislead a reader into thinking it is scenario-independent. Qualified as accurate only when restricted to the SSP2-4.5 scenario, which the statement fails to state.",
+        "reason_requirements": [
+          "conditional on SSP2-4.5",
+          "other emissions scenarios have different ranges"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "Under intermediate emissions scenario SSP2-4.5, the projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The projected likely range of global mean sea-level rise by 2100 is 0.44-0.76 meters relative to 1995-2014."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "All four listed emissions scenarios project the same likely global mean sea-level rise range of 0.44-0.76 meters by 2100 relative to 1995-2014."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "7b2cfa84b31f759e666b7379facfbc7c24183254c9070ce42dd5090f1cc0c6c3",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V011",
+        "trial": 3,
+        "claim_id": "C2",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V011-trial-3.json",
+        "saved_trial_sha256": "f56499aeaf97917a88d0363bccb6e8617ebe51b00dd7e12081f3ec722c553e5b",
+        "reference_verdict": "qualified"
+      }
+    },
+    {
+      "example_id": "J007",
+      "source_family": "coastal-resilience",
+      "input": {
+        "question": "How can the supplied field observations inform local flood planning?",
+        "claim": "The field observations support further investigation of local road flooding.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-notes",
+            "title": "Coastal Resilience illustrative field notes",
+            "excerpt": "Residents and public-works staff describe repeated nuisance flooding on roads during high\ntides and heavy rain. The observations are useful for identifying local conditions but are\nnot a substitute for a parcel-level engineering assessment.",
+            "locator": "sources/coastal-field-notes.md#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "Consistent with the excerpt's framing that the observations are 'useful for identifying local conditions,' which reasonably supports using them as a basis for further investigation (e.g., planning next steps such as engineering assessment).",
+        "reason_requirements": [
+          "further investigation is a bounded inference supported by the reported local observations"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "Residents and public-works staff describe repeated nuisance flooding on roads during high tides and heavy rain."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The field observations support further investigation of local road flooding."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The field observations establish parcel-level engineering flood-risk ratings."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "06df238697b9c81890122b5f3c48d0dd2e1c3c86a5722af6f170b1b6c65e73b6",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V005",
+        "trial": 3,
+        "claim_id": "C2",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V005-trial-3.json",
+        "saved_trial_sha256": "5d680a6621ca8b47b3103446d3ba53f7d99949955108256a46550fbaeaa6b821",
+        "reference_verdict": "verified"
+      }
+    },
+    {
+      "example_id": "J008",
+      "source_family": "coastal-resilience",
+      "input": {
+        "question": "Do the supplied records establish that this neighborhood has low flood risk?",
+        "claim": "The 147 paid claims prove that the neighborhood has low flood risk.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "coastal-claims",
+            "title": "Coastal Resilience illustrative claims records",
+            "excerpt": "measure,value,unit,period\npaid_claims,147,claims,2000-2025\nclaim_payments,4200000,USD,2000-2025",
+            "locator": "sources/coastal-claims.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "E001 only reports a count of 147 paid claims and $4.2M in claim payments over 2000-2025; it contains no baseline, denominator, comparison population, or risk-rating methodology that would allow a 'low risk' conclusion to be drawn. If anything, a nonzero claims history with sizable payouts is more consistent with meaningful flood exposure than with 'low risk.' The inferential leap from a raw claims count to a risk-level determination is unsupported by the cited evidence and is rejected.",
+        "reason_requirements": [
+          "count alone cannot establish a low-risk classification"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The supplied high-tide-day measure rises from 8 to 18 days per year between the earlier and recent values."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The 147 paid claims prove that the neighborhood has low flood risk."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The increase in high-tide days caused all 147 paid claims."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "68ac3d8af9b9e9b9973af81e7e087411615c636ff1d21a1d5b75319859a9742e",
+      "expected": {
+        "grounded": "fail",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "approved_by": "user",
+        "approved_at": "2026-10-26"
+      },
+      "origin": {
+        "case_id": "V004",
+        "trial": 2,
+        "claim_id": "C2",
+        "verifier_model_id": "us.anthropic.claude-sonnet-5",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V004-trial-2.json",
+        "saved_trial_sha256": "9781447d05ef49ee0e62ae86a352a6e4b47d21775adc13975c423b2b1ca97b5a",
+        "reference_verdict": "rejected"
+      }
+    }
+  ],
+  "input_revision": {
+    "date": "2026-10-27",
+    "approved_by": "user",
+    "scope": "Add target claim ID and original claim IDs/statements for cross-reference checking only. Preserve all eight human grades and existing input fields."
+  },
+  "revision": {
+    "parent": "calibration-v1.1.json",
+    "parent_sha256": "4dbc801faddc83aea688b71499b3f59605e607d55489e58ed2fb8e602e9959d6",
+    "change": "Add empty evidence-availability lists and rubric v1.2 for regression checks; all original fields and human grades are unchanged.",
+    "reference_grades": "Inherited unchanged from the user-approved calibration."
+  }
+}

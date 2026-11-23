@@ -20,6 +20,21 @@ class AgentRole(StrEnum):
     ANALYST = "analyst"
     VERIFIER = "verifier"
     SYNTHESIZER = "synthesizer"
+    SINGLE_AGENT = "single_agent"
+
+
+class ExecutionMode(StrEnum):
+    MULTI_AGENT = "multi_agent"
+    SINGLE_AGENT = "single_agent"
+
+
+def roles_for_mode(mode: ExecutionMode) -> tuple[AgentRole, ...]:
+    if mode is ExecutionMode.SINGLE_AGENT:
+        return (AgentRole.SINGLE_AGENT,)
+    return (
+        AgentRole.EVIDENCE_EXTRACTOR, AgentRole.ANALYST,
+        AgentRole.VERIFIER, AgentRole.SYNTHESIZER,
+    )
 
 
 class TerminalStatus(StrEnum):
@@ -59,6 +74,11 @@ class RunRequest(StrictModel):
     max_evidence: int = Field(default=20, ge=1, le=100)
     # The caller can supply an ID to follow progress before the response arrives.
     run_id: str | None = Field(default=None, max_length=32, pattern=r"^[a-f0-9]{32}$")
+    # Omit the default mode to preserve existing clients and saved request fingerprints.
+    execution_mode: ExecutionMode = Field(
+        default=ExecutionMode.MULTI_AGENT,
+        exclude_if=lambda mode: mode == ExecutionMode.MULTI_AGENT,
+    )
 
     def fingerprint(self) -> str:
         encoded = json.dumps(self.model_dump(mode="json"), sort_keys=True).encode()
@@ -87,6 +107,11 @@ class EvidenceExtractorInput(StrictModel):
     question: str
     chunks: list[SourceChunk]
     max_evidence: int
+
+
+class SingleAgentInput(StrictModel):
+    question: str
+    chunks: list[SourceChunk]
 
 
 # Keep each excerpt tied to its source and location.

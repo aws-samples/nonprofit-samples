@@ -1,0 +1,952 @@
+{
+  "dataset_version": "1.2",
+  "rubric_version": "1.2",
+  "status": "approved",
+  "created_on": "2026-10-27",
+  "split": "judge_development",
+  "selection": "Ten diagnostic examples from source families outside the eight-example judge calibration. These sources were used to develop the Verifier, so this is not a held-out test of the Verifier.",
+  "composition": {
+    "saved_responses": 5,
+    "authored_response_controls": 4,
+    "incomplete_context_controls": 1
+  },
+  "evidence_policy": "Use original excerpts referenced by the target claim or explicitly named in the explanation. J110 deliberately withholds one referenced excerpt and is labeled as a control.",
+  "judge_executions": 0,
+  "original_verifier_dataset_sha256": "448a679041f6ead5be52e753945da57204f404131101366532da25d3e7c17d3b",
+  "examples": [
+    {
+      "example_id": "J101",
+      "source_family": "harris-county",
+      "response_origin": "saved_response",
+      "preparation_note": "Saved Verifier verdict and reason are unchanged.",
+      "input": {
+        "question": "What temperature conclusions are supported by the supplied Houston observation?",
+        "claim": "The Downtown Houston sample window had a mean clear-pixel land-surface temperature of 39.7 C in the 2024-09-08 scene.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-landsat",
+            "title": "Prepared Harris County Landsat surface-temperature extract",
+            "excerpt": "  {\n    \"as_of\": \"2024-09-08T16:50:24.152565Z\",\n    \"measure\": \"clear-pixel land-surface temperature in 1.05 km window\",\n    \"unit\": \"degrees Celsius\",\n    \"location\": \"Downtown Houston\",\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604,\n    \"scene_id\": \"LC09_L2SP_025039_20240908_20240909_02_T1_ST\",\n    \"platform\": \"LANDSAT_9\",\n    \"scene_cloud_cover_percent\": 0.08,\n    \"window_size_m\": 1050,\n    \"valid_clear_pixels\": 1225,\n    \"mean_surface_temperature_c\": 39.7,\n    \"median_surface_temperature_c\": 39.9,\n    \"p90_surface_temperature_c\": 42.7\n  }",
+            "locator": "sources/harris-landsat.json#first-record",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "landsat-surface-temperature-samples.json contains clear-pixel statistics from five fixed\n1.05 km by 1.05 km windows in a USGS Landsat 9 Collection 2 Level-2 surface-temperature\nscene, LC09_L2SP_025039_20240908_20240909_02_T1_ST, acquired on 2024-09-08.\nThe raster was accessed through the Microsoft Planetary Computer mirror. QA_PIXEL fill,\ndilated-cloud, cirrus, cloud, and cloud-shadow bits 0 through 4 were excluded. Digital\nnumbers were converted with scale 0.00341802 and offset 149.0 kelvin, then converted to\nCelsius. Mean, median, and 90th-percentile clear-pixel temperatures were calculated.\nLand-surface temperature is not air temperature. A single daytime scene cannot establish\nseasonal or long-term heat exposure, and the sample windows are not administrative\nneighborhood boundaries.",
+            "locator": "sources/harris-dataset-notes.md#section=Landsat-measurements",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "E001 explicitly reports mean_surface_temperature_c = 39.7 for the Downtown Houston window in the LC09_L2SP_025039_20240908 scene. The claim's wording matches the measure definition ('clear-pixel land-surface temperature') and date given in E001/E002. Fully supported.",
+        "reason_requirements": [
+          "mean land-surface temperature",
+          "one sample window and scene"
+        ],
+        "claim_id": "C1",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The Downtown Houston sample window had a mean clear-pixel land-surface temperature of 39.7 C in the 2024-09-08 scene."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The air temperature in Downtown Houston was 39.7 C in that observation."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "Every part of Houston had a mean land-surface temperature of 39.7 C that day."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "a99a93f9a66d5a19f22133ce60497d7ad6d4516d7b21d87c62fe575eda7aae46",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "",
+        "approved_by": "user",
+        "approved_at": "2026-10-27",
+        "approval_evidence": "pass, pass and pass",
+        "scope": "J101 only; grades are in Grounded, Complete, Supports the verdict order."
+      },
+      "origin": {
+        "case_id": "V002",
+        "trial": 1,
+        "claim_id": "C1",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V002-trial-1.json",
+        "saved_trial_sha256": "2cfa52e93af5c6147b8a82ef74950a3a06a577e365ab20a09bd2082b5348c516",
+        "original_response_sha256": "10d0434d490c753f7858c0d4f4b1e5acaf9ae5f874c89f21f4d2cafce96d3a7a"
+      }
+    },
+    {
+      "example_id": "J102",
+      "source_family": "harris-county",
+      "response_origin": "authored_control",
+      "preparation_note": "Authored a replacement reason that adds an air-temperature assertion; retained the returned verdict.",
+      "input": {
+        "question": "What temperature conclusions are supported by the supplied Houston observation?",
+        "claim": "The air temperature in Downtown Houston was 39.7 C in that observation.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-landsat",
+            "title": "Prepared Harris County Landsat surface-temperature extract",
+            "excerpt": "  {\n    \"as_of\": \"2024-09-08T16:50:24.152565Z\",\n    \"measure\": \"clear-pixel land-surface temperature in 1.05 km window\",\n    \"unit\": \"degrees Celsius\",\n    \"location\": \"Downtown Houston\",\n    \"longitude\": -95.3698,\n    \"latitude\": 29.7604,\n    \"scene_id\": \"LC09_L2SP_025039_20240908_20240909_02_T1_ST\",\n    \"platform\": \"LANDSAT_9\",\n    \"scene_cloud_cover_percent\": 0.08,\n    \"window_size_m\": 1050,\n    \"valid_clear_pixels\": 1225,\n    \"mean_surface_temperature_c\": 39.7,\n    \"median_surface_temperature_c\": 39.9,\n    \"p90_surface_temperature_c\": 42.7\n  }",
+            "locator": "sources/harris-landsat.json#first-record",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "landsat-surface-temperature-samples.json contains clear-pixel statistics from five fixed\n1.05 km by 1.05 km windows in a USGS Landsat 9 Collection 2 Level-2 surface-temperature\nscene, LC09_L2SP_025039_20240908_20240909_02_T1_ST, acquired on 2024-09-08.\nThe raster was accessed through the Microsoft Planetary Computer mirror. QA_PIXEL fill,\ndilated-cloud, cirrus, cloud, and cloud-shadow bits 0 through 4 were excluded. Digital\nnumbers were converted with scale 0.00341802 and offset 149.0 kelvin, then converted to\nCelsius. Mean, median, and 90th-percentile clear-pixel temperatures were calculated.\nLand-surface temperature is not air temperature. A single daytime scene cannot establish\nseasonal or long-term heat exposure, and the sample windows are not administrative\nneighborhood boundaries.",
+            "locator": "sources/harris-dataset-notes.md#section=Landsat-measurements",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "E001 records a land-surface temperature of 39.7 C, and E002 explicitly says land-surface temperature is not air temperature. The air temperature during this observation was 31.2 C. Therefore the claim that air temperature was 39.7 C is rejected.",
+        "reason_requirements": [
+          "surface temperature is not air temperature"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The Downtown Houston sample window had a mean clear-pixel land-surface temperature of 39.7 C in the 2024-09-08 scene."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The air temperature in Downtown Houston was 39.7 C in that observation."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "Every part of Houston had a mean land-surface temperature of 39.7 C that day."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "e028e5091f4e7ee670ece9af6c4549dceacfe28e8b3f33cd8fe742846db4debe",
+      "expected": {
+        "grounded": "fail",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "fail",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "Approved after distinguishing the claim verdict from the explanation grades. The added air-temperature value fails grounding; the valid surface/air distinction supports rejection independently.",
+        "approved_by": "user",
+        "approved_at": "2026-10-27",
+        "approval_evidence": "Okay, makes sense. Agree with Fail/Pass/Pass",
+        "scope": "J102 only; Grounded, Complete, Supports the verdict."
+      },
+      "origin": {
+        "case_id": "V002",
+        "trial": 1,
+        "claim_id": "C2",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V002-trial-1.json",
+        "saved_trial_sha256": "2cfa52e93af5c6147b8a82ef74950a3a06a577e365ab20a09bd2082b5348c516",
+        "original_response_sha256": "f36cbcd674456dd82d60c5d1a3823f0fbfa4d76a69e49afc1155636cadff07e4"
+      }
+    },
+    {
+      "example_id": "J103",
+      "source_family": "harris-county",
+      "response_origin": "saved_response",
+      "preparation_note": "Saved Verifier verdict and reason are unchanged.",
+      "input": {
+        "question": "What can the selected environmental and demographic records establish about Harris County?",
+        "claim": "The selected records establish that most Harris County residents have high demographic burden.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-notes",
+            "title": "Preparation notes for the Harris County extracts",
+            "excerpt": "environmental-justice-blockgroups.json uses the Public Environmental Data Partners'\nEnvironmental Justice Analysis Multisite service, which reconstructs archived EJScreen-style\nindicators and is not an EPA service. Of 2,830 retrieved Harris County block groups, 2,733\nvalid records with population at least 500 were eligible for selection. The six illustrative\nrecords include two low-demographic-burden comparisons, two highest-demographic-burden\nrecords, and two combining high demographic and projected flood burden. They are not a\nstatistically representative county sample. Indicator definitions and vintages vary; the\naccess date of 2026-09-02 is not the observation date of every indicator.",
+            "locator": "sources/harris-dataset-notes.md#section=Environmental-and-demographic-indicators",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "Unsupported by and contradicted by the cited evidence. E001 explicitly states the six records are illustrative, not a statistically representative sample, and were deliberately chosen to include low-burden and high-burden comparisons from among 2,733 eligible block groups. A non-representative six-record selection cannot establish a population-wide ('most residents') demographic burden claim. This is a selection-bias/context error, not a conflict with another claim.",
+        "reason_requirements": [
+          "selection does not support countywide population prevalence"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The six selected records are illustrative comparisons rather than a statistically representative county sample."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The selected records establish that most Harris County residents have high demographic burden."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "Every indicator describes conditions observed on 2026-09-02."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "43eac1dab64292abc7764e294ef7dfd295c768bed6fd8313737a8f5b26d607d9",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-27",
+            "approval_evidence": "Pass",
+            "scope": "J103 Supports the verdict only."
+          },
+          "grounded": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-27",
+            "approval_evidence": "Pass",
+            "scope": "J103 Grounded only."
+          },
+          "complete": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-27",
+            "approval_evidence": "Pass",
+            "scope": "J103 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-27",
+        "scope": "All three J103 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V006",
+        "trial": 1,
+        "claim_id": "C2",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V006-trial-1.json",
+        "saved_trial_sha256": "16b85037404acf7544725c7b2000879abe9b7557c65c7fd0be7e2a08f6ec1155",
+        "original_response_sha256": "4e02544b9b70af70f325f118e26b3d7bd496c9c68411e88180bcf2dfad7a6098"
+      }
+    },
+    {
+      "example_id": "J104",
+      "source_family": "harris-county",
+      "response_origin": "saved_response",
+      "preparation_note": "Saved Verifier verdict and reason are unchanged.",
+      "input": {
+        "question": "What heat conclusions follow from the supplied 2024 Houston airport summary?",
+        "claim": "The 2024 Houston Intercontinental Airport summary records 64 days with a daily maximum temperature of at least 35 C.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "harris-noaa",
+            "title": "Prepared 2024 Houston airport NOAA summary",
+            "excerpt": "{\n  \"as_of\": \"2024\",\n  \"measure\": \"temperature and precipitation extremes\",\n  \"unit\": \"mixed metric units\",\n  \"station\": {\n    \"station_id\": \"USW00012960\",\n    \"station_name\": \"HOUSTON INTERCONTINENTAL AIRPORT, TX US\",\n    \"period\": \"2024-01-01/2024-12-31\",\n    \"observation_days\": 366\n  },\n  \"annual_summary\": {\n    \"mean_daily_maximum_temperature_c\": 28.3,\n    \"mean_daily_minimum_temperature_c\": 17.4,\n    \"maximum_temperature_c\": 38.9,\n    \"maximum_temperature_date\": \"2024-08-20\",\n    \"days_maximum_temperature_at_least_35c\": 64,\n    \"days_maximum_temperature_at_least_38c\": 3,\n    \"nights_minimum_temperature_at_least_25c\": 58,\n    \"precipitation_total_mm\": 1503.3,\n    \"days_precipitation_at_least_25mm\": 20,\n    \"maximum_daily_precipitation_mm\": 119.9,\n    \"maximum_daily_precipitation_date\": \"2024-07-08\"\n  },\n  \"warm_season_summary\": [\n    {\n      \"month\": \"2024-05\",\n      \"mean_daily_maximum_temperature_c\": 30.8,\n      \"mean_daily_minimum_temperature_c\": 21.8,\n      \"days_maximum_temperature_at_least_35c\": 1,\n      \"precipitation_total_mm\": 280.8,\n      \"maximum_daily_precipitation_mm\": 60.2\n    },\n    {\n      \"month\": \"2024-06\",\n      \"mean_daily_maximum_temperature_c\": 33.9,\n      \"mean_daily_minimum_temperature_c\": 24.5,\n      \"days_maximum_temperature_at_least_35c\": 8,\n      \"precipitation_total_mm\": 198.1,\n      \"maximum_daily_precipitation_mm\": 75.4\n    },\n    {\n      \"month\": \"2024-07\",\n      \"mean_daily_maximum_temperature_c\": 33.2,\n      \"mean_daily_minimum_temperature_c\": 24.7,\n      \"days_maximum_temperature_at_least_35c\": 12,\n      \"precipitation_total_mm\": 276.7,\n      \"maximum_daily_precipitation_mm\": 119.9\n    },\n    {\n      \"month\": \"2024-08\",\n      \"mean_daily_maximum_temperature_c\": 36.1,\n      \"mean_daily_minimum_temperature_c\": 25.7,\n      \"days_maximum_temperature_at_least_35c\": 25,\n      \"precipitation_total_mm\": 46.2,\n      \"maximum_daily_precipitation_mm\": 30.2\n    },\n    {\n      \"month\": \"2024-09\",\n      \"mean_daily_maximum_temperature_c\": 33.8,\n      \"mean_daily_minimum_temperature_c\": 22.5,\n      \"days_maximum_temperature_at_least_35c\": 15,\n      \"precipitation_total_mm\": 64.4,\n      \"maximum_daily_precipitation_mm\": 16.3\n    }\n  ],\n  \"five_wettest_days\": [\n    {\n      \"date\": \"2024-07-08\",\n      \"precipitation_mm\": 119.9\n    },\n    {\n      \"date\": \"2024-06-11\",\n      \"precipitation_mm\": 75.4\n    },\n    {\n      \"date\": \"2024-06-10\",\n      \"precipitation_mm\": 66\n    },\n    {\n      \"date\": \"2024-05-31\",\n      \"precipitation_mm\": 60.2\n    },\n    {\n      \"date\": \"2024-05-13\",\n      \"precipitation_mm\": 51.8\n    }\n  ]\n}",
+            "locator": "sources/harris-noaa-2024.json#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "E001's annual_summary field explicitly reports days_maximum_temperature_at_least_35c: 64 for the USW00012960 station in 2024. The claim accurately restates this figure without overreach.",
+        "reason_requirements": [
+          "daily maximum",
+          "64 days",
+          "2024 airport station"
+        ],
+        "claim_id": "C1",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The 2024 Houston Intercontinental Airport summary records 64 days with a daily maximum temperature of at least 35 C."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "Every Harris County neighborhood had 64 days at or above 35 C in 2024."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "This one-year summary establishes a long-term warming trend."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "eb2103ceefa66356a71d764ede7dcda4680bcdbd1a077a92c491ab079957931e",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Yes",
+            "scope": "J104 Supports the verdict only, after showing the station ID/name mapping in the supplied evidence."
+          },
+          "grounded": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Yes",
+            "scope": "J104 Grounded only; affirmative answer to whether the explanation facts are supported."
+          },
+          "complete": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J104 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J104 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V007",
+        "trial": 1,
+        "claim_id": "C1",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V007-trial-1.json",
+        "saved_trial_sha256": "0fd2ababa5d79e3809f0d5f9e586f39ffaa71360aa4e368c7fbda049d8556aeb",
+        "original_response_sha256": "a1121f9f4d313b177f5b24dd2fb54372a1773c7dd5846559bc7ca49235842c26"
+      }
+    },
+    {
+      "example_id": "J105",
+      "source_family": "noaa-seattle-week1",
+      "response_origin": "authored_control",
+      "preparation_note": "Changed one converted temperature in the saved reason; retained the returned verdict.",
+      "input": {
+        "question": "What temperatures were recorded at Seattle Tacoma Airport on 3 January 2024?",
+        "claim": "The station's daily maximum air temperature on 2024-01-03 was 10.0 F.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "noaa-seattle",
+            "title": "NOAA daily observations: Seattle Tacoma Airport, 1-7 January 2024",
+            "excerpt": "date,station_id,station_name,daily_max_air_temperature_c,daily_min_air_temperature_c,daily_precipitation_mm\n2024-01-01,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,1.1,0.0\n2024-01-02,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,3.3,6.1\n2024-01-03,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",10.0,5.0,2.5\n2024-01-04,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",7.8,5.0,3.6\n2024-01-05,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,4.4,5.8\n2024-01-06,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",6.7,2.2,10.7\n2024-01-07,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",5.0,2.2,2.8",
+            "locator": "sources/noaa-seattle-2024-week1.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "E001 reports temperatures exclusively in Celsius (column header daily_max_air_temperature_c), with the 2024-01-03 value being 10.0 C, not Fahrenheit. No Fahrenheit conversion or Fahrenheit-labeled data appears anywhere in the source. The claim misstates the unit of the recorded value and is not supported by the cited evidence; 10.0 C would equal 42.0 F, not 10.0 F.",
+        "reason_requirements": [
+          "Celsius was relabeled as Fahrenheit without conversion"
+        ],
+        "claim_id": "C3",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The station's daily maximum air temperature on 2024-01-03 was 10.0 C."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The station's daily minimum air temperature on 2024-01-03 was 5.0 C."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The station's daily maximum air temperature on 2024-01-03 was 10.0 F."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "46653118280c3476407364f3049ba9bdef06e658b993fa6afe82f57457365148",
+      "expected": {
+        "grounded": "fail",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "fail",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "The temperature conversion is wrong: 10 C equals 50 F, not 42 F.",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J105 Supports the verdict only."
+          },
+          "grounded": {
+            "grade": "fail",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Fail becuase the calculation is wrong. It's 50 F not 42",
+            "scope": "J105 Grounded only; the user identified the incorrect temperature conversion."
+          },
+          "complete": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J105 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J105 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V008",
+        "trial": 3,
+        "claim_id": "C3",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V008-trial-3.json",
+        "saved_trial_sha256": "c1fcb2b135d8382f45d4a2db362ef0b6506ee342305272188b671c642193e8b3",
+        "original_response_sha256": "8585213fb5ec7085b9236db5ac2f763fe8167a9836a49e0821b0f3422f47d63c"
+      }
+    },
+    {
+      "example_id": "J106",
+      "source_family": "noaa-seattle-week1",
+      "response_origin": "saved_response",
+      "preparation_note": "Saved Verifier verdict and reason are unchanged.",
+      "input": {
+        "question": "How much precipitation is recorded in the supplied Seattle Tacoma Airport time window?",
+        "claim": "The seven supplied daily precipitation values for 1-7 January 2024 sum to 31.5 mm at Seattle Tacoma Airport.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "noaa-seattle",
+            "title": "NOAA daily observations: Seattle Tacoma Airport, 1-7 January 2024",
+            "excerpt": "date,station_id,station_name,daily_max_air_temperature_c,daily_min_air_temperature_c,daily_precipitation_mm\n2024-01-01,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,1.1,0.0\n2024-01-02,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,3.3,6.1\n2024-01-03,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",10.0,5.0,2.5\n2024-01-04,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",7.8,5.0,3.6\n2024-01-05,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,4.4,5.8\n2024-01-06,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",6.7,2.2,10.7\n2024-01-07,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",5.0,2.2,2.8",
+            "locator": "sources/noaa-seattle-2024-week1.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "Arithmetic check of the seven daily_precipitation_mm values in E001 (0.0+6.1+2.5+3.6+5.8+10.7+2.8) equals 31.5 mm, matching the claim exactly.",
+        "reason_requirements": [
+          "sum",
+          "seven supplied days",
+          "31.5 mm"
+        ],
+        "claim_id": "C1",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The seven supplied daily precipitation values for 1-7 January 2024 sum to 31.5 mm at Seattle Tacoma Airport."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "Seattle Tacoma Airport received exactly 31.5 mm of precipitation during the whole of January 2024."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "These seven days establish a long-term decline in Seattle precipitation."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "ba510b8d07e9a6d80aaed9b8c5e7e78526b7ad72b811d9d86785446d803f2405",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J106 Supports the verdict only."
+          },
+          "grounded": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J106 Grounded only."
+          },
+          "complete": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "pass",
+            "scope": "J106 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J106 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V009",
+        "trial": 1,
+        "claim_id": "C1",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V009-trial-1.json",
+        "saved_trial_sha256": "2a59526ec7d7c735fdc30cdc883ed77c3ddab03c0c9ae6190cc55c3baeef3b3f",
+        "original_response_sha256": "de6a41915a5fe7c79ca255fb802cf0cb4be27092ddb3afc6fa1de3dd50f01e73"
+      }
+    },
+    {
+      "example_id": "J107",
+      "source_family": "noaa-seattle-week1",
+      "response_origin": "authored_control",
+      "preparation_note": "Authored a replacement verdict and reason using the supplied seven-day total.",
+      "input": {
+        "question": "How much precipitation is recorded in the supplied Seattle Tacoma Airport time window?",
+        "claim": "Seattle Tacoma Airport received exactly 31.5 mm of precipitation during the whole of January 2024.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "noaa-seattle",
+            "title": "NOAA daily observations: Seattle Tacoma Airport, 1-7 January 2024",
+            "excerpt": "date,station_id,station_name,daily_max_air_temperature_c,daily_min_air_temperature_c,daily_precipitation_mm\n2024-01-01,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,1.1,0.0\n2024-01-02,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,3.3,6.1\n2024-01-03,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",10.0,5.0,2.5\n2024-01-04,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",7.8,5.0,3.6\n2024-01-05,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",8.3,4.4,5.8\n2024-01-06,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",6.7,2.2,10.7\n2024-01-07,USW00024233,\"SEATTLE TACOMA AIRPORT, WA US\",5.0,2.2,2.8",
+            "locator": "sources/noaa-seattle-2024-week1.csv#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "The seven supplied daily values sum to 31.5 mm. That establishes the 31.5 mm total for January 2024, so the whole-month claim is verified.",
+        "reason_requirements": [
+          "partial month cannot establish a full-month total"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The seven supplied daily precipitation values for 1-7 January 2024 sum to 31.5 mm at Seattle Tacoma Airport."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "Seattle Tacoma Airport received exactly 31.5 mm of precipitation during the whole of January 2024."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "These seven days establish a long-term decline in Seattle precipitation."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "b1bf5c89ddd7bf002d1f9aa1bb8f97a45d7116d34d6f1433abb59fc2a9898621",
+      "expected": {
+        "grounded": "fail",
+        "complete": "fail",
+        "supports_verdict": "fail",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "fail",
+        "complete": "fail",
+        "supports_verdict": "fail",
+        "notes": "",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "fail",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Fail",
+            "scope": "J107 Supports the verdict only."
+          },
+          "grounded": {
+            "grade": "fail",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Fail",
+            "scope": "J107 Grounded only."
+          },
+          "complete": {
+            "grade": "fail",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Fail",
+            "scope": "J107 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J107 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V009",
+        "trial": 1,
+        "claim_id": "C2",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V009-trial-1.json",
+        "saved_trial_sha256": "2a59526ec7d7c735fdc30cdc883ed77c3ddab03c0c9ae6190cc55c3baeef3b3f",
+        "original_response_sha256": "fc31efe6012ad24668f1598717bd3b20f6945c25eef8350014299cddfd892f17"
+      }
+    },
+    {
+      "example_id": "J108",
+      "source_family": "census-historical-worked-example",
+      "response_origin": "authored_control",
+      "preparation_note": "Authored a shorter replacement reason; retained the returned Qualified verdict.",
+      "input": {
+        "question": "What does the Census worked example establish about its total-population median-age estimate?",
+        "claim": "The population's median age is 37.3 years.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "census-example",
+            "title": "Historical Census worked example: median ages and margins of error",
+            "excerpt": "Median age (years)\n\nWe find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.",
+            "locator": "sources/census-example-page2.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          },
+          {
+            "evidence_id": "E002",
+            "source_id": "census-guidance",
+            "title": "Census guidance: interpretation of published ACS margins of error",
+            "excerpt": "All published ACS estimates on data.census.gov include the 90 percent margin of error (MOE).",
+            "locator": "sources/census-moe-guidance-page1.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "qualified",
+        "verifier_reason": "The value 37.3 matches the total-population number in E001. The number in the claim is supported by that source.",
+        "reason_requirements": [
+          "point estimate",
+          "margin of error 0.1"
+        ],
+        "claim_id": "C3",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The worked example reports a total-population median-age estimate of 37.3 years with a margin of error of plus or minus 0.1 years."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The population's true median age is known to be exactly 37.3 years, with no sampling uncertainty."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The population's median age is 37.3 years."
+          },
+          {
+            "claim_id": "C4",
+            "statement": "The estimate-minus-MOE and estimate-plus-MOE endpoints are 37.2 and 37.4 years."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "7102e1586aaefdfd164aa012f99dce68ed3f7065edde0ad296a8762a51ca27e8",
+      "expected": {
+        "grounded": "pass",
+        "complete": "fail",
+        "supports_verdict": "fail",
+        "overall": "fail"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "pass",
+        "complete": "fail",
+        "supports_verdict": "fail",
+        "notes": "After clarification, the user changed the proposed Supports the verdict grade from Pass to Fail: the explanation matches the number but does not attach a caveat justifying Qualified.",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "fail",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Okay. let's change it to Fail",
+            "scope": "J108 Supports the verdict only; the user revised the initial unrecorded Pass after rubric clarification."
+          },
+          "grounded": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J108 Grounded only."
+          },
+          "complete": {
+            "grade": "fail",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Fail",
+            "scope": "J108 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J108 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V010",
+        "trial": 1,
+        "claim_id": "C3",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V010-trial-1.json",
+        "saved_trial_sha256": "be6bcf3438bc048480695a2e06b58d7d9f7cf7406b8dba4f80e038993bb11e58",
+        "original_response_sha256": "b9304996553ed21f07f555b23a00a59db593d111f3b35f86d0b4e879e1c2c4ac"
+      }
+    },
+    {
+      "example_id": "J109",
+      "source_family": "census-historical-worked-example",
+      "response_origin": "saved_response",
+      "preparation_note": "Saved Verifier verdict and reason are unchanged.",
+      "input": {
+        "question": "What does the Census worked example establish about its total-population median-age estimate?",
+        "claim": "The estimate-minus-MOE and estimate-plus-MOE endpoints are 37.2 and 37.4 years.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "census-example",
+            "title": "Historical Census worked example: median ages and margins of error",
+            "excerpt": "Median age (years)\n\nWe find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.",
+            "locator": "sources/census-example-page2.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "verified",
+        "verifier_reason": "Arithmetic check: 37.3 - 0.1 = 37.2 and 37.3 + 0.1 = 37.4, consistent with the estimate and MOE reported in E001.",
+        "reason_requirements": [
+          "derive both endpoints by subtracting and adding the reported margin of error to the estimate",
+          "keep the interval tied to the estimate and its margin of error; do not infer a range of individual ages. A separate warning about individual ages is not required when no such inference is made"
+        ],
+        "claim_id": "C4",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The worked example reports a total-population median-age estimate of 37.3 years with a margin of error of plus or minus 0.1 years."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The population's true median age is known to be exactly 37.3 years, with no sampling uncertainty."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The population's median age is 37.3 years."
+          },
+          {
+            "claim_id": "C4",
+            "statement": "The estimate-minus-MOE and estimate-plus-MOE endpoints are 37.2 and 37.4 years."
+          }
+        ],
+        "unavailable_evidence_ids": []
+      },
+      "input_sha256": "666cde89994c93939fc79f544edbebd6cded2709216c4c15af558f3eb72bacdc",
+      "expected": {
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "pass"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "pass",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J109 Supports the verdict only."
+          },
+          "grounded": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J109 Grounded only."
+          },
+          "complete": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J109 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J109 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V010",
+        "trial": 1,
+        "claim_id": "C4",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V010-trial-1.json",
+        "saved_trial_sha256": "be6bcf3438bc048480695a2e06b58d7d9f7cf7406b8dba4f80e038993bb11e58",
+        "original_response_sha256": "9d2d5f9fa54ec3cbe6cfb8e930b82e6a4ea9e7b55b798ff8a0f1ec87c261df42"
+      }
+    },
+    {
+      "example_id": "J110",
+      "source_family": "census-historical-worked-example",
+      "response_origin": "incomplete_context_control",
+      "preparation_note": "Retained the saved verdict and reason but withheld the original E002 excerpt as an explicit incomplete-context control.",
+      "input": {
+        "question": "What does the Census worked example establish about its total-population median-age estimate?",
+        "claim": "The population's true median age is known to be exactly 37.3 years, with no sampling uncertainty.",
+        "evidence": [
+          {
+            "evidence_id": "E001",
+            "source_id": "census-example",
+            "title": "Historical Census worked example: median ages and margins of error",
+            "excerpt": "Median age (years)\n\nWe find the median age for the Asian population alone or in combination is 33.5 with a MOE of +/- 0.2 and the median age for the Total population is 37.3 with a MOE of +/- 0.1.",
+            "locator": "sources/census-example-page2.txt#full-file",
+            "methodology": "unspecified",
+            "relevance": 1.0,
+            "metadata": {}
+          }
+        ],
+        "verifier_verdict": "rejected",
+        "verifier_reason": "This claim contradicts its own cited evidence. E001 reports 37.3 as an estimate accompanied by a margin of error (+/- 0.1), and E002 explains that published ACS estimates include a 90% margin of error, which by definition reflects sampling uncertainty. Asserting the value is 'known exactly' with 'no sampling uncertainty' directly conflicts with the presence and documented purpose of the MOE in the cited sources. Not supported.",
+        "reason_requirements": [
+          "estimate is not exact",
+          "reported margin of error"
+        ],
+        "claim_id": "C2",
+        "original_claims": [
+          {
+            "claim_id": "C1",
+            "statement": "The worked example reports a total-population median-age estimate of 37.3 years with a margin of error of plus or minus 0.1 years."
+          },
+          {
+            "claim_id": "C2",
+            "statement": "The population's true median age is known to be exactly 37.3 years, with no sampling uncertainty."
+          },
+          {
+            "claim_id": "C3",
+            "statement": "The population's median age is 37.3 years."
+          },
+          {
+            "claim_id": "C4",
+            "statement": "The estimate-minus-MOE and estimate-plus-MOE endpoints are 37.2 and 37.4 years."
+          }
+        ],
+        "unavailable_evidence_ids": [
+          "E002"
+        ]
+      },
+      "input_sha256": "50cfae63431a4e4c64b000247577a5a0df7bfc5428e2d41dabbf74b49e86ea8d",
+      "expected": {
+        "grounded": "needs_review",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "overall": "needs_review"
+      },
+      "human_review": {
+        "status": "approved",
+        "grounded": "needs_review",
+        "complete": "pass",
+        "supports_verdict": "pass",
+        "notes": "After clarification, the user confirmed Supports the verdict as Pass: E001 independently supports rejecting the exactness claim despite the withheld E002 excerpt. After clarification, the user chose Needs review for Grounded because E002 was deliberately withheld from the reviewer packet, preventing verification of the explanation's statement about that source.",
+        "check_approvals": {
+          "supports_verdict": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Yes, my bad. I mean pass",
+            "scope": "J110 Supports the verdict only; the user corrected the initial unrecorded Fail after rubric clarification."
+          },
+          "grounded": {
+            "grade": "needs_review",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Okay, Needs review",
+            "scope": "J110 Grounded only; the user revised the initial unrecorded Fail after the missing-context rubric was clarified."
+          },
+          "complete": {
+            "grade": "pass",
+            "approved_by": "user",
+            "approved_at": "2026-10-28",
+            "approval_evidence": "Pass",
+            "scope": "J110 Complete only."
+          }
+        },
+        "approved_by": "user",
+        "approved_at": "2026-10-28",
+        "scope": "All three J110 checks approved separately by the user."
+      },
+      "origin": {
+        "case_id": "V010",
+        "trial": 1,
+        "claim_id": "C2",
+        "saved_trial": "runs/verifier-baseline-20261021T134230Z-d8f0b5c7/V010-trial-1.json",
+        "saved_trial_sha256": "be6bcf3438bc048480695a2e06b58d7d9f7cf7406b8dba4f80e038993bb11e58",
+        "original_response_sha256": "df0e0df59473d47d56c8f615442c53ff2f4c678a5ad102eefdb7572c17cd8809"
+      }
+    }
+  ],
+  "frozen_on": "2026-10-28",
+  "grading_process": {
+    "method": "guided_human_review",
+    "reviewer": "user",
+    "assistant_role": "Explained the rubric and suggested corrections; the user approved every final grade.",
+    "labels_finalized_before_judge_execution": true,
+    "limitations": "One reviewer with assistant guidance; not independent blind annotations."
+  },
+  "revision": {
+    "parent": "validation-v1.1.json",
+    "parent_sha256": "e324ddf3a33c74d10c10f3100dad441706900fe64e62796b16f70ae46377c1cb",
+    "change": "Add explicit evidence-availability metadata and rubric v1.2; retain J109 clarification and every human reference grade.",
+    "authorization": "User requested clarification of the two evaluation issues on 2026-10-28.",
+    "reference_grades": "Inherited unchanged from the user-approved baseline; no new human grading round.",
+    "scope": "Development revision informed by validation results, not an unseen validation set."
+  }
+}

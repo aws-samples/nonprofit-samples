@@ -9,12 +9,15 @@ import streamlit as st
 
 from evidence_synthesis.models import (
     AnalysisResult,
+    Citation,
     EvidenceExtractorResult,
+    ExecutionMode,
     ResearchState,
     SourceProfile,
     SynthesisResult,
     VerificationResult,
     VerificationStatus,
+    roles_for_mode,
 )
 
 STAGE_LABELS = {
@@ -22,12 +25,14 @@ STAGE_LABELS = {
     "analyst": "Analyst",
     "verifier": "Verifier",
     "synthesizer": "Synthesizer",
+    "single_agent": "Single agent",
 }
 STAGE_DESCRIPTIONS = {
     "evidence_extractor": "Identify the sources and extract relevant evidence.",
     "analyst": "Explain what the evidence suggests.",
     "verifier": "Challenge unsupported claims and missing links.",
     "synthesizer": "Write a cited answer, including caveats.",
+    "single_agent": "Read the sources, assess the evidence, and write a cited answer.",
 }
 VERIFICATION_LABELS = {
     VerificationStatus.VERIFIED: "Supported",
@@ -48,9 +53,13 @@ def stage_status_class(status: str) -> str:
     return "complete"
 
 
-def render_pipeline(statuses: dict[str, str] | None = None) -> None:
-    columns = st.columns(4)
-    for column, stage in zip(columns, STAGE_LABELS, strict=True):
+def render_pipeline(
+    statuses: dict[str, str] | None = None,
+    *, execution_mode: ExecutionMode = ExecutionMode.MULTI_AGENT,
+) -> None:
+    stages = roles_for_mode(execution_mode)
+    columns = st.columns(len(stages))
+    for column, stage in zip(columns, stages, strict=True):
         status = statuses.get(stage, "") if statuses else ""
         state_class = stage_status_class(status)
         with column:
@@ -201,25 +210,37 @@ def render_synthesis(
     if result.partial:
         st.warning(result.terminal_reason or "The synthesis is partial.")
     st.markdown(result.answer)
-    if result.citations:
+    render_citations(result.citations)
+    render_limitations(result.limitations)
+
+
+def render_citations(citations: list[Citation]) -> None:
+    if citations:
         st.subheader("Citations")
         st.dataframe(
             [
                 {
-                    "Evidence": citation.evidence_id,
+                    "Citation": citation.evidence_id,
                     "Source": citation.source_id,
                     "Title": citation.title,
                     "Locator": citation.locator,
                 }
-                for citation in result.citations
+                for citation in citations
             ],
             width="stretch",
             hide_index=True,
         )
-    if result.limitations:
+    else:
+        st.caption("No citations are available.")
+
+
+def render_limitations(limitations: list[str]) -> None:
+    if limitations:
         st.subheader("Limitations")
-        for limitation in result.limitations:
+        for limitation in limitations:
             st.write(f"- {limitation}")
+    else:
+        st.caption("No limitations were reported.")
 
 
 def _render_answer_preview(
@@ -256,18 +277,27 @@ def _render_answer_preview(
 
 
 def render_terminal_banner(state: ResearchState, *, presenter_mode: bool = False) -> None:
+    single_agent = state.request.execution_mode is ExecutionMode.SINGLE_AGENT
     message = (
         f"Run {state.run_id}: {state.status.value}. "
-        f"Tokens: {state.total_tokens:,}. "
-        f"Verification cycles: {state.verification_cycles}."
+        f"Tokens: {state.total_tokens:,}."
     )
+    if not single_agent:
+        message += f" Verification cycles: {state.verification_cycles}."
     if presenter_mode:
-        message = {
+        messages = {
             "completed": "Synthesis complete · answer and evidence ready to explore.",
             "blocked": "Synthesis blocked by the safety policy.",
             "partial": "Partial result · the pipeline did not complete.",
             "failed": "The pipeline could not complete.",
-        }[state.status.value]
+        }
+        if single_agent:
+            messages.update({
+                "completed": "Answer complete · citations and limitations ready to explore.",
+                "partial": "Partial result · the single agent did not complete.",
+                "failed": "The single agent could not complete.",
+            })
+        message = messages[state.status.value]
     if state.status.value == "completed":
         st.success(message)
     elif state.status.value == "blocked":
@@ -277,13 +307,16 @@ def render_terminal_banner(state: ResearchState, *, presenter_mode: bool = False
     if state.terminal_reason:
         st.caption(state.terminal_reason)
     if state.summary_only:
-        st.info("Recovered the final answer. Rerun to view the detailed evidence.")
+        st.info(
+            "Recovered the saved final answer."
+            if single_agent else "Recovered the final answer. Rerun to view the detailed evidence."
+        )
     if not state.token_usage_complete:
         st.warning("Token usage is incomplete for this run.")
 
 
 def render_metrics(state: ResearchState) -> None:
-    st.subheader("Pipeline metrics")
+    st.subheader("Run metrics")
     rows = [
         {
             "Role": STAGE_LABELS[metric.role.value],
@@ -321,12 +354,22 @@ def render_state(
     slots: dict[str, Any],
     presenter_mode: bool = False,
 ) -> None:
+    single_agent = state.request.execution_mode is ExecutionMode.SINGLE_AGENT
     with slots["answer"].container():
         render_terminal_banner(state, presenter_mode=presenter_mode)
         if state.synthesis is not None:
-            render_synthesis(
-                state.synthesis, presenter_mode=presenter_mode, verification=state.verification,
-            )
+            if single_agent:
+                st.subheader("Answer")
+                st.markdown(state.synthesis.answer)
+            else:
+                render_synthesis(
+                    state.synthesis, presenter_mode=presenter_mode, verification=state.verification,
+                )
+    if single_agent and state.synthesis is not None:
+        with slots["citations"].container():
+            render_citations(state.synthesis.citations)
+        with slots["limitations"].container():
+            render_limitations(state.synthesis.limitations)
     if state.evidence_extractor is not None:
         with slots["evidence_extractor"].container():
             render_evidence_extractor(state.evidence_extractor)

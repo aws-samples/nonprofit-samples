@@ -1,0 +1,36 @@
+{
+  "assessment": "IPCC AR6 Working Group I Summary for Policymakers, section B.5.3",
+  "assessment_year": 2021,
+  "quantity": "global mean sea-level rise",
+  "target_year": 2100,
+  "reference_period": "1995-2014",
+  "unit": "meters",
+  "range_description": "likely range",
+  "assessment_confidence": "medium",
+  "scenario_projections": [
+    {
+      "scenario": "SSP1-1.9",
+      "emissions": "very low",
+      "lower": 0.28,
+      "upper": 0.55
+    },
+    {
+      "scenario": "SSP1-2.6",
+      "emissions": "low",
+      "lower": 0.32,
+      "upper": 0.62
+    },
+    {
+      "scenario": "SSP2-4.5",
+      "emissions": "intermediate",
+      "lower": 0.44,
+      "upper": 0.76
+    },
+    {
+      "scenario": "SSP5-8.5",
+      "emissions": "very high",
+      "lower": 0.63,
+      "upper": 1.01
+    }
+  ]
+}

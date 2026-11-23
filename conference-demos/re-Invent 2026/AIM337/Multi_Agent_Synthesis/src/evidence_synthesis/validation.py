@@ -10,9 +10,18 @@ from evidence_synthesis.models import (
     AnalysisResult,
     Citation,
     EvidenceRecord,
+    SourceChunk,
     SynthesisResult,
     VerificationResult,
     VerificationStatus,
+)
+
+_RESULT_FIELDS = "answer|citations|limitations|partial|terminal_reason|safety_action"
+_OUTPUT_MARKUP = re.compile(
+    rf"<\s*/?\s*(?:{_RESULT_FIELDS}|SynthesisResult|parameter|invoke|function_calls)\b"
+    rf"""|["'](?:{_RESULT_FIELDS})["']\s*:"""
+    r"|<\|[^>]+\|>",
+    re.IGNORECASE,
 )
 
 
@@ -59,17 +68,9 @@ def validate_synthesis(
     if not allowed_ids:
         raise ContractError("no_reviewed_claims_for_generated_synthesis")
     evidence_by_id = {item.evidence_id: item for item in evidence}
-    inline_ids = list(dict.fromkeys(
-        eid
-        for bracket in re.findall(
-            r"\[([^\]]+)\]", "\n".join([result.answer, *result.limitations]),
-        )
-        for eid in re.findall(r"\bE[0-9]+\b", bracket)
-    ))
+    inline_ids = _inline_ids(result)
     if not set(inline_ids).issubset(allowed_ids):
         raise ContractError("inline_citation_outside_reviewed_evidence")
-    if allowed_ids and not inline_ids:
-        raise ContractError("missing_inline_citations")
     # Source labels and locations come from retained evidence, not generated metadata.
     result.citations = [
         Citation(
@@ -80,3 +81,51 @@ def validate_synthesis(
         )
         for eid in inline_ids
     ]
+
+
+def validate_single_agent_synthesis(result: SynthesisResult, chunks: list[SourceChunk]) -> None:
+    chunks_by_id = {chunk.chunk_id: chunk for chunk in chunks}
+    inline_ids = _inline_ids(result)
+    if not set(inline_ids).issubset(chunks_by_id):
+        raise ContractError("inline_citation_outside_supplied_sources")
+    # These references identify supplied text; they do not imply a separate semantic review.
+    result.citations = [
+        Citation(
+            evidence_id=chunk_id,
+            source_id=chunks_by_id[chunk_id].source_id,
+            title=chunks_by_id[chunk_id].title,
+            locator=chunks_by_id[chunk_id].locator,
+        )
+        for chunk_id in inline_ids
+    ]
+
+
+def validate_synthesis_text(answer: str, limitations: list[str]) -> None:
+    """Check prose format and citation syntax; reviewed-source checks follow generation."""
+    _inline_ids(SynthesisResult(answer=answer, limitations=limitations))
+
+
+def _inline_ids(result: SynthesisResult) -> list[str]:
+    texts = [result.answer, *result.limitations]
+    for text in texts:
+        # Reject misplaced fields; stripping them could discard important caveats.
+        if _OUTPUT_MARKUP.search(text):
+            raise ContractError("unexpected_output_markup")
+
+    inline_ids = _citation_ids(result.answer)
+    if not inline_ids:
+        raise ContractError("missing_inline_citations")
+    for limitation in result.limitations:
+        inline_ids.extend(_citation_ids(limitation))
+    return list(dict.fromkeys(inline_ids))
+
+
+def _citation_ids(text: str) -> list[str]:
+    inline_ids = []
+    for bracket in re.findall(r"\[([^\]]*)\]", text):
+        # The whole bracket must be an ID or comma-separated IDs, not metadata.
+        if re.fullmatch(r"\s*E[0-9]+(?:\s*,\s*E[0-9]+)*\s*", bracket):
+            inline_ids.extend(re.findall(r"E[0-9]+", bracket))
+        elif re.search(r"\b[EC][0-9]+\b", bracket, re.IGNORECASE):
+            raise ContractError("invalid_inline_citation")
+    return inline_ids

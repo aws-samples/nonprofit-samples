@@ -1,0 +1,11 @@
+{
+  "case_id": "A001",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "yes",
+  "scope": "Required facts, support and scope boundaries presented for A001; no model output was graded.",
+  "input_sha256": "30f9ac19b852a4fb41c3d61d3a41ba8c61aa0cde12f8911d465416f63ac55636",
+  "expected_sha256": "f4c619f828c735ffbb8a335ede4f27fb193cb4d40be6d11a7212c2fe5e5cb08c",
+  "model_calls_before_approval": 0
+}

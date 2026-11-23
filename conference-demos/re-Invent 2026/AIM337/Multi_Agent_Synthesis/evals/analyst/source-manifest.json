@@ -1,0 +1,129 @@
+{
+  "sources": [
+    {
+      "source_id": "coastal-claims",
+      "path": "sources/coastal-claims.csv",
+      "title": "Coastal Resilience illustrative claims records",
+      "sha256": "1095dc635296d33e9ff6cff5d8544a3e3cfda933814e3301d07289dbb7dbb8d4",
+      "origin": "existing_repository_fixture",
+      "repository_path": "examples/coastal-resilience/claims.csv",
+      "copied_from": "evals/verifier/sources/coastal-claims.csv",
+      "transformation": "File copied byte-for-byte. The complete CSV is supplied under a case-local evidence ID; see each case input and locator.",
+      "limitations": [
+        "Illustrative sample; not independently observed real-world measurements."
+      ]
+    },
+    {
+      "source_id": "coastal-water",
+      "path": "sources/coastal-water-levels.json",
+      "title": "Coastal Resilience illustrative water-level records",
+      "sha256": "ee773d410c0e199cb9f55035e3476cf892b569d96fffa67fd4af0b0df960b5e0",
+      "origin": "existing_repository_fixture",
+      "repository_path": "examples/coastal-resilience/water-levels.json",
+      "copied_from": "evals/verifier/sources/coastal-water-levels.json",
+      "transformation": "File copied byte-for-byte. Cases select the second object, observed_high_tide_days, under a case-local evidence ID; indentation differs but normalized text matches. The water-level-trend object is not model input.",
+      "limitations": [
+        "Illustrative fixture, not independently observed real-world measurements.",
+        "Earlier and recent values have no supplied calendar dates or elapsed interval."
+      ]
+    },
+    {
+      "source_id": "harris-landsat",
+      "path": "sources/harris-landsat.json",
+      "title": "Prepared Harris County Landsat surface-temperature extract",
+      "sha256": "39adff32599bf26cbb81379e5e911bc9a50c8c02885ecec069f109903ce5153c",
+      "origin": "existing_repository_fixture",
+      "repository_path": "examples/harris-county-climate-risk/landsat-surface-temperature-samples.json",
+      "copied_from": "evals/verifier/sources/harris-landsat.json",
+      "transformation": "Copied byte-for-byte; A003 selects the Downtown Houston object or the Landsat measurements section as indicated by each evidence locator.",
+      "limitations": [
+        "Existing prepared extract or preparation notes; upstream data was not re-fetched.",
+        "Preparation notes document the measurement and are not an independent corroborating measurement."
+      ]
+    },
+    {
+      "source_id": "harris-notes",
+      "path": "sources/harris-dataset-notes.md",
+      "title": "Preparation notes for the Harris County extracts",
+      "sha256": "e77ea5f82cf1c5fc77ee59f7ce9831e21d1b0d393d92e986160e8661518e5b84",
+      "origin": "existing_repository_fixture",
+      "repository_path": "examples/harris-county-climate-risk/dataset-notes.md",
+      "copied_from": "evals/verifier/sources/harris-dataset-notes.md",
+      "transformation": "Copied byte-for-byte; A003 selects the Downtown Houston object or the Landsat measurements section as indicated by each evidence locator.",
+      "limitations": [
+        "Existing prepared extract or preparation notes; upstream data was not re-fetched.",
+        "Preparation notes document the measurement and are not an independent corroborating measurement."
+      ]
+    },
+    {
+      "source_id": "census-example-pdf",
+      "title": "Census: Comparing ACS Estimates Using Margins of Error",
+      "path": "sources/census-comparing-estimates-2015.pdf",
+      "origin": "official_public_download",
+      "sha256": "6d1b0b91d31454122703e2b79a981d813d0005665f3253362dbbb0fe300df221",
+      "url": "https://www.census.gov/content/dam/Census/newsroom/press-kits/2015/comparing_acs_estimates.pdf",
+      "retrieved_at": "2026-10-19T17:03:48.507053+00:00",
+      "limitations": [
+        "Historical worked example, not a current county data extract. The press-kit URL year is not the observation year."
+      ],
+      "copied_from": "evals/verifier/sources/census-comparing-estimates-2015.pdf",
+      "copy_note": "Existing frozen source copied byte-for-byte for Analyst evaluation; no new download or source interpretation."
+    },
+    {
+      "source_id": "census-example",
+      "title": "Historical Census worked example: median ages and margins of error",
+      "path": "sources/census-example-page2.txt",
+      "origin": "documented_transcription",
+      "sha256": "39f6ae717c022cae5dfb55b7dc2f109de3a82e3462f3c7486381ac61dd76e6b8",
+      "parents": [
+        "census-example-pdf"
+      ],
+      "transformation": "Transcribed the table row label 'Median age (years)' and the explanatory paragraph on PDF page 2. Whitespace normalized; label and numbers visually verified against the page. No geography or observation year was inferred.",
+      "page": 2,
+      "limitations": [
+        "A historical worked example; not 2024 King County data and not a current population assessment."
+      ],
+      "copied_from": "evals/verifier/sources/census-example-page2.txt",
+      "copy_note": "Existing frozen source copied byte-for-byte for Analyst evaluation; no new download or source interpretation."
+    },
+    {
+      "source_id": "coastal-notes",
+      "path": "sources/coastal-field-notes.md",
+      "title": "Coastal Resilience illustrative field notes",
+      "sha256": "52a2a4ecc2bc76c835162ed23a7551ddd48963e724a3dcd012a51bcabe3430e3",
+      "origin": "existing_repository_fixture",
+      "repository_path": "examples/coastal-resilience/field-notes.md",
+      "copied_from": "evals/verifier/sources/coastal-field-notes.md",
+      "transformation": "Copied byte-for-byte; the full field-note passage is supplied as one evidence record.",
+      "limitations": [
+        "Illustrative fixture, not independently verified field research.",
+        "Reported observations can inform local conditions but do not substitute for a parcel-level engineering assessment."
+      ]
+    },
+    {
+      "source_id": "bls-june-initial",
+      "title": "BLS initial June 2024 payroll-employment estimate and revision notes",
+      "path": "sources/bls-june-2024-initial-estimate.json",
+      "origin": "documented_transcription",
+      "sha256": "c7b94fb08b812fc41bd8e4c3ffbd76e0bb5a404850bcfb0258c64b0850aa2549",
+      "url": "https://www.bls.gov/news.release/archives/empsit_07052024.htm",
+      "verified_at": "2026-10-19T19:47:12.777455+00:00",
+      "source_sections": [
+        "Release header and opening paragraph",
+        "Summary table B: June 2024(p), total nonfarm monthly change in thousands",
+        "Table B-1: seasonally adjusted May-to-June change",
+        "Technical Note, Reliability of the estimates: incomplete returns and preliminary status",
+        "Frequently Asked Questions, question 3: monthly and annual revisions"
+      ],
+      "transformation": "Transcribed the initial total-nonfarm monthly change, publication date, measure, seasonal adjustment and preliminary status into JSON. Paraphrased the release notes on incomplete returns, the next two monthly revisions, recalculated seasonal factors and annual benchmarking. No later release values were substituted.",
+      "acquisition_note": "Verified against the archived official page through web retrieval. A direct Python download returned HTTP 403; the original HTML was not retained. No original-document hash is claimed.",
+      "limitations": [
+        "Historical initial-release estimate, not the latest revised value.",
+        "Counts payroll jobs, not unique workers or household-survey employment.",
+        "Source snapshot contains a factual transcription and paraphrased revision notes, not the complete archived release."
+      ],
+      "copied_from": "evals/verifier/sources/bls-june-2024-initial-estimate.json",
+      "copy_note": "Existing frozen transcription copied byte-for-byte for Analyst evaluation; no new source retrieval or revised estimate was substituted."
+    }
+  ]
+}

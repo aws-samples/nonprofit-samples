@@ -1,0 +1,14 @@
+{
+  "publisher": "U.S. Bureau of Labor Statistics",
+  "release": "The Employment Situation - June 2024",
+  "release_date": "2024-07-05",
+  "geography": "United States",
+  "survey": "establishment survey",
+  "measure": "over-the-month change in total nonfarm payroll employment",
+  "period": "May 2024 to June 2024",
+  "adjustment": "seasonally adjusted",
+  "change": 206000,
+  "unit": "payroll jobs",
+  "status": "preliminary",
+  "revision_note": "The newest two monthly estimates use incomplete survey returns. Initial estimates are revised in each of the next two months as additional reports arrive and seasonal factors are recalculated. Annual benchmark revisions also occur."
+}

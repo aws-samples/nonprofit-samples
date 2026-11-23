@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from evidence_synthesis.models import ResearchState, RunRequest, TerminalStatus
+from evidence_synthesis.models import ExecutionMode, ResearchState, RunRequest, TerminalStatus
 from evidence_synthesis.ui.artifact_progress import FileArtifactReader, start_run
 from evidence_synthesis.ui.log_progress import CloudWatchLogReader, LocalLogReader, RunLogReader
 from evidence_synthesis.ui.render import stage_status_class
@@ -51,6 +51,27 @@ def test_log_transitions_ignore_older_events_and_handle_revisions_and_retries() 
     reader.record(_payload("analyst-retry", "completed", attempt=2), 700)
     assert reader.statuses()["analyst"] == "Revision complete"
     assert reader.statuses()["verifier"] == "Waiting for logs"
+
+
+def test_single_agent_logs_use_its_logger_and_only_its_stage() -> None:
+    logger_name = "evidence_synthesis.single_agent_runner"
+    client = Mock()
+    client.filter_log_events.return_value = {"events": [
+        {"timestamp": 100, "message": _otel(_payload("single_agent", "started"), logger_name)},
+        {"timestamp": 200, "message": _otel(_payload("single_agent", "completed"), logger_name)},
+        {"timestamp": 300, "message": _otel(_payload("analyst", "started"), logger_name)},
+    ]}
+    reader = CloudWatchLogReader(
+        client, "runtime-group", RUN_ID, execution_mode=ExecutionMode.SINGLE_AGENT,
+    )
+    reader.poll()
+    assert reader.statuses() == {"single_agent": "Complete"}
+    assert client.filter_log_events.call_args.kwargs["filterPattern"] == (
+        f'"{RUN_ID}" "{logger_name}"'
+    )
+    reader.record(_payload("single_agent", "started", attempt=2), 400)
+    reader.record(_payload("single_agent", "blocked", attempt=2), 500)
+    assert reader.statuses() == {"single_agent": "Blocked"}
 
 
 @pytest.mark.parametrize("style", ["otel-string", "otel-object", "formatted", "basic"])

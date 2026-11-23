@@ -1,0 +1,13 @@
+{
+  "model_id": "us.anthropic.claude-opus-5-5",
+  "region": "us-east-1",
+  "max_tokens": 6000,
+  "timeout_seconds": 120,
+  "rubric_version": "1.1",
+  "prompt_sha256": "ff45e5f09be9d767b05c287247d898b20d057417fc1d02504511bd55396ea091",
+  "cases_requiring_gap_handoff": [
+    "A005"
+  ],
+  "rubric_file": "judge/rubric-v1.1.md",
+  "purpose": "Assisted review of saved Analyst outputs; not an application agent or an unattended quality gate."
+}

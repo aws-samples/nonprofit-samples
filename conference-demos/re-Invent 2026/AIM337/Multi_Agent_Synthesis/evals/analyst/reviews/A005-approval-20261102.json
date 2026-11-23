@@ -1,0 +1,11 @@
+{
+  "case_id": "A005",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "Yes",
+  "scope": "Supported observations, absence-versus-negation distinction, citations and explicit evidence_gaps handoff presented for A005; no model output was graded.",
+  "input_sha256": "da8311942e3552ebf4e297397d4781001882e957c85a01ff52766bb9bf62255e",
+  "expected_sha256": "48b496ded107b947c1df0e3ce122c6a837308443837103cd568fee1bacbb08c2",
+  "model_calls_before_approval": 0
+}

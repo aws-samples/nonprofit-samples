@@ -1,0 +1,44 @@
+{
+  "dataset_version": "1.0",
+  "frozen_on": "2026-11-02",
+  "recorded_at_utc": "2026-11-02T12:17:25.809080+00:00",
+  "dataset_sha256": "da73a2a3b3ee94f14a2935f1c175e2abd0b361f64927179037e4b66a86d9d6aa",
+  "source_manifest_sha256": "f2bf439ec133725383b7b95e403e472d47ec1634eec4d6ab221087c846539e9b",
+  "analyst_prompt_sha256": "a25a4f9668d522c9972e85b441d39a2fc34951daa3be6a31255c667a24c1d012",
+  "case_ids": [
+    "A001",
+    "A002",
+    "A003",
+    "A004",
+    "A005",
+    "A006",
+    "A007",
+    "A008"
+  ],
+  "approval_record_sha256": {
+    "reviews/A001-approval-20261102.json": "e66e115e33941f7932949f6b40349d6ba338b1222a7825722410c64a0e6b3b44",
+    "reviews/A002-approval-20261102.json": "08fef15a16a5cee9dbd93ce2526d7c618607aedcbacd1ed9c5210050dd68030c",
+    "reviews/A003-approval-20261102.json": "602f5d67fa0e5737673cfc55ac49a348867a970202b18f119142a56d0726ab54",
+    "reviews/A004-approval-20261102.json": "d3942a05807cf70b4656e82a94d56e9894af725f141ef33bcb287888f0bc2848",
+    "reviews/A005-approval-20261102.json": "706222ffb3211d5418df796ba72a2c599a4b5b2808d719a4a7034d9fb4434fbe",
+    "reviews/A006-approval-20261102.json": "d06aa73e4b671fd06f1506c4a3fc364081d8f45d6dfc41fb442e9ca1c6e8f534",
+    "reviews/A007-approval-20261102.json": "0185e3a33b1ee966c0afc64818371c2a122f96ba43f0ef8cf14446dbeabb1c17",
+    "reviews/A008-approval-20261102.json": "fc2829a682bc60d0cc32c4bf2d18f073f34ff6f04bd1a0a71f07784d9f8cc794"
+  },
+  "application_source_sha256": {
+    "agents/analyst.py": "93f5df6991eb1eb1a973e67af697a9cf380df769348f56f3605f4bc0aab602b1",
+    "runtime.py": "32748d86f7c816e2dc44ec436130aac688c3cc0e455d80ea25c95943f1a0ff96",
+    "strands_runtime.py": "5def9901567bfb3c354e70e99683c6aa8247f371414c59bac4392617176887bf",
+    "models.py": "23d1335ddd1b45706e96ec8be1ae941ffd8c34c7ed77bedcf4b6a1c2386b227d",
+    "validation.py": "ac082a1b0ce325988a3328db2a1c5c6b9d48985ac6f9bc402296d8afd12799ed",
+    "config.py": "28f5a4fd1e8751d85c7f8fae8ea76340af5fe9915c7af428264e248478d1f1f2",
+    "source_profiles.py": "a4a39654f7d8c25349c1542db5e7fdf05fd4931233946102231350d2a310f37b"
+  },
+  "model_settings": {
+    "model_id": "us.anthropic.claude-sonnet-5",
+    "region": "us-east-1",
+    "max_tokens": 10000,
+    "strands_version": "1.59.0"
+  },
+  "scope": "Eight first-pass development cases in four source families; A007/A008 are a paired control and profile challenge. No held-out set, no revision-loop evaluation, no model calls before this freeze."
+}

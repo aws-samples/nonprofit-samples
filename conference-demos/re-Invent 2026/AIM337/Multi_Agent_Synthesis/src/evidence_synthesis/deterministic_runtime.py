@@ -14,14 +14,13 @@ from evidence_synthesis.models import (
     AgentRole,
     AnalysisInput,
     AnalysisResult,
-    Citation,
     Claim,
     Contradiction,
     EvidenceExtractorInput,
     EvidenceExtractorResult,
     EvidenceRecord,
+    SingleAgentInput,
     SourceChunk,
-    SynthesisInput,
     SynthesisResult,
     VerificationInput,
     VerificationResult,
@@ -30,6 +29,7 @@ from evidence_synthesis.models import (
 )
 from evidence_synthesis.runtime import RuntimeResult, timed_metrics
 from evidence_synthesis.source_profiles import normalized_text
+from evidence_synthesis.synthesis_contract import ReviewedContent, SynthesisDraft
 
 OutputT = TypeVar("OutputT", bound=BaseModel)
 
@@ -83,7 +83,9 @@ class DeterministicRuntime:
         elif role is AgentRole.VERIFIER:
             output = self._verify(cast(VerificationInput, payload))
         elif role is AgentRole.SYNTHESIZER:
-            output = self._synthesize(cast(SynthesisInput, payload))
+            output = self._synthesize(cast(ReviewedContent, payload))
+        elif role is AgentRole.SINGLE_AGENT:
+            output = self._single_agent(cast(SingleAgentInput, payload))
         else:
             raise ValueError(f"Unsupported role: {role}")
         validated = output_type.model_validate(output)
@@ -98,6 +100,16 @@ class DeterministicRuntime:
                 input_tokens=approximate_input,
                 output_tokens=approximate_output,
             ),
+        )
+
+    def _single_agent(self, payload: SingleAgentInput) -> SynthesisResult:
+        # The offline mode demonstrates wiring; it does not perform model reasoning.
+        lines = ["Offline simulation: excerpts from the supplied sources.", ""]
+        for chunk in payload.chunks:
+            lines.append(f"- {self._claim_text(chunk.content)} [{chunk.chunk_id}]")
+        return SynthesisResult(
+            answer="\n".join(lines),
+            limitations=["Hand-coded simulation; no model analyzed or verified these sources."],
         )
 
     def _extract(self, payload: EvidenceExtractorInput) -> EvidenceExtractorResult:
@@ -224,63 +236,40 @@ class DeterministicRuntime:
             )
         return contradictions
 
-    def _synthesize(self, payload: SynthesisInput) -> SynthesisResult:
-        evidence_by_id = {record.evidence_id: record for record in payload.evidence}
+    def _synthesize(self, payload: ReviewedContent) -> SynthesisDraft:
         usable = [
             item
-            for item in payload.verification.claims
+            for item in payload.claims
             if item.status is not VerificationStatus.REJECTED
         ]
         lines = [f"Evidence synthesis for: {payload.question}", ""]
         if usable:
             lines.append("Supported findings:")
             for item in usable:
-                marker = " ".join(f"[{evidence_id}]" for evidence_id in item.claim.evidence_ids)
+                marker = " ".join(f"[{evidence_id}]" for evidence_id in item.evidence_ids)
                 qualifier = (
                     "Qualified" if item.status is VerificationStatus.QUALIFIED else "Verified"
                 )
-                lines.append(f"- {qualifier}: {item.claim.statement} {marker}")
+                lines.append(f"- {qualifier}: {item.statement} {marker}")
         else:
             lines.append("No claims survived verification.")
 
-        if payload.verification.contradictions:
+        if payload.contradictions:
             lines.extend(["", "Unresolved methodological conflicts:"])
-            for conflict in payload.verification.contradictions:
+            for conflict in payload.contradictions:
                 lines.append(
                     f"- {conflict.explanation} {conflict.methodology_note} "
                     f"{conflict.resolution}"
                 )
 
-        limitations = list(dict.fromkeys(payload.verification.evidence_gaps))
-        if payload.partial and payload.terminal_reason:
-            limitations.append(f"Pipeline ended early: {payload.terminal_reason}.")
+        limitations = list(dict.fromkeys(payload.evidence_gaps))
         if limitations:
             lines.extend(["", "Limitations:"])
             lines.extend(f"- {item}" for item in limitations)
 
-        evidence_ids = list(
-            dict.fromkeys(
-                evidence_id
-                for item in usable
-                for evidence_id in item.claim.evidence_ids
-                if evidence_id in evidence_by_id
-            )
-        )
-        citations = [
-            Citation(
-                evidence_id=evidence_id,
-                source_id=evidence_by_id[evidence_id].source_id,
-                title=evidence_by_id[evidence_id].title,
-                locator=evidence_by_id[evidence_id].locator,
-            )
-            for evidence_id in evidence_ids
-        ]
-        return SynthesisResult(
+        return SynthesisDraft(
             answer="\n".join(lines),
-            citations=citations,
             limitations=limitations,
-            partial=payload.partial,
-            terminal_reason=payload.terminal_reason,
         )
 
     @staticmethod

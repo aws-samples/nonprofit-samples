@@ -1,0 +1,38 @@
+{
+  "question": "As of September 5, 2025, did U.S. nonfarm payroll employment increase or decrease in June 2025 compared with May, and by how much?",
+  "sources": [
+    {
+      "source_id": "payroll-employment-as-of-2025-07-03",
+      "uri": "payroll-employment-as-of-2025-07-03.json",
+      "title": "Payroll Employment As Of 2025 07 03",
+      "methodology": "unspecified",
+      "media_type": "application/json",
+      "metadata": {}
+    },
+    {
+      "source_id": "payroll-employment-as-of-2025-08-01",
+      "uri": "payroll-employment-as-of-2025-08-01.json",
+      "title": "Payroll Employment As Of 2025 08 01",
+      "methodology": "unspecified",
+      "media_type": "application/json",
+      "metadata": {}
+    },
+    {
+      "source_id": "payroll-employment-as-of-2025-09-05",
+      "uri": "payroll-employment-as-of-2025-09-05.json",
+      "title": "Payroll Employment As Of 2025 09 05",
+      "methodology": "unspecified",
+      "media_type": "application/json",
+      "metadata": {}
+    },
+    {
+      "source_id": "series-and-vintage-definitions",
+      "uri": "series-and-vintage-definitions.json",
+      "title": "Series And Vintage Definitions",
+      "methodology": "unspecified",
+      "media_type": "application/json",
+      "metadata": {}
+    }
+  ],
+  "max_evidence": 20
+}

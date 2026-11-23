@@ -1,0 +1,11 @@
+{
+  "case_id": "A007",
+  "decision": "approved",
+  "approved_by": "user",
+  "approved_on": "2026-11-02",
+  "user_response_verbatim": "yes",
+  "scope": "Initial-release context, preliminary/revisable status, employment measure and citation expectations presented for A007; no model output was graded.",
+  "input_sha256": "4adf2c0375114ac46cb80082f2ff17b39bb7bbb319652a09f1b2706b3fc1c5f3",
+  "expected_sha256": "7a6e6ce32ef15deb8bdaaf1633d2d554e305ebf5d18361397654cf283eec0f21",
+  "model_calls_before_approval": 0
+}
